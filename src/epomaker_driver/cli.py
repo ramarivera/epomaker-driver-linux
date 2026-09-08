@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, codec, media, profiles
+from . import __version__, codec, media, profiles, snapshot
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError
@@ -39,6 +39,12 @@ def parser():
     light.add_argument("--rainbow", action="store_true")
     light.add_argument("--side", action="store_true")
     commands.add_parser("get-sleep")
+    commands.add_parser("get-options")
+    options = commands.add_parser("options")
+    options.add_argument("--system", choices=("win", "mac"))
+    options.add_argument("--wasd-swap", action=argparse.BooleanOptionalAction, default=None)
+    commands.add_parser("get-auto-os")
+    commands.add_parser("auto-os").add_argument("enabled", choices=("on", "off"))
     sleep = commands.add_parser("sleep")
     for name in ("bt", "dongle", "deep_bt", "deep_dongle"):
         sleep.add_argument(name, type=int)
@@ -64,6 +70,13 @@ def parser():
     backup = commands.add_parser("backup")
     backup.add_argument("path", type=Path)
     backup.add_argument("--overwrite", action="store_true")
+    restore = commands.add_parser(
+        "restore", help="restore a v2 snapshot with a saved recovery copy"
+    )
+    restore.add_argument("path", type=Path)
+    restore.add_argument(
+        "--backup", type=Path, required=True, help="new file for current configuration"
+    )
     info = commands.add_parser("inspect-profile", help="decode a local JSON/raw-DEFLATE profile")
     info.add_argument("path", type=Path)
     return root
@@ -96,6 +109,10 @@ def execute(args):
         if not isinstance(value, dict) or set(value) != {"repeat", "events"}:
             raise ValueError("macro must contain exactly repeat and events")
         prepared = codec.macro_data(value["repeat"], value["events"])
+    elif args.command == "restore":
+        with args.path.open("rb") as stream:
+            prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        snapshot.validate(prepared)
     with Transport.open(select_device(args.device)) as transport:
         keyboard = Keyboard(transport)
         if args.command == "identify":
@@ -116,6 +133,17 @@ def execute(args):
             )
         if args.command == "get-sleep":
             return keyboard.get_sleep()
+        if args.command == "get-options":
+            return keyboard.get_options()
+        if args.command == "options":
+            return keyboard.set_options(system=args.system, wasd_swap=args.wasd_swap)
+        if args.command == "get-auto-os":
+            return keyboard.get_auto_os()
+        if args.command == "auto-os":
+            keyboard.set_auto_os(args.enabled == "on")
+            return {"ok": True}
+        if args.command == "restore":
+            return snapshot.restore(keyboard, prepared, args.backup)
         if args.command == "sleep":
             return keyboard.set_sleep(args.bt, args.dongle, args.deep_bt, args.deep_dongle)
         if args.command == "matrix":
@@ -142,24 +170,9 @@ def execute(args):
         elif args.command == "clock":
             keyboard.sync_clock()
         elif args.command == "backup":
-            identity = keyboard.identify()
-            matrices = [keyboard.read_matrix(p).hex() for p in range(3)]
-            fn = {
-                name: keyboard.read_matrix(0, fn=True, os_mode=os_mode).hex()
-                for name, os_mode in [("win", 0), ("mac", 1)]
-            }
-            snapshot = {
-                "schema_version": 1,
-                "identity": identity,
-                "matrices": matrices,
-                "fn": fn,
-                "light": keyboard.get_light(),
-                "side_light": keyboard.get_light(side=True),
-                "sleep": keyboard.get_sleep(),
-                "limitations": ["macro bodies and screen pixels are not included yet"],
-            }
-            profiles.save(args.path, snapshot, overwrite=args.overwrite)
-            return {"saved": str(args.path), "limitations": snapshot["limitations"]}
+            value = snapshot.capture(keyboard)
+            profiles.save(args.path, value, overwrite=args.overwrite)
+            return {"saved": str(args.path), "limitations": value["limitations"]}
         return {"ok": True}
 
 

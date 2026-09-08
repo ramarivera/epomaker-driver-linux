@@ -101,3 +101,38 @@ def test_readback_mismatch(operation, firmware, monkeypatch):
             k.set_debounce(99)
         else:
             k.write_macro(0, bytes([1]) * 256)
+
+
+def test_options_preserve_fields_and_verify(firmware):
+    keyboard = Keyboard(firmware)
+    before = bytes(firmware.options)
+    result = keyboard.set_options(system="mac", wasd_swap=True)
+    assert result["system"] == "mac" and result["wasd_swap"]
+    assert bytes(firmware.options[2:5]) == before[2:5]
+    assert firmware.options[6] == before[6]
+    keyboard.set_options(system="win", wasd_swap=False)
+    assert keyboard.get_options()["system"] == "win"
+    keyboard.set_options()
+    keyboard.set_auto_os(True)
+    assert keyboard.get_auto_os()
+    for kwargs in ({"system": "ios"}, {"wasd_swap": 1}):
+        with pytest.raises(ValueError):
+            keyboard.set_options(**kwargs)
+    with pytest.raises(ValueError):
+        keyboard.set_auto_os(1)
+    firmware.send = lambda *a, **kw: None
+    with pytest.raises(ProtocolError):
+        keyboard.set_options(system="mac")
+    with pytest.raises(ProtocolError):
+        keyboard.set_auto_os(False)
+
+
+def test_fn_matrix_validation_and_readback(firmware):
+    keyboard = Keyboard(firmware)
+    with pytest.raises(ValueError):
+        keyboard.write_fn_matrix(bytes(1))
+    with pytest.raises(ValueError):
+        keyboard.write_fn_matrix(bytes(512), 2)
+    firmware.send = lambda *a, **kw: None
+    with pytest.raises(ProtocolError, match="Fn matrix"):
+        keyboard.write_fn_matrix(bytes(512))

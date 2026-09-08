@@ -121,3 +121,29 @@ def test_screen_cli(cli_device, firmware, tmp_path):
     chunks = [p for p in firmware.sent if p[0] == 0x25]
     assert len(chunks) == 2171
     assert sum(p[6] for p in chunks) == 121552
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["get-options"],
+        ["options", "--system", "mac", "--wasd-swap"],
+        ["options", "--no-wasd-swap"],
+        ["get-auto-os"],
+        ["auto-os", "on"],
+        ["auto-os", "off"],
+    ],
+)
+def test_options_cli(arguments, cli_device):
+    assert cli.main(["--device", cli_device.path, *arguments]) == 0
+
+
+def test_restore_cli(cli_device, tmp_path, firmware):
+    prefix = ["--device", cli_device.path]
+    source = tmp_path / "snapshot.json"
+    recovery = tmp_path / "before.json"
+    assert cli.main([*prefix, "backup", str(source)]) == 0
+    firmware.profile = 2
+    assert cli.main([*prefix, "restore", str(source), "--backup", str(recovery)]) == 0
+    assert firmware.profile == 0
+    assert json.loads(recovery.read_text())["profile"] == 2

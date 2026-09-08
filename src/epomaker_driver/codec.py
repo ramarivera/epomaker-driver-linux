@@ -319,12 +319,12 @@ def macro_data(repeat, events):
     return result.ljust(256, b"\0")
 
 
-def macro_chunks(slot, data):
+def macro_chunks(slot, data, *, full=False):
     bounded(slot, 255, "macro slot")
     if len(data) != 256:
         raise ValueError("macro must be exactly 256 bytes")
     # Use the highest nonzero chunk, not the count of nonzero chunks: preserves holes.
-    last = max((i for i, v in enumerate(data) if v), default=0) // 56
+    last = 4 if full else max((i for i, v in enumerate(data) if v), default=0) // 56
     for index in range(last + 1):
         yield packet(
             bytes([0x0B, slot, index, 56, int(index == last), 0, 0, 0])

@@ -30,8 +30,13 @@ Device access may require [permissions](docs/hardware.md).
 ```sh
 # Write a visible RGB setting, then read it back.
 .venv/bin/epomaker --device /dev/hidrawN light solid --rgb ff8040
-# Back up key/Fn maps and settings. Macro bodies and screen images are not included yet.
+# Back up key/Fn maps, referenced macros, and settings.
 .venv/bin/epomaker --device /dev/hidrawN backup ./backups/glyph.json
+# Restore after saving the current configuration to a new recovery file.
+.venv/bin/epomaker --device /dev/hidrawN restore ./backups/glyph.json --backup ./backups/before-restore.json
+# Select the Mac Fn layer or automatic OS selection.
+.venv/bin/epomaker --device /dev/hidrawN options --system mac
+.venv/bin/epomaker --device /dev/hidrawN auto-os on
 # Read a physical-slot matrix; positions are not HID keycodes.
 .venv/bin/epomaker --device /dev/hidrawN matrix --profile 0
 # Upload a still PNG/JPEG; preserve aspect ratio with black borders.
@@ -50,6 +55,7 @@ and `delay_ms` (1–65535). For example:
 
 Assigning a macro to a key is a separate remapping operation. Still images are converted
 to the display's column-major RGB565 format. Animated images are currently rejected.
+See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 
 ## Test
 

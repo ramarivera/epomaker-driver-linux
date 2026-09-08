@@ -67,6 +67,66 @@ class Keyboard:
         opcode = 0x88 if side else 0x87
         return codec.parse_light(self._query(codec.packet([opcode]), expected=opcode), side=side)
 
+    def get_options(self):
+        raw = self._query(codec.packet([0x89]), expected=0x89)
+        return {
+            "system": {0: "win", 1: "mac", 2: "ios", 3: "android"}.get(raw[1], "unknown"),
+            "fn_layer": raw[2],
+            "wasd_swap": raw[5] == 1,
+            "raw": list(raw),
+        }
+
+    def set_options(self, *, system=None, wasd_swap=None):
+        if system is not None and system not in ("win", "mac"):
+            raise ValueError("Glyph exposes Windows and Mac system layers")
+        if wasd_swap is not None and type(wasd_swap) is not bool:
+            raise ValueError("wasd_swap must be boolean")
+
+        def operation():
+            # Preserve unrelated vendor option bytes, including unknown fields.
+            raw = bytearray(self.get_options()["raw"][:7])
+            raw[0] = 9
+            if system is not None:
+                raw[1] = 0 if system == "win" else 1
+            if wasd_swap is not None:
+                raw[5] = int(wasd_swap)
+            self._write([codec.packet(raw)])
+            actual = self.get_options()
+            if actual["raw"][1:7] != list(raw[1:7]):
+                raise ProtocolError("keyboard options readback differs")
+            return actual
+
+        return self.transport.transaction(operation)
+
+    def get_auto_os(self):
+        return self._query(codec.packet([0x97]), expected=0x97)[1] == 1
+
+    def set_auto_os(self, enabled):
+        if type(enabled) is not bool:
+            raise ValueError("enabled must be boolean")
+        self._write([codec.packet([0x17, int(enabled)])])
+        if self.get_auto_os() != enabled:
+            raise ProtocolError("automatic OS selection readback differs")
+
+    def write_fn_matrix(self, matrix, os_mode=0):
+        matrix = bytes(matrix)
+        if len(matrix) != 512:
+            raise ValueError("Fn matrix must have 128 four-byte slots")
+        codec.bounded(os_mode, 1, "Glyph OS selector")
+
+        def operation():
+            previous = self.read_matrix(fn=True, os_mode=os_mode)
+            commands = [
+                codec.fn_single(i, matrix[i * 4 : i * 4 + 4], os_mode=os_mode)
+                for i in range(128)
+                if matrix[i * 4 : i * 4 + 4] != previous[i * 4 : i * 4 + 4]
+            ]
+            self._write(commands)
+            if self.read_matrix(fn=True, os_mode=os_mode) != matrix:
+                raise ProtocolError("Fn matrix readback differs")
+
+        self.transport.transaction(operation)
+
     def set_light(self, mode, **options):
         self._write([codec.light(mode, **options)])
         return self.get_light(side=options.get("side", False))
@@ -142,7 +202,7 @@ class Keyboard:
         return self.transport.transaction(operation)
 
     def write_macro(self, slot, data):
-        self._write(list(codec.macro_chunks(slot, data)))
+        self._write(list(codec.macro_chunks(slot, data, full=True)))
         if self.read_macro(slot) != bytes(data):
             raise ProtocolError("macro readback differs")
 

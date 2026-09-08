@@ -15,12 +15,13 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph key and Fn slots, matrix read/write, readback checks | Semantic action editor and other families |
-| Profiles | Three Glyph matrices; active profile selection | Full restore, vendor export semantics, other models |
+| Profiles | Three Glyph matrices; active profile selection; versioned configuration restore | Vendor export semantics, other models |
 | Lighting | Main and side modes; custom picture encoding | Hardware comparison and interactive editor |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
 | Macros | Keyboard-event JSON CLI, encoding, slots read/write | Mouse/motion events, recording, editor, assignment semantics |
 | Screen | Still-image CLI, RGB565 conversion, bounded frame transfer, clock sync | Image/GIF UI, playback and display settings, hardware comparison |
-| Backups | Key/Fn maps, lighting and sleep; atomic private files | Macro bodies, pixels, full restore |
+| Backups | Key/Fn maps, referenced macros, lighting, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros, screen pixels, custom RGB pictures |
+| OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Research only | F6/F7/FC/FE transport and paired-device handling |
 | Other keyboard families | Catalog only | Older YC3121 and model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
