@@ -18,6 +18,9 @@ with a recovery copy. Its graphical interface remains unfinished.
 timers, debounce, OS options, main lighting, its 240×240 display, snapshots and
 reset with recovery through the CLI.
 
+[RY6602 core support](docs/ry6602.md) covers SN020, EK75, TH80 V3 MAX, TH80 V2
+and TH65 Max: keymaps, Fn layers, macros, profiles, debounce and OS controls.
+
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
 

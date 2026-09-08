@@ -116,7 +116,8 @@ class DeviceInfo:
 
 
 def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
-    # Initial verified descriptor family. More model/transport families remain in the roadmap.
+    # Command collections from installer filters; require matching report sizes.
+    # RY6602 USB product ID and unverified hardware status: docs/ry6602.md.
     if vid != 0x3151:
         return None, None
     if bus == 5 and pid == 0x5004:
@@ -124,7 +125,7 @@ def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
         if r and Collection(0xFF55, 0x0202) in r.collections:
             if r.payload_bytes("input") == r.payload_bytes("output") == 65:
                 return "bluetooth", 6
-    if bus == 3 and pid == 0x5002:
+    if bus == 3 and pid in (0x5002, 0x5056):
         r = reports.get(0)
         if r and Collection(0xFFFF, 2) in r.collections and r.payload_bytes("feature") == 64:
             return "usb", 0

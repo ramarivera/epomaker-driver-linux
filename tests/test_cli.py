@@ -394,3 +394,19 @@ def test_rt75_recovery_cli(cli_device, firmware, tmp_path):
     )
     assert cli.main([*prefix, "factory-reset", "--backup", str(tmp_path / "reset.json")]) == 0
     assert firmware.sent[-1][0] == 1
+
+
+@pytest.mark.parametrize("model_id", [3858, 3633, 3673, 3573, 3674])
+def test_ry6602_core_cli(cli_device, firmware, model_id):
+    from epomaker_driver.models import default_matrix, model_by_id
+
+    firmware.model_id = model_id
+    firmware.matrices = [
+        bytearray(default_matrix(model_id)) for _ in range(model_by_id(model_id)["layer"])
+    ]
+    last = len(firmware.matrices) - 1
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, "profile", str(last)]) == 0
+    assert cli.main([*prefix, "key", "9", "00000500", "--profile", str(last)]) == 0
+    assert firmware.matrices[last][36:40] == bytes([0, 0, 5, 0])
+    assert cli.main([*prefix, "status"]) == 0

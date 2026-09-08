@@ -1,7 +1,7 @@
 """Versioned keyboard configuration snapshots; validate all fields before restoration."""
 
 from . import codec, profiles
-from .errors import ProtocolError
+from .errors import ProtocolError, UnsupportedDevice
 from .models import model_by_id, validate_sleep_times
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
@@ -15,6 +15,8 @@ def capture(keyboard, *, extra_macro_slots=()):
     def operation():
         identity = keyboard.identify()
         keyboard._supported()
+        if identity["device_id"] not in (2895, 3059, 3223):
+            raise UnsupportedDevice("Snapshots currently support Glyph, RT85 and RT75")
         rt85 = identity["device_id"] == 2895
         matrices = [keyboard.read_matrix(p) for p in range(keyboard.model["layer"])]
         fn = {

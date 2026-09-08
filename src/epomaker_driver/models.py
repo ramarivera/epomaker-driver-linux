@@ -7,6 +7,9 @@ from importlib.resources import files
 
 from .errors import UnsupportedDevice
 
+# Explicitly migrated RY6602 models; see docs/ry6602.md.
+RY6602_IDS = (3858, 3633, 3673, 3573, 3674)
+
 
 def data_file(name: str):
     return json.loads(files("epomaker_driver").joinpath("data", name).read_text())
@@ -28,7 +31,12 @@ def glyph_matrix(layer="defaultMatrix") -> bytes:
 
 
 def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
-    names = {3059: "glyph", 2895: "rt85", 3223: "rt75"}
+    names = {
+        3059: "glyph",
+        2895: "rt85",
+        3223: "rt75",
+        **{mid: f"ry6602-{mid}" for mid in RY6602_IDS},
+    }
     if device_id not in names:
         raise UnsupportedDevice("No migrated default matrices for this model")
     matrices = data_file(f"{names[device_id]}-matrices.json")

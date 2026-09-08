@@ -1900,7 +1900,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5056",
-    "implementation": "catalogued",
+    "implementation": "ry6602-core",
     "hardware_verified": false
   },
   {
@@ -1946,7 +1946,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5056",
-    "implementation": "catalogued",
+    "implementation": "ry6602-core",
     "hardware_verified": false
   },
   {
@@ -2011,7 +2011,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5056",
-    "implementation": "catalogued",
+    "implementation": "ry6602-core",
     "hardware_verified": false
   },
   {
@@ -2057,7 +2057,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5056",
-    "implementation": "catalogued",
+    "implementation": "ry6602-core",
     "hardware_verified": false
   },
   {
@@ -2114,7 +2114,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5056",
-    "implementation": "catalogued",
+    "implementation": "ry6602-core",
     "hardware_verified": false
   }
 ]

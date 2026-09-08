@@ -6,7 +6,7 @@ import datetime
 
 from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
-from .models import display_spec, model_by_id, validate_sleep_times
+from .models import RY6602_IDS, display_spec, model_by_id, validate_sleep_times
 
 
 class Keyboard:
@@ -25,10 +25,8 @@ class Keyboard:
     def _supported(self):
         if self.identity is None:
             self.identify()
-        if self.identity["device_id"] not in (2895, 3059, 3223):
-            raise UnsupportedDevice(
-                "Configuration supports Glyph and selected RT85/RT75 features; other models are being migrated"
-            )
+        if self.identity["device_id"] not in (2895, 3059, 3223, *RY6602_IDS):
+            raise UnsupportedDevice("This model has no migrated configuration protocol")
         if self.identity["is_boot"]:
             raise UnsupportedDevice("Device is in bootloader mode")
 
@@ -102,6 +100,13 @@ class Keyboard:
                     "RT75 currently supports keymaps, Fn, macros, profiles, sleep, debounce, OS controls, main lighting and display"
                 )
 
+        if self.identity["device_id"] in RY6602_IDS:
+            allowed = (4, 6, 9, 10, 11, 16, 0x17, 0x84, 0x86, 0x89, 0x8A, 0x8B, 0x90, 0x97)
+            if any(command[0] not in allowed for command in commands):
+                raise UnsupportedDevice(
+                    "RY6602 core supports keymaps, Fn, macros, profiles, debounce and OS controls"
+                )
+
     def _profile_max(self):
         self._supported()
         return self.model["layer"] - 1
@@ -123,6 +128,19 @@ class Keyboard:
     def status(self):
         self._supported()
         profile = self._query(codec.packet([0x84]), expected=0x84)[1]
+        if self.identity["device_id"] in RY6602_IDS:
+            return {
+                "identity": self.identity,
+                "model": self.model["displayName"],
+                "profile": profile,
+                "profiles": self.model["layer"],
+                "battery": self.transport.battery,
+                "online": self.transport.online,
+                "capabilities": ["keymap", "fn", "macro", "profile", "debounce", "os"],
+                "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
+                "options": self.get_options(),
+                "auto_os": self.get_auto_os(),
+            }
         if self.identity["device_id"] == 2895:
             return {
                 "identity": self.identity,
@@ -274,7 +292,7 @@ class Keyboard:
         return codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))
 
     def set_sleep(self, bt, dongle, deep_bt, deep_dongle):
-        self._supported()
+        self._check_commands([codec.packet([0x11])])
         validate_sleep_times(self.identity["device_id"], (bt, dongle, deep_bt, deep_dongle))
         self._write([codec.sleep_times(bt, dongle, deep_bt, deep_dongle)])
         actual = self.get_sleep()
