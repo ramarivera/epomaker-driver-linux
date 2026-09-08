@@ -8,6 +8,7 @@ from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from .models import (
     RY6602_IDS,
+    RY6602_SCREEN_IDS,
     RY6602_SIDE_IDS,
     display_spec,
     light_encoding,
@@ -132,6 +133,8 @@ class Keyboard:
             )
             if self.identity["device_id"] in RY6602_SIDE_IDS:
                 allowed += (8, 0x88)
+            if self.identity["device_id"] in RY6602_SCREEN_IDS:
+                allowed += (0xA9,)
             if any(command[0] not in allowed for command in commands):
                 raise UnsupportedDevice(
                     "RY6602 supports keymaps, Fn, macros, profiles, sleep, lighting, debounce and OS controls"
@@ -175,7 +178,11 @@ class Keyboard:
                     "os",
                     "sleep",
                     "lighting",
-                ],
+                ]
+                + (["display"] if self.identity["device_id"] in RY6602_SCREEN_IDS else []),
+                "display": display_spec(self.identity["device_id"])
+                if self.identity["device_id"] in RY6602_SCREEN_IDS
+                else None,
                 "light": self.get_light(),
                 "side_light": self.get_light(side=True)
                 if self.identity["device_id"] in RY6602_SIDE_IDS
@@ -508,11 +515,19 @@ class Keyboard:
         if frames > spec["max_frames"]:
             raise ValueError("animation exceeds model display memory")
         prepare = codec.screen_prepare(
-            len(pixels), bounds, frame, frames, delay, size=(spec["width"], spec["height"])
+            len(pixels),
+            bounds,
+            frame,
+            frames,
+            delay,
+            size=(spec["width"], spec["height"]),
+            rgb_bits=spec["pixel_bytes"] * 8,
         )
-        if len(pixels) != (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) * 2:
-            raise ValueError("RGB565 payload does not match screen bounds")
-        chunks = list(codec.screen_chunks(pixels, frame, frames, delay))
+        if len(pixels) != (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) * spec["pixel_bytes"]:
+            raise ValueError("RGB payload does not match screen bounds")
+        chunks = list(
+            codec.screen_chunks(pixels, frame, frames, delay, rgb_bits=spec["pixel_bytes"] * 8)
+        )
         self._transfer_screen(prepare, chunks, progress)
 
     def upload_animation(self, frames, delay, *, progress=None):
@@ -521,15 +536,23 @@ class Keyboard:
         width, height, maximum = spec["width"], spec["height"], spec["max_frames"]
         if not 2 <= len(frames) <= maximum:
             raise ValueError(f"animation must contain 2..{maximum} frames")
-        if any(len(frame) != width * height * 2 for frame in frames):
-            raise ValueError(f"animation frames must be complete {width}x{height} RGB565 images")
+        if any(len(frame) != width * height * spec["pixel_bytes"] for frame in frames):
+            raise ValueError(f"animation frames must be complete {width}x{height} RGB images")
         prepare = codec.screen_prepare(
-            len(frames[0]), (0, 0, width, height), 0, len(frames), delay, size=(width, height)
+            len(frames[0]),
+            (0, 0, width, height),
+            0,
+            len(frames),
+            delay,
+            size=(width, height),
+            rgb_bits=spec["pixel_bytes"] * 8,
         )
         chunks = [
             chunk
             for index, frame in enumerate(frames)
-            for chunk in codec.screen_chunks(frame, index, len(frames), delay)
+            for chunk in codec.screen_chunks(
+                frame, index, len(frames), delay, rgb_bits=spec["pixel_bytes"] * 8
+            )
         ]
         self._transfer_screen(prepare, chunks, progress)
 
@@ -539,7 +562,7 @@ class Keyboard:
         def operation():
             for _ in range(11):
                 try:
-                    response = self.transport.exchange(prepare, read_delay=0.1, expected=0xA5)
+                    response = self.transport.exchange(prepare, read_delay=0.1, expected=prepare[0])
                 except ResponseTimeout:
                     response = b""
                 if len(response) >= 2 and response[1] == 1:

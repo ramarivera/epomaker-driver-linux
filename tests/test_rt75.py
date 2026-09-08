@@ -121,7 +121,13 @@ def test_rgb_banks(rt75, firmware):
 def test_display_dimensions_banks_and_system_info(rt75, firmware):
     from epomaker_driver.models import display_spec
 
-    assert display_spec(3223) == {"width": 240, "height": 240, "banks": 5, "max_frames": 47}
+    assert display_spec(3223) == {
+        "width": 240,
+        "height": 240,
+        "banks": 5,
+        "max_frames": 47,
+        "pixel_bytes": 2,
+    }
     prepares = []
     exchange = firmware.exchange
 

@@ -97,3 +97,34 @@ def test_rt85_conversion_geometry_and_animation(tmp_path):
     assert all(len(frame) == 110080 for frame in frames)
     assert frames[0][:344] == bytes(344)  # letterbox side columns
     assert frames[0][160 * 344 : 160 * 344 + 2] == bytes.fromhex("f800")
+
+
+@pytest.mark.parametrize("model_id,width", [(3858, 33), (3673, 7), (3674, 7)])
+def test_rgb24_media(model_id, width, tmp_path):
+    from epomaker_driver.media import screen_animation
+
+    image = Image.new("RGBA", (width, 7), (0, 0, 0, 0))
+    image.putpixel((0, 1), (255, 0, 0, 255))
+    image.putpixel((1, 0), (0, 255, 0, 255))
+    path = tmp_path / "rgb24.png"
+    image.save(path)
+    pixels = screen_image(path, model_id=model_id)
+    assert len(pixels) == width * 7 * 3
+    assert pixels[:6] == bytes.fromhex("000000ff0000")
+    assert pixels[21:24] == bytes.fromhex("00ff00")
+    gif = tmp_path / "rgb24.gif"
+    Image.new("RGB", (2, 2), "red").save(
+        gif, save_all=True, append_images=[Image.new("RGB", (2, 2), "blue")], duration=80
+    )
+    frames, delay = screen_animation(gif, fit=True, model_id=model_id)
+    assert len(frames) == 2 and delay == 80 and len(frames[0]) == width * 7 * 3
+
+
+def test_rgb24_small_allocation_limit(tmp_path):
+    from epomaker_driver.media import screen_animation
+
+    frames = [Image.new("RGB", (7, 7), (i, 0, 0)) for i in range(17)]
+    path = tmp_path / "overflow.gif"
+    frames[0].save(path, save_all=True, append_images=frames[1:], optimize=False, duration=80)
+    with pytest.raises(ValueError, match="2..16"):
+        screen_animation(path, model_id=3674)

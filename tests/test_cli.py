@@ -429,3 +429,15 @@ def test_ry6602_three_timer_cli(cli_device, firmware, model_id, capsys):
 def test_glyph_still_requires_four_sleep_values(cli_device, firmware):
     assert cli.main(["--device", cli_device.path, "sleep", "60", "120", "600"]) != 0
     assert not firmware.sent
+
+
+@pytest.mark.parametrize("model_id,width", [(3858, 33), (3673, 7), (3674, 7)])
+def test_rgb24_screen_cli(cli_device, firmware, tmp_path, model_id, width):
+    from PIL import Image
+
+    firmware.model_id = model_id
+    path = tmp_path / "led.png"
+    Image.new("RGB", (width, 7), (0x12, 0x34, 0x56)).save(path)
+    assert cli.main(["--device", cli_device.path, "screen", str(path), "--bank", "5"]) == 0
+    assert firmware.sent[0][0:4] == bytes([0x29, 4, 1, 0])
+    assert b"".join(p[8 : 8 + p[6]] for p in firmware.sent) == bytes.fromhex("123456") * (width * 7)

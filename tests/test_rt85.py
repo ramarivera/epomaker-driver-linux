@@ -118,7 +118,13 @@ def test_display_banks_dimensions_and_commands(rt85, firmware):
 
     from epomaker_driver.models import display_spec
 
-    assert display_spec(2895) == {"width": 320, "height": 172, "banks": 5, "max_frames": 51}
+    assert display_spec(2895) == {
+        "width": 320,
+        "height": 172,
+        "banks": 5,
+        "max_frames": 51,
+        "pixel_bytes": 2,
+    }
     before = firmware.exchange
     prepares = []
 

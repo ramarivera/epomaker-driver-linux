@@ -20,7 +20,7 @@ IDs do not establish that another model speaks the same protocol.
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
-| Screen | Glyph, RT85 and RT75 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
+| Screen | Glyph, RT85, RT75 and three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Glyph, RT85 and RT75 key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |

@@ -2,7 +2,7 @@
 
 from PIL import Image, ImageOps
 
-from .codec import rgb565_column_major
+from .codec import rgb24_column_major, rgb565_column_major
 from .models import display_spec
 
 # Compatibility constant for the default Glyph conversion. See docs/display.md.
@@ -28,7 +28,7 @@ def _pixels(source, fit, spec):
         ]
         for y in range(height)
     ]
-    return rgb565_column_major(rows)
+    return rgb24_column_major(rows) if spec["pixel_bytes"] == 3 else rgb565_column_major(rows)
 
 
 def screen_image(path, *, fit=False, model_id=3059):

@@ -164,8 +164,22 @@ def rgb565_column_major(rows):
     return bytes(result)
 
 
-def screen_prepare(data_length, bounds, frame=0, frames=1, delay=0, extra=0, *, size=(428, 142)):
-    """0xa5 is a transfer handshake, NOT a read-only screen query."""
+def rgb24_column_major(rows):
+    if not rows or not rows[0] or any(len(r) != len(rows[0]) for r in rows):
+        raise ValueError("rows must be a nonempty rectangular RGB integer grid")
+    return b"".join(
+        bounded(row[x], 0xFFFFFF, "rgb").to_bytes(3, "big")
+        for x in range(len(rows[0]))
+        for row in rows
+    )
+
+
+def screen_prepare(
+    data_length, bounds, frame=0, frames=1, delay=0, extra=0, *, size=(428, 142), rgb_bits=16
+):
+    """0xa5/0xa9 prepare writes; neither is a read-only screen query."""
+    if rgb_bits not in (16, 24):
+        raise ValueError("screen encoding must be 16 or 24 bits")
     bounded(data_length, 0xFFFFFFFF, "data length")
     if len(bounds) != 4:
         raise ValueError("bounds must be left,top,right,bottom")
@@ -178,14 +192,26 @@ def screen_prepare(data_length, bounds, frame=0, frames=1, delay=0, extra=0, *, 
     if frames == 0 or frame >= (5 if frames == 1 else frames):
         raise ValueError("choose still bank 0..4 or an index below the animation frame count")
     p = bytearray(64)
-    p[:7] = bytes([0xA5, frame, frames, delay, data_length & 255, (data_length >> 8) & 255, 0])
+    p[:7] = bytes(
+        [
+            0xA5 if rgb_bits == 16 else 0xA9,
+            frame,
+            frames,
+            delay,
+            data_length & 255,
+            (data_length >> 8) & 255,
+            0,
+        ]
+    )
     p[8:12] = bytes(v & 255 for v in bounds)
     p[12:16] = bytes(v >> 8 for v in bounds)
     p[16:19] = bytes([(data_length >> 16) & 255, data_length >> 24, extra])
     return packet(p)
 
 
-def screen_chunks(data, frame=0, frames=1, delay=0):
+def screen_chunks(data, frame=0, frames=1, delay=0, *, rgb_bits=16):
+    if rgb_bits not in (16, 24):
+        raise ValueError("screen encoding must be 16 or 24 bits")
     data = bytes(data)
     for v in (frame, frames, delay):
         bounded(v, 255, "frame metadata")
@@ -194,7 +220,19 @@ def screen_chunks(data, frame=0, frames=1, delay=0):
     for index, start in enumerate(range(0, len(data), 56)):
         chunk = data[start : start + 56]
         yield packet(
-            bytes([0x25, frame, frames, delay, index & 255, index >> 8, len(chunk), 0]) + chunk
+            bytes(
+                [
+                    0x25 if rgb_bits == 16 else 0x29,
+                    frame,
+                    frames,
+                    delay,
+                    index & 255,
+                    index >> 8,
+                    len(chunk),
+                    0,
+                ]
+            )
+            + chunk
         )
 
 

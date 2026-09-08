@@ -52,7 +52,7 @@ def test_usb_core_roundtrip(ry, firmware):
         "os",
         "sleep",
         "lighting",
-    ]
+    ] + (["display"] if firmware.model_id in (3858, 3673, 3674) else [])
     last = status["profiles"] - 1
     before = ry.read_matrix(0)
     ry.set_profile(last)
@@ -91,7 +91,7 @@ def test_fn_and_os_controls(ry, firmware, os_mode):
     "operation",
     [
         lambda k: k.set_light("solid", side=True),
-        lambda k: k.upload_screen(bytes(2), (0, 0, 1, 1)),
+        lambda k: k.sync_clock(),
         lambda k: snapshot.capture(k),
         lambda k: k._write([codec.packet([4]), codec.packet([1])]),
     ],
@@ -224,3 +224,51 @@ def test_rgb_pictures_and_rejected_main_off(ry, firmware):
         ry.set_light("off")
     assert len(firmware.sent) == before
     assert ry.set_light("solid", brightness=0)["brightness"] == 0
+
+
+def test_rgb24_still_and_animation(ry, firmware):
+    from epomaker_driver.models import display_spec
+
+    if firmware.model_id not in (3858, 3673, 3674):
+        with pytest.raises(UnsupportedDevice):
+            ry.upload_screen(bytes(3), (0, 0, 1, 1))
+        assert ry.status()["display"] is None
+        return
+    width, height, maximum = {3858: (33, 7, 255), 3673: (7, 7, 255), 3674: (7, 7, 16)}[
+        firmware.model_id
+    ]
+    assert display_spec(firmware.model_id) == {
+        "width": width,
+        "height": height,
+        "banks": 5,
+        "max_frames": maximum,
+        "pixel_bytes": 3,
+    }
+    prepares = []
+    exchange = firmware.exchange
+
+    def track(command, **kwargs):
+        if command[0] == 0xA9:
+            prepares.append(command)
+        return exchange(command, **kwargs)
+
+    firmware.exchange = track
+    pixels = bytes.fromhex("123456") * (width * height)
+    ry.upload_screen(pixels, (0, 0, width, height), frame=4)
+    assert prepares[0][0:4] == bytes([0xA9, 4, 1, 0])
+    assert prepares[0][8:12] == bytes([0, 0, width, height])
+    assert all(p[0] == 0x29 for p in firmware.sent)
+    assert b"".join(p[8 : 8 + p[6]] for p in firmware.sent) == pixels
+    firmware.sent.clear()
+    ry.upload_animation([pixels] * maximum, 80)
+    chunks = (len(pixels) + 55) // 56
+    assert len(firmware.sent) == chunks * maximum
+    assert prepares[-1][2:4] == bytes([maximum, 80])
+    assert firmware.sent[chunks][1:6] == bytes([1, maximum, 80, 0, 0])
+    assert firmware.sent[-1][1] == maximum - 1
+    before = len(firmware.sent)
+    with pytest.raises(ValueError):
+        ry.upload_animation([pixels] * (maximum + 1), 80)
+    with pytest.raises(ValueError):
+        ry.upload_screen(bytes(width * height * 2), (0, 0, width, height))
+    assert len(firmware.sent) == before

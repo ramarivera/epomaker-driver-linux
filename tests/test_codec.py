@@ -114,3 +114,16 @@ def test_display_bank_and_animation_limits(frame, frames):
         codec.screen_prepare(2, (0, 0, 1, 1), frame=frame, frames=frames)
     with pytest.raises(ValueError):
         list(codec.screen_chunks(b"xx", frame=frame, frames=frames))
+
+
+def test_rgb24_conversion_and_metadata_errors():
+    assert codec.rgb24_column_major([[0x123456, 0xABCDEF], [0x010203, 0x040506]]) == bytes.fromhex(
+        "123456010203abcdef040506"
+    )
+    for rows in [[], [[]], [[1], [2, 3]], [[0x1000000]]]:
+        with pytest.raises(ValueError):
+            codec.rgb24_column_major(rows)
+    with pytest.raises(ValueError):
+        codec.screen_prepare(3, (0, 0, 1, 1), rgb_bits=32)
+    with pytest.raises(ValueError):
+        list(codec.screen_chunks(bytes(3), rgb_bits=32))

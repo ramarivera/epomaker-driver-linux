@@ -10,6 +10,7 @@ from .errors import UnsupportedDevice
 # Explicitly migrated RY6602 models; see docs/ry6602.md.
 RY6602_IDS = (3858, 3633, 3673, 3573, 3674)
 RY6602_SIDE_IDS = (3673, 3573, 3674)
+RY6602_SCREEN_IDS = (3858, 3673, 3674)
 
 
 def data_file(name: str):
@@ -47,20 +48,25 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
 
 
 def display_spec(device_id: int) -> dict:
-    """Migrated RGB565 display limits, derived from the installer catalog."""
-    if device_id not in (2895, 3059, 3223):
+    """Migrated RGB display limits, derived from the installer catalog."""
+    if device_id not in (2895, 3059, 3223, *RY6602_SCREEN_IDS):
         raise UnsupportedDevice("No migrated display protocol for this model")
     screen = model_by_id(device_id)["other"]["screen"]
     size = screen["size"]
     width, height = size["w"], size["h"]
     banks = len(screen.get("layer", ["1", "2", "3", "4", "5"]))
     # Vendor rounds to the next block even when exactly aligned; docs/display.md.
-    block_bytes = (width * height * 2 // 4096 + 1) * 4096
+    pixel_bytes = 3 if screen["mode"] == "24" else 2
+    block_bytes = (width * height * pixel_bytes // 4096 + 1) * 4096
+    maximum = min(255, (size["memorySize"] * 1024 * 1024 - 4096) // block_bytes - banks)
+    if device_id == 3674:
+        maximum = size["memorySize"] // (width * height * pixel_bytes)
     return {
         "width": width,
         "height": height,
         "banks": banks,
-        "max_frames": (size["memorySize"] * 1024 * 1024 - 4096) // block_bytes - banks,
+        "max_frames": maximum,
+        "pixel_bytes": pixel_bytes,
     }
 
 

@@ -99,3 +99,13 @@ RT75 uses 240×240 RGB565 frames, five banks from the vendor's default bank list
 and the same 6 MiB allocation. This gives 47 animation frames; each full frame
 contains 115,200 bytes in 2,058 chunks. The CLI detects its dimensions automatically.
 See [rt75.md](rt75.md) for the bank fallback, allocation formula and capability flags.
+
+
+## RY6602 RGB24 screens
+
+SN020 (33×7), TH80 V3 MAX (7×7) and TH65 Max (7×7) use column-major RGB24,
+three bytes per pixel and `a9`/`29` preparation/data opcodes. Media conversion and
+upload select the format from `display_spec.pixel_bytes`. All three have five
+still banks. SN020/TH80 V3 MAX allow 255 animation frames; TH65 Max allows 16
+because of its special byte-sized allocation. See [ry6602.md](ry6602.md) for
+the source paths, formulas and missing physical verification.

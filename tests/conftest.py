@@ -72,7 +72,7 @@ class SimulatedKeyboard:
         if op == 0x8B:
             data = self.macros.get(command[1], bytearray(256))
             return bytes(data[command[2] * 64 : (command[2] + 1) * 64])
-        if op == 0xA5:
+        if op in (0xA5, 0xA9):
             return bytes([op, int(self.accept_screen)]) + bytes(62)
         raise AssertionError(f"unimplemented simulated query {op:x}")
 
