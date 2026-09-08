@@ -8,7 +8,7 @@ percentage until the inventory and weighting have been completed.
 The catalog contains 46 EPOMAKER models. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
 enabled, plus [five RY6602 models](ry6602.md) with core configuration support.
 [Two older YC3121 models](yc3121.md), RT100 and Dynatab75X-UK, additionally have
-USB keymap/profile/sleep/debounce/automatic-OS configuration. Ten models have
+USB keymap/profile/macro/sleep/debounce/automatic-OS configuration. Ten models have
 some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
@@ -27,7 +27,7 @@ IDs do not establish that another model speaks the same protocol.
 | Backups | Eight migrated models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
-| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps, profiles, sleep, debounce and automatic OS selection | RT100/Dynatab75X-UK Fn, macros, lighting, screens and recovery; other model-specific protocols |
+| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps, profiles, macros, sleep, debounce and automatic OS selection | RT100/Dynatab75X-UK Fn, lighting, screens and recovery; other model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |

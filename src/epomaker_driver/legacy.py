@@ -17,6 +17,9 @@ COMMANDS = frozenset(
         "bind-key",
         "bind-media",
         "bind-mouse",
+        "bind-macro",
+        "get-macro",
+        "macro",
         "disable-key",
         "profile",
         "get-sleep",
@@ -148,6 +151,40 @@ class LegacyKeyboard:
 
         self.transport.transaction(operation)
 
+    def read_macro(self, slot):
+        codec.bounded(slot, 255, "macro slot")
+        self._supported()
+
+        def operation():
+            pages = []
+            for page in range(4):
+                raw = self.transport.exchange(codec.packet([0x8B, slot, page]))
+                if len(raw) != 64:
+                    raise ProtocolError(f"incomplete YC3121 macro page {page}")
+                pages.append(raw)
+            return b"".join(pages)
+
+        return self.transport.transaction(operation)
+
+    def write_macro(self, slot, data):
+        data = bytes(data)
+        # Same five-chunk layout as YC3123, but write opcode 0x16. Recompute checksum.
+        # Send the zero tail too: vendor's nonzero-chunk count loses sparse/empty data.
+        commands = [
+            codec.packet(bytes([0x16]) + command[1:])
+            for command in codec.macro_chunks(slot, data, full=True)
+        ]
+        self._supported()
+
+        def operation():
+            for command in commands:
+                self.transport.send(command)
+            self.transport.sleep(0.5)
+            if self.read_macro(slot) != data:
+                raise ProtocolError("macro readback differs")
+
+        self.transport.transaction(operation)
+
     def get_sleep(self):
         raw = self._query(0x92)
         # Unlike YC3123, the reply packs timers immediately after the opcode.
@@ -210,7 +247,7 @@ class LegacyKeyboard:
             "model": self.model["displayName"],
             "profiles": self.model["layer"],
             "profile": self.get_profile(),
-            "capabilities": ["keymap", "profile", "sleep", "debounce", "auto-os"],
+            "capabilities": ["keymap", "profile", "sleep", "debounce", "auto-os", "macro"],
             "sleep": self.get_sleep(),
             "debounce": self.get_debounce(),
             "auto_os": self.get_auto_os(),
