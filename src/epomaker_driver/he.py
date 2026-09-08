@@ -5,6 +5,7 @@ from __future__ import annotations
 from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
+from .he_lighting import HELightingMixin
 from .he_settings import plan_update
 from .magnetic import (
     assemble_pages,
@@ -34,12 +35,51 @@ COMMANDS = frozenset(
         "profile",
         "get-magnetic",
         "magnetic-key",
+        "get-options",
+        "options",
+        "get-auto-os",
+        "auto-os",
+        "debounce",
+        "get-sleep",
+        "sleep",
+        "get-light",
+        "light",
+        "get-picture",
+        "picture",
+        "picture-key",
     )
 )
-OPCODES = frozenset((0x04, 0x0A, 0x0B, 0x10, 0x65, 0x80, 0x84, 0x8A, 0x8B, 0x8F, 0x90, 0xE5))
+OPCODES = frozenset(
+    (
+        0x04,
+        0x06,
+        0x07,
+        0x09,
+        0x0A,
+        0x0B,
+        0x0C,
+        0x10,
+        0x11,
+        0x17,
+        0x65,
+        0x80,
+        0x84,
+        0x86,
+        0x87,
+        0x8C,
+        0x89,
+        0x8A,
+        0x8B,
+        0x8F,
+        0x90,
+        0x91,
+        0x97,
+        0xE5,
+    )
+)
 
 
-class HEKeyboard(Keyboard):
+class HEKeyboard(HELightingMixin, Keyboard):
     def __init__(self, transport, *, product_id):
         super().__init__(transport)
         if product_id not in HE_PRODUCTS:
@@ -71,6 +111,10 @@ class HEKeyboard(Keyboard):
         self._supported()
         if any(command[0] not in OPCODES for command in commands):
             raise UnsupportedDevice("operation is not migrated for HE60 Lite")
+        if self.expected_id != 3727 and any(command[0] in (0x06, 0x86) for command in commands):
+            raise UnsupportedDevice("debounce is unavailable on wireless HE60 Lite")
+        if self.expected_id != 3759 and any(command[0] in (0x11, 0x91) for command in commands):
+            raise UnsupportedDevice("sleep is unavailable on wired HE60 Lite")
         if self.expected_id != 3759 and any(command[0] == 0x80 for command in commands):
             raise UnsupportedDevice("RF version is unavailable on wired HE60 Lite")
 
@@ -133,23 +177,77 @@ class HEKeyboard(Keyboard):
             rf = None
             if self.expected_id == 3759:
                 rf = parse_version("rf", self._query(version_request("rf"), expected=0x80))
-            return {
+            capabilities = [
+                "keymap",
+                "fn",
+                "macro",
+                "profile",
+                "submodes",
+                "os",
+                "magnetic-read",
+                "magnetic-actuation",
+            ]
+            result = {
                 "identity": self.identity,
                 "model": self.model["displayName"],
                 "profile": profile,
                 "profiles": 2,
                 "versions": {"usb": usb, "rf": rf},
-                "capabilities": [
-                    "keymap",
-                    "fn",
-                    "macro",
-                    "profile",
-                    "submodes",
-                    "magnetic-read",
-                    "magnetic-actuation",
-                ],
+                "capabilities": capabilities,
                 "submodes": 4,
+                "options": self.get_options(),
+                "auto_os": self.get_auto_os(),
+                "light": self.get_light(),
+                "picture_banks": 3 if self.expected_id == 3727 else 5,
             }
+            result["capabilities"].extend(("lighting", "picture"))
+            if self.expected_id == 3727:
+                result["capabilities"].append("debounce")
+                result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
+            else:
+                result["capabilities"].append("sleep")
+                result["sleep"] = self.get_sleep()
+            return result
+
+        return self.transport.transaction(operation)
+
+    def set_debounce(self, milliseconds):
+        if self.expected_id != 3727:
+            raise UnsupportedDevice("debounce is unavailable on wireless HE60 Lite")
+        if type(milliseconds) is not int or not 1 <= milliseconds <= 10:
+            raise ValueError("HE60 debounce must be an integer from 1 through 10")
+        return super().set_debounce(milliseconds)
+
+    def get_sleep(self):
+        if self.expected_id != 3759:
+            raise UnsupportedDevice("sleep controls are unavailable on wired HE60 Lite")
+        raw = self._query(codec.packet([0x91]), expected=0x91)
+        parsed = codec.parse_sleep(raw)
+        parsed.pop("deep_dongle")
+        return parsed
+
+    def set_sleep(self, bt, dongle, deep_bt, deep_dongle=None):
+        if self.expected_id != 3759:
+            raise UnsupportedDevice("sleep controls are unavailable on wired HE60 Lite")
+        if deep_dongle is not None:
+            raise ValueError("wireless HE60 exposes three public sleep timers")
+        values = (bt, dongle, deep_bt)
+        if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
+            raise ValueError("HE60 sleep timers must be integers from 60 through 3600")
+
+        def operation():
+            original = self._query(codec.packet([0x91]), expected=0x91)
+            command = bytearray(codec.sleep_times(bt, dongle, deep_bt, 0))
+            command[14:16] = original[14:16]
+            self._write([bytes(command)])
+            actual = self._query(codec.packet([0x91]), expected=0x91)
+            parsed = codec.parse_sleep(actual)
+            if actual[14:16] != original[14:16]:
+                raise ProtocolError("hidden sleep timer changed during write")
+            if tuple(parsed[key] for key in ("bluetooth", "dongle", "deep_bluetooth")) != values:
+                raise ProtocolError("sleep readback differs")
+            parsed.pop("deep_dongle")
+            return parsed
 
         return self.transport.transaction(operation)
 

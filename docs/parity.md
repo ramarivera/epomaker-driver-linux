@@ -12,7 +12,8 @@ USB keymap/profile/macro/lighting/custom-picture/sleep/debounce/automatic-OS con
 [RT100 PRO](rt100pro.md) uses the shared modern YC3123 protocol and has its own
 three-profile matrices and five-bank RGB565 display workflow.
 [Both HE60 Lite variants](he60-lite-research.md) add two profiles with four
-normal submodes each, Fn maps, macros and magnetic reads/actuation updates. Thirteen
+normal submodes each, Fn maps, macros, magnetic reads/actuation updates, OS controls,
+main lighting and custom pictures, plus model-gated debounce/sleep. Thirteen
 models have some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
@@ -24,13 +25,13 @@ IDs do not establish that another model speaks the same protocol.
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for eleven migrated models | HE60 recovery, vendor export semantics, other models |
-| Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0 with readback and per-slot editing | Hardware comparison and model-specific capabilities |
-| Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
+| Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0; HE60 21 effects and three/five picture banks, with readback and per-slot editing | Hardware comparison and model-specific capabilities |
+| Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; HE60 wired debounce and wireless three-timer sleep; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph, RT85, RT75, RT100, Dynatab75X-UK and RT100 PRO, plus three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, model-gated language/system-info and clock sync | Hardware comparison and remaining display settings |
 | Backups | Nine modern models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; RT100/Dynatab schema 6 recovery with physical Fn layer 0 and atomic pre-restore copies | HE60 state, unreferenced macros, screen pixels, and YC3121 manual OS options/OS-specific Fn banks |
 | Magnetic keyboards | HE60 magnetic-field reads, per-key actuation/rapid-trigger writes with complete-field readback, firmware-dependent scaling, raw mode preservation and four submodes per profile | Base-mode changes, dynamic/MT actions, calibration, snap pairing, recovery and hardware comparison |
-| OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
+| OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from epomaker_driver import cli
+from epomaker_driver import cli, codec
 from epomaker_driver.discovery import DeviceInfo
 from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 from epomaker_driver.he import HEKeyboard
@@ -24,6 +24,16 @@ class Firmware:
         self.change_profile_on_read = False
         self.drop_magnetic_write = False
         self.corrupt_magnetic_neighbor = False
+        self.options = bytearray(64)
+        self.options[0] = 0x89
+        self.auto_os = False
+        self.debounce = 10
+        self.sleep = [60, 60, 60, 65535]
+        self.drop_sleep_write = False
+        self.corrupt_sleep_hidden = False
+        self.light = bytearray(64)
+        self.light[0] = 0x87
+        self.pictures = {index: bytes([index]) * 378 for index in range(5)}
         self.macros = {slot: bytes(256) for slot in range(256)}
         self.matrices = {
             (profile, mode): bytes([profile, mode]) * 256
@@ -64,6 +74,23 @@ class Firmware:
             if self.change_profile_on_read:
                 self.profile = 1 - self.profile
             return bytes(raw)
+        if op == 0x89:
+            return bytes(self.options)
+        if op == 0x97:
+            return bytes([0x97, int(self.auto_os)]) + bytes(62)
+        if op == 0x86:
+            return bytes([0x86, self.debounce]) + bytes(62)
+        if op == 0x91:
+            raw = bytearray(64)
+            raw[0] = 0x91
+            for index, value in enumerate(self.sleep):
+                raw[8 + index * 2 : 10 + index * 2] = value.to_bytes(2, "little")
+            return bytes(raw)
+        if op == 0x87:
+            return bytes(self.light)
+        if op == 0x8C:
+            picture, page = command[1], command[3]
+            return self.pictures[picture][page * 64 : (page + 1) * 64].ljust(64, b"\0")
         if op == 0x8A:
             data = self.matrices[(command[1], command[4])]
             result = data[command[3] * 64 : (command[3] + 1) * 64]
@@ -95,6 +122,28 @@ class Firmware:
             self.fields[field] = bytes(data)
         elif command[0] == 0x04:
             self.profile = command[1]
+        elif command[0] == 0x09:
+            self.options[:] = command
+            self.options[0] = 0x89
+        elif command[0] == 0x17:
+            self.auto_os = bool(command[1])
+        elif command[0] == 0x06:
+            self.debounce = command[1]
+        elif command[0] == 0x11:
+            if not self.drop_sleep_write:
+                self.sleep = [
+                    int.from_bytes(command[8 + i * 2 : 10 + i * 2], "little") for i in range(4)
+                ]
+                if self.corrupt_sleep_hidden:
+                    self.sleep[3] ^= 1
+        elif command[0] == 0x07:
+            self.light[:] = command
+            self.light[0] = 0x87
+        elif command[0] == 0x0C:
+            picture, page, count = command[1], command[3], command[4]
+            data = bytearray(self.pictures[picture])
+            data[page * 56 : page * 56 + count] = command[8 : 8 + count]
+            self.pictures[picture] = bytes(data)
         elif command[0] == 0x0A:
             profile = command[1]
             if command[2] == 255:
@@ -132,6 +181,8 @@ def keyboard(firmware, product=0x502C):
             self.response = (
                 firmware.exchange(data[1:]) if data[1] >= 128 else firmware.send(data[1:])
             )
+            if self.response is None:
+                self.response = bytes([data[1]]) + bytes(63)
 
         def get_feature(self, *_):
             assert _ == (0, 64)
@@ -320,6 +371,156 @@ def test_he_wireless_status_reads_rf_version():
     status = kb.status()
     assert status["versions"]["rf"] == 0x0500
     assert "magnetic-read" in status["capabilities"]
+
+
+def test_he_options_and_auto_os_preserve_raw_bytes():
+    fw = Firmware()
+    fw.options[3] = 0xA5
+    fw.options[4] = 0x5A
+    kb = keyboard(fw)
+    kb.identify()
+    assert kb.get_options()["raw"][3:5] == [0xA5, 0x5A]
+    result = kb.set_options(system="mac", wasd_swap=True)
+    assert result["system"] == "mac" and result["wasd_swap"] is True
+    assert result["raw"][3:5] == [0xA5, 0x5A]
+    kb.set_auto_os(True)
+    assert kb.get_auto_os() is True
+
+
+def test_he_product_control_gates_and_readbacks():
+    fw = Firmware()
+    wired = keyboard(fw)
+    wired.identify()
+    wired.set_debounce(7)
+    assert fw.debounce == 7
+    with pytest.raises(UnsupportedDevice):
+        wired.get_sleep()
+    with pytest.raises(UnsupportedDevice):
+        wired.set_sleep(60, 60, 60)
+    wireless = keyboard(Firmware(model_id=3759), product=0x502E)
+    wireless.identify()
+    assert wireless.get_sleep() == {
+        "bluetooth": 60,
+        "dongle": 60,
+        "deep_bluetooth": 60,
+    }
+    assert wireless.set_sleep(120, 180, 240) == {
+        "bluetooth": 120,
+        "dongle": 180,
+        "deep_bluetooth": 240,
+    }
+    with pytest.raises(ValueError):
+        wireless.set_sleep(60, 60, 60, 60)
+    with pytest.raises(UnsupportedDevice):
+        wireless.set_debounce(7)
+    with pytest.raises(UnsupportedDevice):
+        wireless._query(codec.packet([0x86]), expected=0x86)
+    with pytest.raises(UnsupportedDevice):
+        wired._query(codec.packet([0x91]), expected=0x91)
+    for invalid in (0, 11, True):
+        with pytest.raises(ValueError):
+            wired.set_debounce(invalid)
+
+
+@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+def test_he_picture_write_and_key_write_use_usb(product, model):
+    fw = Firmware(model_id=model)
+    kb = keyboard(fw, product=product)
+    kb.identify()
+    colors = bytes((index * 3) & 255 for index in range(378))
+    assert kb.write_picture(colors, picture=0) is None
+    assert kb.read_picture(0) == colors
+    kb.set_picture_key(0, 2, 0x112233)
+    assert kb.read_picture(0)[6:9] == bytes.fromhex("112233")
+
+
+@pytest.mark.parametrize("values", [(59, 60, 60), (60, 3601, 60), (60, 60, 3601)])
+def test_wireless_sleep_bounds(values):
+    kb = keyboard(Firmware(model_id=3759), product=0x502E)
+    kb.identify()
+    with pytest.raises(ValueError):
+        kb.set_sleep(*values)
+
+
+def test_wireless_sleep_write_and_hidden_word_failures():
+    dropped = Firmware(model_id=3759)
+    dropped.drop_sleep_write = True
+    kb = keyboard(dropped, product=0x502E)
+    kb.identify()
+    with pytest.raises(ProtocolError, match="sleep readback"):
+        kb.set_sleep(120, 180, 240)
+    corrupt = Firmware(model_id=3759)
+    corrupt.corrupt_sleep_hidden = True
+    kb = keyboard(corrupt, product=0x502E)
+    kb.identify()
+    with pytest.raises(ProtocolError, match="hidden sleep"):
+        kb.set_sleep(120, 180, 240)
+
+
+@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+def test_he_cli_controls_use_real_backend_and_usb(tmp_path, monkeypatch, capsys, product, model):
+    from epomaker_driver import cli
+    from epomaker_driver.discovery import DeviceInfo
+
+    fw = Firmware(model_id=model)
+    original = keyboard(fw, product=product).transport
+    info = DeviceInfo("/dev/he-cli", "HE60 Lite", 3, 0x3151, product, b"", "usb", 0)
+
+    class Opened:
+        def __enter__(self):
+            return original
+
+        def __exit__(self, *_):
+            return None
+
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Opened())
+    assert cli.main(["--device", info.path, "options", "--system", "mac", "--wasd-swap"]) == 0
+    capsys.readouterr()
+    assert cli.main(["--device", info.path, "auto-os", "on"]) == 0
+    capsys.readouterr()
+    assert cli.main(["--device", info.path, "get-light"]) == 0
+    capsys.readouterr()
+    colors = {"colors": ["112233"] * 126}
+    path = tmp_path / "picture.json"
+    path.write_text(json.dumps(colors))
+    assert cli.main(["--device", info.path, "picture", "0", str(path), "--activate"]) == 0
+    capsys.readouterr()
+    assert cli.main(["--device", info.path, "picture-key", "0", "2", "#445566"]) == 0
+    capsys.readouterr()
+    if model == 3727:
+        assert cli.main(["--device", info.path, "debounce", "7"]) == 0
+    else:
+        assert cli.main(["--device", info.path, "sleep", "120", "180", "240"]) == 0
+    capsys.readouterr()
+    assert fw.options[1] == 1 and fw.options[5] == 1
+    assert fw.auto_os is True
+    assert fw.light[1] == codec.LIGHT_MODES["picture"]
+    expected = bytearray(bytes.fromhex("112233") * 126)
+    expected[6:9] = bytes.fromhex("445566")
+    assert fw.pictures[0][:378] == expected
+    if model == 3727:
+        assert fw.debounce == 7
+    else:
+        assert fw.sleep == [120, 180, 240, 65535]
+    assert cli.main(["--device", info.path, "light", "wave", "--speed", "2"]) == 0
+    assert fw.light[1:3] == bytes([codec.LIGHT_MODES["wave"], 2])
+    capsys.readouterr()
+
+
+@pytest.mark.parametrize("setting", ["options", "auto_os", "debounce"])
+def test_he_common_control_lost_writes(setting):
+    fw = Firmware()
+    kb = keyboard(fw)
+    kb.identify()
+    fw.send = lambda command: None
+    action = {
+        "options": lambda: kb.set_options(system="mac"),
+        "auto_os": lambda: kb.set_auto_os(True),
+        "debounce": lambda: kb.set_debounce(5),
+    }[setting]
+    with pytest.raises(ProtocolError, match="readback differs"):
+        action()
 
 
 def test_he_matrix_short_exchange_is_checked_by_backend():

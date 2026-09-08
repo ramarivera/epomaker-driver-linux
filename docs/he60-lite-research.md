@@ -8,7 +8,9 @@ Both now have partial USB backend support; neither has hardware validation.
 The CLI supports identity/status, two normal profiles with submodes 0–3,
 one Fn layer for each of Windows and Mac, raw/semantic macro reads and writes,
 active profile selection, magnetic-parameter reads and actuation/rapid-trigger
-updates. `--profile` selects a
+updates, OS options, automatic OS selection and main lighting/custom pictures.
+Wired 3727 additionally exposes debounce; wireless 3759 exposes three sleep
+timers. `--profile` selects a
 normal profile; for `--fn` it must be 0, and `--os-mode` selects Windows (0) or
 Mac (1). Fn commands do not accept a nonzero submode. For example, after
 selecting the actual command collection from `epomaker discover`:
@@ -22,7 +24,7 @@ epomaker --device /dev/hidrawN get-magnetic
 Magnetic reads describe the current profile and retain raw field bytes and
 unknown mode values. These reads are not a complete restorable backup.
 Magnetic mode switching, dynamic/MT edits, snap pairing, calibration,
-lighting/settings, recovery and firmware upgrades remain outside this backend's
+recovery and firmware upgrades remain outside this backend's
 current operation gate.
 
 ## Actuation and rapid-trigger updates
@@ -128,8 +130,8 @@ Both installers' HID filters agree on USB products `502c` and `502e`: vendor
 `3151`, interface number 2, usage page `ffff`, usage 2. The filter records do
 not contain physical report descriptors; Linux discovery additionally
 requires report ID 0 with a 64-byte feature payload. Both lighting layouts
-omit side lighting, but 3759 references `S` and 3727 references `ce`; shared
-base inheritance is insufficient to assume identical speed controls.
+omit side lighting. The complete layouts (`S` for 3759, `ce` on Mac / `ue` on
+Windows for 3727) establish the controls documented below.
 
 Normal keymap addressing uses the modern base: `8a` reads profile at byte 1,
 `ff` at byte 2, page at byte 3 and submode at byte 4. Single-key `0a` writes
@@ -147,6 +149,56 @@ restore cached values on switching. A future backup must distinguish the
 device's currently readable magnetic state from application-managed profiles;
 it must not invent per-profile wire storage from the catalog layer count.
 
-Remaining evidence work includes physical USB command descriptors, complete
-model-specific lighting layouts, magnetic setting integration,
-calibration and dynamic-action semantics, and hardware comparisons.
+Remaining evidence work includes physical USB command descriptors, magnetic
+base-mode changes, calibration and dynamic-action semantics, recovery and
+hardware comparisons.
+
+
+## Everyday controls and lighting
+
+Both models use modern OS options (`09` / `89`) and automatic OS selection
+(`17` / `97`). Partial OS-option updates preserve unrelated bytes and compare
+readback. Wired 3727 exposes debounce (`06` / `86`) from 1 through 10 ms.
+The UI chunk `7cdd7654.js` selects default slider bounds 1 and 10 when
+`deBounceUI` is absent, as it is for this catalog entry. Wireless 3759 rejects
+debounce commands. Its three public sleep timers use `11` / `91`, each from
+60 through 3600 seconds; the fourth, hidden uint16 at offsets 14–15 is preserved
+and verified, even when outside public bounds. Wired 3727 rejects sleep commands.
+
+Both main-light layouts expose 21 effects: wave, ripple, raindrop, snake,
+reactive, convergence, sine, kaleidoscope, reactive-off, line-wave, laser,
+circle-wave, dazzling, rain, meteor, solid, breathing, neon, picture, music
+and screen. Neither exposes side lighting or an explicit off effect.
+Adjustable speed is 0–4 on both models, encoded as `4 - speed`. Solid,
+picture, music and screen have no speed control. Neon, picture and screen
+have no RGB/rainbow selector. Wave has four direction options; snake,
+kaleidoscope, line-wave and circle-wave have two; music has three options.
+The public backend rejects controls absent from these layouts.
+
+The meaningful layout difference is custom-picture selection: wired 3727 has
+three banks (0–2), wireless 3759 has five (0–4). Each bank reads six raw
+64-byte pages with `8c`; only 126 RGB slots (378 bytes) are writable using
+seven `0c` chunks. The final six read bytes remain reserved. Whole-picture
+and individual-slot edits verify complete writable-picture readback.
+
+Evidence: both installer main bundles, pretty lines 42302–42386 (`S`) and
+42554–42638 (`ce` / `ue`), match after the declaration name is normalized.
+Modern base `623d2d52.js` / `17dc9c62.js` supplies picture methods and lighting
+encoding; neither model nor its immediate parent overrides `MAXSPEED`,
+`NORMAL` or `DAZZLE`. These facts supersede the earlier unverified suggestion
+that the two HE layouts might differ in speed range. Implementation lives in
+`src/epomaker_driver/he.py` and `src/epomaker_driver/he_lighting.py`.
+
+```sh
+epomaker --device /dev/hidrawN options --system mac
+epomaker --device /dev/hidrawN auto-os on
+epomaker --device /dev/hidrawN light wave --speed 2 --rgb 123456
+# Wired 3727 only:
+epomaker --device /dev/hidrawN debounce 5
+# Wireless 3759 only:
+epomaker --device /dev/hidrawN sleep 600 600 1200
+```
+
+Selecting music or screen lighting sets the device effect; it does not implement
+continuous host audio/screen sampling. All validation remains simulated, with
+no physical HE60 reports captured or writes attempted.
