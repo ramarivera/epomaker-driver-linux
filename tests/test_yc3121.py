@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from epomaker_driver import cli
+from epomaker_driver import cli, codec
 from epomaker_driver.discovery import DeviceInfo, classify, parse_descriptor
 from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 from epomaker_driver.legacy import LegacyKeyboard
@@ -21,6 +21,8 @@ class Firmware:
         self.macro_pending = bytearray(280)
         self.timers = bytes.fromhex("7800f0000807100e")
         self.debounce = 10
+        self.light = bytearray(64)
+        self.light[:8] = bytes.fromhex("8701050407123456")
         self.auto_os = False
         self.commands = []
         self.response = bytes(64)
@@ -31,7 +33,7 @@ class Firmware:
     def set_feature(self, report):
         assert len(report) == 65 and report[0] == 0
         p = report[1:]
-        assert sum(p[:8]) % 256 == 255
+        assert sum(p[:9] if p[0] == 7 else p[:8]) % 256 == 255
         self.commands.append(p)
         op = p[0]
         raw = bytearray(64)
@@ -48,6 +50,8 @@ class Firmware:
         elif op == 0x8B:
             assert p[3:7] == bytes(4)
             raw[:] = self.macros[p[1]][p[2] * 64 : (p[2] + 1) * 64]
+        elif op == 0x87:
+            raw[:] = self.light
         elif op == 0x92:
             raw[1:9] = self.timers
         elif op == 0x91:
@@ -65,6 +69,9 @@ class Firmware:
                 self.macro_pending[p[2] * 56 : (p[2] + 1) * 56] = p[8:64]
                 if p[4] == 1:
                     self.macros[p[1]][:] = self.macro_pending[:256]
+            elif op == 7:
+                self.light[:] = p
+                self.light[0] = 0x87
             elif op == 0x12:
                 self.timers = p[8:16]
             elif op == 0x11:
@@ -95,7 +102,15 @@ def test_core_roundtrip(legacy):
     keyboard, fw = legacy
     status = keyboard.status()
     assert status["identity"] == {"device_id": fw.model, "usb_version": 0x213, "is_boot": None}
-    assert status["capabilities"] == ["keymap", "profile", "sleep", "debounce", "auto-os", "macro"]
+    assert status["capabilities"] == [
+        "keymap",
+        "profile",
+        "sleep",
+        "debounce",
+        "auto-os",
+        "macro",
+        "lighting",
+    ]
     assert status["profiles"] == 3 and status["profile"] == 0
     assert status["sleep"]["bluetooth"] == 120
     keyboard.set_profile(2)
@@ -210,6 +225,8 @@ def test_descriptor_and_cli(legacy, monkeypatch, capsys):
     prefix = ["--device", info.path]
     for command in (
         ["status"],
+        ["get-light"],
+        ["light", "wave", "--speed", "4", "--option", "3"],
         ["matrix", "--decoded"],
         ["bind-key", "3", "a"],
         ["profile", "2"],
@@ -326,3 +343,60 @@ def test_macro_cli(legacy, monkeypatch, tmp_path, capsys):
     assert cli.main([*prefix, "bind-macro", "9", "7"]) == 0
     capsys.readouterr()
     assert fw.matrices[0][36:40] != bytes(4)
+
+
+@pytest.mark.parametrize("mode", [mode for mode in codec.LIGHT_MODES if mode != "off"])
+@pytest.mark.parametrize("rainbow", [False, True])
+def test_lighting_modes(legacy, mode, rainbow):
+    keyboard, fw = legacy
+    speed = 0 if mode in ("solid", "picture", "music", "screen") else 4
+    result = keyboard.set_light(mode, rgb=0xFFFFFF, speed=speed, rainbow=rainbow)
+    assert result["mode"] == mode and result["speed"] == speed
+    packet = next(p for p in reversed(fw.commands) if p[0] == 7)
+    assert packet[2] == 5 - speed
+    assert packet[5:8] == (bytes([0, 200, 200]) if mode == "picture" else bytes.fromhex("fafffa"))
+    assert packet[4] == (
+        0
+        if mode in ("picture", "screen")
+        else (0 if rainbow else 4)
+        if mode == "music"
+        else (8 if rainbow else 7)
+    )
+    assert sum(packet[:9]) % 256 == 255
+
+
+@pytest.mark.parametrize(
+    "mode,options",
+    [
+        ("off", {}),
+        ("solid", {"side": True}),
+        ("unknown", {}),
+        ("wave", {"speed": 5}),
+        ("wave", {"option": 4}),
+        ("picture", {"option": 3}),
+        ("music", {"option": 3}),
+        ("snake", {"option": 2}),
+        ("solid", {"speed": 1}),
+        ("breathing", {"option": 1}),
+    ],
+)
+def test_lighting_limits_before_writes(legacy, mode, options):
+    keyboard, fw = legacy
+    with pytest.raises((ValueError, UnsupportedDevice)):
+        keyboard.set_light(mode, **options)
+    assert fw.commands == []
+
+
+def test_lighting_readback_and_unknown_values(legacy):
+    keyboard, fw = legacy
+    with pytest.raises(UnsupportedDevice, match="side-light"):
+        keyboard.get_light(side=True)
+    assert fw.commands == []
+    fw.light[1] = 250
+    assert keyboard.get_light()["mode"] == "unknown"
+    fw.ignore_writes = True
+    with pytest.raises(ProtocolError, match="lighting readback differs"):
+        keyboard.set_light("solid")
+    fw.ignore_writes = False
+    assert keyboard.set_light("picture", option=2)["option"] == 2
+    assert keyboard.set_light("wave", option=3, speed=0, brightness=0)["brightness"] == 0

@@ -18,6 +18,8 @@ COMMANDS = frozenset(
         "bind-media",
         "bind-mouse",
         "bind-macro",
+        "get-light",
+        "light",
         "get-macro",
         "macro",
         "disable-key",
@@ -185,6 +187,46 @@ class LegacyKeyboard:
 
         self.transport.transaction(operation)
 
+    def get_light(self, *, side=False):
+        if side:
+            raise UnsupportedDevice("These YC3121 models have no side-light layout")
+        result = codec.parse_light(self._query(0x87))
+        result["speed"] += 1  # CommonKbYc500 inherits MAXSPEED=5, not YC3123's 4.
+        return result
+
+    def set_light(self, mode, **options):
+        if options.get("side", False):
+            raise UnsupportedDevice("These YC3121 models have no side-light layout")
+        if mode == "off":
+            raise UnsupportedDevice("YC3121 layout has no off effect; use brightness zero")
+        # Vendor ce/ue layout: three pictures and mode-specific direction choices.
+        maximum = {
+            "wave": 3,
+            "snake": 1,
+            "kaleidoscope": 1,
+            "line-wave": 1,
+            "circle-wave": 1,
+            "picture": 2,
+            "music": 2,
+        }.get(mode, 0)
+        codec.bounded(options.get("option", 0), maximum, "lighting option")
+        if mode in ("solid", "picture", "music", "screen"):
+            codec.bounded(options.get("speed", 0), 0, "speed for this effect")
+        command = bytearray(codec.light(mode, **options))
+        command[2] += 1
+        command = codec.packet(command, 8)
+        self._supported()
+
+        def operation():
+            self.transport.send(command)
+            self.transport.sleep(1.0)  # older setLightSetting explicitly waits 1000 ms
+            actual = self.get_light()
+            if actual["raw"][1:8] != list(command[1:8]):
+                raise ProtocolError("lighting readback differs")
+            return actual
+
+        return self.transport.transaction(operation)
+
     def get_sleep(self):
         raw = self._query(0x92)
         # Unlike YC3123, the reply packs timers immediately after the opcode.
@@ -247,7 +289,15 @@ class LegacyKeyboard:
             "model": self.model["displayName"],
             "profiles": self.model["layer"],
             "profile": self.get_profile(),
-            "capabilities": ["keymap", "profile", "sleep", "debounce", "auto-os", "macro"],
+            "capabilities": [
+                "keymap",
+                "profile",
+                "sleep",
+                "debounce",
+                "auto-os",
+                "macro",
+                "lighting",
+            ],
             "sleep": self.get_sleep(),
             "debounce": self.get_debounce(),
             "auto_os": self.get_auto_os(),

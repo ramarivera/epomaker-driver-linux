@@ -25,8 +25,8 @@ Max also support RGB24 still images and animations. All five have configuration
 backup, restore and reset with recovery copies.
 
 [Older YC3121 support](docs/yc3121.md) adds RT100 and Dynatab75X-UK over USB:
-normal keymaps, three profiles, macros, sleep timers, debounce and automatic OS selection.
-Their Fn layers, lighting, screens and recovery remain unfinished.
+normal keymaps, three profiles, macros, main lighting, sleep timers, debounce and automatic OS selection.
+Their Fn layers, custom RGB pictures, screens and recovery remain unfinished.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
