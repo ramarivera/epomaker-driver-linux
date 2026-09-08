@@ -78,10 +78,12 @@ Windows-only Fn matrix, seven canonical switch codes, magnetic mode/snap
 configuration, main lighting, and generic USB sleep controls. Hardware remains
 unverified.
 
+[HE65 Mag](docs/he65-mag.md) adds internal ID 2376 with four profiles, Windows/Mac Fn matrices, magnetic configuration, five-bank 128×128 RGB565 display support, clock/language controls, and knob-aware restrictions. Switch-type writes are disabled by the catalog; USB hardware remains unverified.
+
 [HE75 V2 TMR model 3613](docs/he75-tmr-3613.md) adds the two-profile TMR
 variant, with its four-switch catalog, travel limits and side lighting.
 
-All twenty-two implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
+All twenty-three implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

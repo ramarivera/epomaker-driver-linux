@@ -37,6 +37,7 @@ def install(monkeypatch, model, *, cancel=False):
         3518: 0x5054,
         3613: 0x5054,
         2520: 0x502F,
+        2376: 0x502F,
         3883: 0x5030,
     }.get(model, 0x5029)
     info = DeviceInfo("/dev/calibration", "Keyboard", 3, 0x3151, product, b"", "usb", 0)
@@ -86,6 +87,7 @@ def install(monkeypatch, model, *, cancel=False):
         3518,
         3613,
         2520,
+        2376,
         3883,
     ),
 )

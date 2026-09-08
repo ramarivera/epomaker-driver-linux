@@ -73,7 +73,7 @@ def test_he_cli_submodes_and_magnetic_query(he_cli, capsys):
 def test_he_unmigrated_command_rejects_before_open(he_cli, monkeypatch, capsys):
     prefix, calls = he_cli
     monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
-    assert cli.main([*prefix, "clock"]) == 1
+    assert cli.main([*prefix, "system-info"]) == 1
     assert "has not been migrated" in capsys.readouterr().err
     assert not calls
 

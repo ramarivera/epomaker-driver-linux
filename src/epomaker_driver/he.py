@@ -29,6 +29,7 @@ from .models import (
     RY5088_PRODUCTS,
     RY5088_SIDE_IDS,
     RY5088_SWITCH_IDS,
+    display_spec,
     model_by_id,
     validate_sleep_times,
 )
@@ -73,6 +74,10 @@ COMMANDS = frozenset(
         "get-picture",
         "picture",
         "picture-key",
+        "screen",
+        "animation",
+        "clock",
+        "display-language-toggle",
     )
 )
 OPCODES = frozenset(
@@ -90,6 +95,10 @@ OPCODES = frozenset(
         0x17,
         0x1C,
         0x1E,
+        0x25,
+        0x27,
+        0x28,
+        0x29,
         0x65,
         0x80,
         0x84,
@@ -104,6 +113,8 @@ OPCODES = frozenset(
         0x90,
         0x91,
         0x97,
+        0xA5,
+        0xA9,
         0xE5,
     )
 )
@@ -166,6 +177,12 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             raise UnsupportedDevice("sleep is unavailable on this model")
         if self.expected_id not in HE_RF_IDS and any(command[0] == 0x80 for command in commands):
             raise UnsupportedDevice("RF version is unavailable on wired HE60 Lite")
+        display_commands = {0x25, 0x27, 0x28, 0x29, 0xA5, 0xA9}
+        if any(command[0] in display_commands for command in commands):
+            if self.expected_id != 2376:
+                raise UnsupportedDevice("display controls are unavailable on this model")
+            if any(command[0] in (0x29, 0xA9) for command in commands):
+                raise UnsupportedDevice("HE65 Mag supports RGB565 display transfers only")
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0, mode=0):
         self._supported()
@@ -260,6 +277,9 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
                 "picture_banks": 3 if self.expected_id == 3727 else 5,
             }
             result["capabilities"].extend(("lighting", "picture"))
+            if self.expected_id == 2376:
+                result["capabilities"].append("display")
+                result["display"] = display_spec(self.expected_id)
             if self.expected_id in RY5088_SWITCH_IDS:
                 result["capabilities"].extend(("magnetic-axis-read", "switch-type"))
                 result["switch_types"] = model_switch_types(self.expected_id)

@@ -73,6 +73,10 @@ this is exposed as a toggle, not an English/Chinese setter. Repeating it may rev
 the prior change. Confirm the resulting language on the physical display.
 
 
+## HE65 Mag limits
+
+HE65 Mag (internal model 2376) uses the inherited modern RY5088 display protocol with a 128×128 RGB565 screen, 6 MiB memory and five still banks. `models.display_spec` derives a maximum of 165 animation frames from those catalog values. The model exposes clock synchronization and a language toggle; system-information display is not advertised. Screen pixels, clock state and language state remain outside schema 7 backups. Hardware acceptance and persistence remain unverified.
+
 ## RT85 limits
 
 RT85 uses the same transfer layout with a 320×172 RGB565 display. Its identical

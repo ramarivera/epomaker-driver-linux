@@ -271,7 +271,7 @@ def capture(keyboard):
                 ),
                 "debounce": keyboard.status().get("debounce") if model_id == 3727 else None,
                 "limitations": [
-                    "firmware and persistent sensor calibration are not included; hardware restoration is unverified"
+                    "firmware, screen pixels/clock/language, and persistent sensor calibration are not included; hardware restoration is unverified"
                 ],
             }
             if keyboard._query(codec.packet([0x84]), expected=0x84)[1] != original:

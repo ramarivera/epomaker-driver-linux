@@ -15,8 +15,8 @@
   ],
   "counts": {
     "catalog_rows": 46,
-    "partial_backends": 38,
-    "catalog_only": 8,
+    "partial_backends": 39,
+    "catalog_only": 7,
     "hardware_verified": 0,
     "rows_with_loaders_in_both_installers": 45,
     "catalog_name_prefixes": {
@@ -28,9 +28,9 @@
       "yc3123": 5,
       "ry6602": 5
     },
-    "implemented_keyboard_rows": 33,
+    "implemented_keyboard_rows": 34,
     "implemented_mouse_rows": 5,
-    "magnetic_models_implemented": 22
+    "magnetic_models_implemented": 23
   },
   "models": [
     {
@@ -4171,9 +4171,9 @@
       "catalog_name": "ry5088_fq_x83_soc_8k_002",
       "vid": "0x3151",
       "pid": "0x502f",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -4299,15 +4299,89 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "backup",
+        "calibration-session",
+        "calibration-telemetry",
+        "clock",
+        "display",
+        "display-language",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "restore",
+        "rf-version",
+        "sleep",
+        "status"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows and Mac; identical declared Fn arrays",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "display": {
+          "size": [
+            128,
+            128
+          ],
+          "rgb": "RGB565",
+          "memory_mib": 6,
+          "still_banks": 5,
+          "max_animation_frames": 165,
+          "clock": true,
+          "language_toggle": true,
+          "system_info": false
+        },
+        "hardware_round_trips_verified": false,
+        "debounce": false,
+        "side_lighting": false,
+        "knob_slots": {
+          "volume-up": 90,
+          "volume-down": 91,
+          "mute": 92
+        },
+        "switch_write": false,
+        "sleep": {
+          "bluetooth": [
+            0,
+            64800
+          ],
+          "dongle": [
+            0,
+            64800
+          ],
+          "deep_bluetooth": [
+            10,
+            64800
+          ],
+          "deep_dongle": "hidden; preserved unchanged"
+        },
+        "magnetic_step": "travel 0.02 mm; deadzone 0.02 mm; rapid press/lift use firmware-precision fallback",
+        "transport": "USB only",
+        "snapshot_macro_slots": 256,
+        "backup": "schema 7 excludes display pixels, clock and language state"
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "model-backend"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {

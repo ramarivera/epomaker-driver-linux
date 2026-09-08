@@ -120,6 +120,7 @@ def test_matrix_schema_lengths_and_byte_values():
         "3518",
         "3613",
         "2520",
+        "2376",
         "3883",
         "2762",
         "2883",

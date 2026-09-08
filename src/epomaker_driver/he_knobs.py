@@ -7,6 +7,7 @@ def knob_slots(model_id):
         3417: {"volume-up": 90, "volume-down": 91, "mute": 92},
         3518: {"volume-up": 91, "volume-down": 90, "mute": 92},
         3883: {"volume-up": 96, "volume-down": 97, "mute": 98},
+        2376: {"volume-up": 90, "volume-down": 91, "mute": 92},
     }.get(model_id, {})
 
 

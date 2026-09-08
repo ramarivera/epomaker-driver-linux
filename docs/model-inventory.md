@@ -5,10 +5,10 @@ Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
 cross-references all 46 catalog rows with the Linux backend gates and the
 installer modules that load each model.
 
-There are **38 partial backends, 8 catalog-only entries and zero models verified
-on physical hardware**. The implemented subset comprises 33 keyboards and five mice;
-22 magnetic IDs have implemented magnetic backends,
-including HE108 ID 3365, HE65 V2 ID 3417, and HE75 V2 IDs 3518/3883. Hardware verification remains outstanding. These counts are not a feature-parity percentage. A
+There are **39 partial backends, 7 catalog-only entries and zero models verified
+on physical hardware**. The implemented subset comprises 34 keyboards and five mice;
+23 magnetic IDs have implemented magnetic backends,
+including HE65 Mag ID 2376, HE108 ID 3365, HE65 V2 ID 3417, and HE75 V2 IDs 3518/3883. Hardware verification remains outstanding. These counts are not a feature-parity percentage. A
 weighted feature inventory, hardware comparisons and application-wide workflows
 remain necessary for the greater-than-95% target in [migration status](parity.md).
 
@@ -33,7 +33,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 | CH585 mice | 3961, 3303, 3304, 3929, 3919 | USB profiles, named/raw bindings, macros, DPI/settings, backup/restore and reset; [protocol and limitations](ch585-protocol.md) |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
-| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746, 3365, 3417, 3518, 3883, 4071, 3613, 2520 | H60, HE68 Lite, HE108, HE65 V2, HE75 V2 and HE75 Mag variants; two profiles on 3518/3613, four on the others, with firmware-dependent magnetic precision; timed USB calibration for enabled models; schema 7 recovery for enabled models; hardware verification outstanding |
+| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746, 3365, 3417, 3518, 3883, 4071, 3613, 2520, 2376 | H60, HE68 Lite, HE108, HE65 V2, HE75 V2 and HE75 Mag variants; two profiles on 3518/3613, four on the others, with firmware-dependent magnetic precision; timed USB calibration for enabled models; schema 7 recovery for enabled models; hardware verification outstanding |
 | HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; schema 7 recovery; hardware verification outstanding |
 | RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
 
@@ -51,8 +51,8 @@ resolved names. The unresolved entry is **Epomaker M65, ID 2550**,
 loader match is a source ambiguity, not a reason to discard it or a claim that
 the physical keyboard is unsupported by the vendor.
 
-The 22 RY5088-named rows include twenty partial backends and two catalog-only
-entries. Direct inspection of the following model modules confirms that they import the same
+The 22 RY5088-named rows include twenty-one partial backends and one catalog-only
+entry. Direct inspection of the following model modules confirms that they import the same
 modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows. Most declare
 512-byte default normal, Fn and Fn-Mac matrices without child method overrides;
 models with fewer child arrays are called out below.
@@ -65,6 +65,7 @@ models with fewer child arrays are called out below.
 | HE75 V2 | 3518 | 3151:5054 | 7f80b47e.js | 2b1196c7.js |
 | HE75 V2 TMR | 3883 | 3151:5030 | ea385970.js | f6c36419.js |
 | HE75 Mag | 2520 | 3151:502f | f1e42ed8.js | 7e630160.js |
+| HE65 Mag | 2376 | 3151:502f | 70ef82d4.js | ea4b1f5f.js |
 | HE65 V2 | 3417 | 3151:5030 | 94ab70d6.js | bdf69dc1.js |
 | G84 HE Pro | 4071 | 3151:5030 | 7519543c.js | e83663f3.js |
 | HE108 | 3365 | 3151:5030 | 949a2f06.js | f6203dd7.js |
@@ -76,13 +77,13 @@ Most of these catalogs declare four layers and one Fn layer per OS; 3518 and
 3613 retain two profiles, while HE60 Lite is a separate two-profile implementation. The [H60 migration](ry5088-h60.md),
 [HE68 Lite](ry5088-he68.md), [wired additions](ry5088-wired.md) and
 [wireless-capable additions](ry5088-wireless.md) and [HE60 3746](ry5088-he60.md) and [HE108](ry5088-he108.md) and [G84 HE Pro](g84-he-pro.md) implement those model-specific
-limits. The two remaining catalog-only RY5088 rows require further capability
+limits. The one remaining catalog-only RY5088 row requires further capability
 validation before enablement.
 
 The same direct base inheritance and absence of child method overrides hold for
 all 21 resolved RY5088 rows. Each declared matrix is 512 bytes and matches its
 Windows counterpart byte for byte; the JSON records these checks in
-`installer_class_evidence`. IDs 2520, 2586 and 2761 declare only normal and Fn
+`installer_class_evidence`. IDs 2586 and 2761 declare only normal and Fn
 matrices, so their Fn-Mac defaults require tracing the inherited value. The other
 18 rows declare all three matrices. None of these 21 children uses the separate
 `7bb580fe.js` precision-extension superclass found elsewhere in the installer.
