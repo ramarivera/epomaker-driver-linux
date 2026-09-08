@@ -110,6 +110,31 @@ def clock_command(year, month, day, hour, minute, second):
     )
 
 
+def system_info(values):
+    gib = 1024**3
+    rounded = []
+    for key in (
+        "disk_available",
+        "disk_total",
+        "memory_used",
+        "memory_total",
+        "network_up",
+        "network_down",
+    ):
+        value = values[key]
+        if type(value) is not int or value < 0:
+            raise ValueError(f"{key} must be a nonnegative byte count")
+        rounded.append(bounded((value + gib // 2) // gib, 65535, key + " GiB"))
+    cpu = bounded(values["cpu_usage"], 100, "CPU usage")
+    temperature = values["cpu_temperature"]
+    temperature = 0 if temperature is None else bounded(temperature, 255, "CPU temperature")
+    return packet(
+        bytes([0x22])
+        + bytes(7)
+        + struct.pack("<4HBB2H", *rounded[:4], cpu, temperature, *rounded[4:])
+    )
+
+
 def macro_keyboard_event(hid_usage, down, delay_ms):
     if type(down) is not bool:
         raise ValueError("down must be a boolean")

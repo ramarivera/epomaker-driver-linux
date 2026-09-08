@@ -210,3 +210,47 @@ def test_animation_cli(cli_device, firmware, tmp_path, capsys):
     assert cli.main(["--device", cli_device.path, "animation", str(path), "--fit"]) == 0
     assert json.loads(capsys.readouterr().out) == {"ok": True, "frames": 2, "frame_delay_ms": 80}
     assert len(firmware.sent) == 4342
+
+
+def test_host_info_and_bounded_display_refresh(cli_device, firmware, monkeypatch, capsys):
+    value = {
+        "disk_available": 0,
+        "disk_total": 1024**3,
+        "memory_used": 0,
+        "memory_total": 1024**3,
+        "cpu_usage": 20,
+        "cpu_temperature": None,
+        "network_up": 0,
+        "network_down": 0,
+        "warnings": [],
+    }
+
+    class Collector:
+        def __init__(self, **kwargs):
+            pass
+
+        def collect(self):
+            return value
+
+    monkeypatch.setattr(cli.system_info, "Collector", Collector)
+    sleeps = []
+    monkeypatch.setattr(cli.time, "sleep", sleeps.append)
+    assert cli.main(["host-info"]) == 0
+    assert json.loads(capsys.readouterr().out) == value
+    assert (
+        cli.main(["--device", cli_device.path, "system-info", "--count", "2", "--interval", "1"])
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["sent"] == 2
+    assert sleeps == [1]
+    assert [p[0] for p in firmware.sent] == [0x22, 0x22]
+    assert firmware.closed
+    assert cli.main(["--device", cli_device.path, "system-info", "--count", "0"]) == 1
+    assert "count must" in capsys.readouterr().err
+
+    def interrupt(*_):
+        raise KeyboardInterrupt()
+
+    monkeypatch.setattr(cli, "execute", interrupt)
+    assert cli.main(["host-info"]) == 130
+    assert json.loads(capsys.readouterr().err)["interrupted"]

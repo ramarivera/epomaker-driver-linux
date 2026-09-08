@@ -50,6 +50,9 @@ Device access may require [permissions](docs/hardware.md).
 # Import and activate that picture, or change one physical RGB slot.
 .venv/bin/epomaker --device /dev/hidrawN picture 0 colors.json --activate
 .venv/bin/epomaker --device /dev/hidrawN picture-key 0 10 ff8040
+# Inspect host statistics or refresh the display a fixed number of times.
+.venv/bin/epomaker host-info
+.venv/bin/epomaker --device /dev/hidrawN system-info --count 20 --interval 3
 ```
 
 Macro JSON contains `repeat` and `events`. Each event has `hid_usage`, boolean `down`,
@@ -68,6 +71,7 @@ Still images are converted
 to the display's column-major RGB565 format. The `animation` command accepts 2–46
 frames with the vendor's averaged frame timing. See [display behavior](docs/display.md).
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
+See [system-information collection](docs/system-info.md) for units and sensor selection.
 
 ## Test
 

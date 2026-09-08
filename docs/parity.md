@@ -26,6 +26,7 @@ IDs do not establish that another model speaks the same protocol.
 | Other keyboard families | Catalog only | Older YC3121 and model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
+| System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Not started | Layout editor, settings pages, localization, accessibility |
 | Firmware management | Research only | Image validation, upgrade transport and recovery |
 | Vendor online services | Research only | Accounts, community, cloud profiles and supported service integrations |

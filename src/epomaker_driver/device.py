@@ -244,6 +244,9 @@ class Keyboard:
             ]
         )
 
+    def sync_system_info(self, values):
+        self._write([codec.system_info(values)])
+
     def upload_screen(self, pixels, bounds, *, frame=0, frames=1, delay=0, progress=None):
         # Prepare all data/metadata before the first device mutation.
         prepare = codec.screen_prepare(len(pixels), bounds, frame, frames, delay)

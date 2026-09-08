@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
-from . import __version__, actions, codec, macros, media, profiles, snapshot
+from . import __version__, actions, codec, macros, media, profiles, snapshot, system_info
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError
@@ -30,6 +31,18 @@ def parser():
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     commands.add_parser("clock", help="synchronize the display clock")
+    for name in ("host-info", "system-info"):
+        info = commands.add_parser(
+            name,
+            help="collect Linux statistics"
+            if name == "host-info"
+            else "send statistics to the display",
+        )
+        info.add_argument("--disk", default="/")
+        info.add_argument("--interface")
+        if name == "system-info":
+            info.add_argument("--count", type=int, default=1)
+            info.add_argument("--interval", type=float, default=3.0)
     commands.add_parser("get-light").add_argument("--side", action="store_true")
     light = commands.add_parser("light")
     light.add_argument("mode", choices=codec.LIGHT_MODES)
@@ -140,11 +153,17 @@ def execute(args):
             "mouse": actions.MOUSE,
             "macro_modes": actions.MACRO_MODES,
         }
+    if args.command == "host-info":
+        return system_info.Collector(disk=args.disk, interface=args.interface).collect()
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
     # Decode and validate entire local inputs before opening the device.
     prepared = None
+    if args.command == "system-info":
+        if not 1 <= args.count <= 10000 or not 0.1 <= args.interval <= 3600:
+            raise ValueError("count must be 1..10000 and interval 0.1..3600 seconds")
+        prepared = system_info.Collector(disk=args.disk, interface=args.interface)
     if args.command == "screen":
         prepared = media.screen_image(args.path, fit=args.fit)
     elif args.command == "animation":
@@ -193,6 +212,13 @@ def execute(args):
             return keyboard.identify()
         if args.command == "status":
             return keyboard.status()
+        if args.command == "system-info":
+            for index in range(args.count):
+                if index:
+                    time.sleep(args.interval)
+                values = prepared.collect()
+                keyboard.sync_system_info(values)
+            return {"sent": args.count, "last_sample": values}
         if args.command == "get-picture":
             colors = keyboard.read_picture(args.index)
             return {"colors": [colors[i : i + 3].hex() for i in range(0, 378, 3)]}
@@ -274,6 +300,9 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         result = execute(args)
+    except KeyboardInterrupt:
+        print(json.dumps({"interrupted": True}), file=sys.stderr)
+        return 130
     except (DriverError, OSError, ValueError) as error:
         print(json.dumps({"error": type(error).__name__, "message": str(error)}), file=sys.stderr)
         return 1
