@@ -17,6 +17,14 @@ COMMANDS = frozenset(
         "mouse-rate",
         "get-mouse-settings",
         "mouse-setting",
+        "get-macro",
+        "macro",
+        "bind-key",
+        "bind-media",
+        "bind-mouse",
+        "bind-macro",
+        "disable-key",
+        "mouse-bind",
     )
 )
 
@@ -200,6 +208,68 @@ class Mouse:
             if actual != hz:
                 raise ProtocolError("mouse report-rate readback differs")
             return {"report_rate": actual}
+
+        return self.transport.transaction(operation)
+
+    def _read_macro_pages(self, slot):
+        pages = []
+        for page in range(4):
+            raw = self.transport.exchange(codec.packet([0x83, slot, page]))
+            if len(raw) != 64:
+                raise ProtocolError(f"mouse macro page {page} must be exactly 64 bytes")
+            pages.append(bytes(raw))
+        return b"".join(pages)
+
+    def read_macro(self, slot):
+        """Read all four raw 64-byte pages of one 256-byte mouse macro."""
+
+        codec.bounded(slot, 49, "mouse macro slot")
+
+        def operation():
+            self.identify()
+            profile = self.get_profile()
+            data = self._read_macro_pages(slot)
+            if self.get_profile() != profile:
+                raise ProtocolError("mouse profile changed during macro read")
+            return data
+
+        return self.transport.transaction(operation)
+
+    def write_macro(self, slot, data):
+        """Replace one raw 256-byte macro using all five contiguous chunks."""
+
+        codec.bounded(slot, 49, "mouse macro slot")
+        if not isinstance(data, bytes) or len(data) != 256:
+            raise ValueError("mouse macro data must be exactly 256 bytes")
+
+        def operation():
+            self.identify()
+            profile = self.get_profile()
+            before = self._read_macro_pages(slot)
+            if self.get_profile() != profile:
+                raise ProtocolError("mouse profile changed before macro write")
+            if before == data:
+                return {"slot": slot, "profile": profile, "changed": False}
+            try:
+                for chunk in range(5):
+                    if self.get_profile() != profile:
+                        raise ProtocolError("mouse profile changed before macro write")
+                    payload = data[chunk * 56 : (chunk + 1) * 56].ljust(56, b"\0")
+                    command = codec.packet(
+                        bytes([3, slot, chunk, 56, chunk == 4, 0, 0, 0]) + payload
+                    )
+                    self._write(command)
+                actual = self._read_macro_pages(slot)
+                if actual != data:
+                    raise ProtocolError("mouse macro readback differs")
+                if self.get_profile() != profile:
+                    raise ProtocolError("mouse profile changed during macro write")
+            except (Exception, KeyboardInterrupt) as error:
+                raise ProtocolError(
+                    f"mouse macro slot {slot} failed during chunk {chunk} or verification: "
+                    f"{error}; macro may be partially written"
+                ) from error
+            return {"slot": slot, "profile": profile, "changed": True}
 
         return self.transport.transaction(operation)
 

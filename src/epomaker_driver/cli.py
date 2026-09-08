@@ -292,7 +292,7 @@ def execute(args):
     is_mouse = device.product_id in MOUSE_PRODUCTS
     if is_mouse and args.command not in MOUSE_COMMANDS:
         raise UnsupportedDevice("this command is not implemented for CH585 mice")
-    if args.command in MOUSE_COMMANDS - {"identify", "status", "profile"} and not is_mouse:
+    if args.command in MOUSE_COMMANDS - mouse_cli.SHARED_COMMANDS and not is_mouse:
         raise UnsupportedDevice("mouse commands require a supported CH585 mouse")
     if is_he and args.command not in HE_COMMANDS:
         raise UnsupportedDevice("This magnetic-keyboard command has not been migrated yet")
@@ -325,7 +325,7 @@ def execute(args):
         raise UnsupportedDevice("schema 7 snapshots require a supported magnetic keyboard")
     with Transport.open(device) as transport:
         if is_mouse:
-            return mouse_cli.run(Mouse(transport, product_id=device.product_id), args)
+            return mouse_cli.run(Mouse(transport, product_id=device.product_id), args, prepared)
         if is_he:
             keyboard = HEKeyboard(transport, product_id=device.product_id)
         elif device.product_id == 0x4015:

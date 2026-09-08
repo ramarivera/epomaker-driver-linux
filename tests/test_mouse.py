@@ -41,6 +41,9 @@ class MouseFirmware:
             for p in range(8)
         }
         self.report_rate = 1000
+        self.macros = {slot: bytes(256) for slot in range(50)}
+        self.corrupt_macro = False
+        self.drop_macro = False
 
     @property
     def product_id(self):
@@ -97,6 +100,12 @@ class MouseFirmware:
                 self.report_rate
             ]
             return bytes(raw)
+        if op == 0x83:
+            slot, page = command[1], command[2]
+            raw = bytearray(self.macros[slot][page * 64 : (page + 1) * 64])
+            if self.corrupt_macro and page == 3:
+                raw[0] ^= 1
+            return bytes(raw)
         raise AssertionError(f"unexpected mouse query {op:#x}")
 
     def send(self, command):
@@ -130,6 +139,13 @@ class MouseFirmware:
             self.report_rate = {8: 125, 4: 250, 2: 500, 1: 1000, 132: 2000, 130: 4000, 129: 8000}[
                 command[1]
             ]
+        elif op == 0x03:
+            if not self.drop_macro:
+                slot, chunk = command[1], command[2]
+                data = bytearray(self.macros[slot])
+                end = min(256, chunk * 56 + 56)
+                data[chunk * 56 : end] = command[8 : 8 + end - chunk * 56]
+                self.macros[slot] = bytes(data)
         else:
             raise AssertionError(f"unexpected mouse write {op:#x}")
 
@@ -191,6 +207,113 @@ def test_profile_drop_is_detected():
     firmware.drop_profile = True
     with pytest.raises(ProtocolError):
         keyboard.set_profile(2)
+
+
+def test_macro_read_returns_all_four_raw_pages():
+    keyboard, firmware = mouse_keyboard()
+    firmware.macros[7] = bytes(range(256))
+    assert keyboard.read_macro(7) == bytes(range(256))
+    assert [command[:3] for command in firmware.query_log if command[0] == 0x83] == [
+        bytes([0x83, 7, page]) for page in range(4)
+    ]
+
+
+def test_macro_write_sends_five_contiguous_chunks_and_preserves_zero_holes():
+    keyboard, firmware = mouse_keyboard()
+    data = bytearray(256)
+    data[3] = 17
+    data[112] = 29  # A later chunk is nonzero while an earlier one is empty.
+    result = keyboard.write_macro(7, bytes(data))
+    assert result == {"slot": 7, "profile": 0, "changed": True}
+    writes = [command for command in firmware.sent if command[0] == 3]
+    assert len(writes) == 5
+    assert [command[2] for command in writes] == list(range(5))
+    assert all(command[3] == 56 for command in writes)
+    assert writes[-1][4] == 1
+    assert all(command[4] == 0 for command in writes[:-1])
+    assert all(command[7] == (255 - sum(command[:7])) & 255 for command in writes)
+    assert firmware.macros[7] == bytes(data)
+
+
+def test_macro_write_noop_sends_no_configuration_packets():
+    keyboard, firmware = mouse_keyboard()
+    data = bytes([4]) * 256
+    firmware.macros[3] = data
+    assert keyboard.write_macro(3, data)["changed"] is False
+    assert not [command for command in firmware.sent if command[0] == 3]
+
+
+def test_macro_write_clears_existing_nonzero_storage_with_all_chunks():
+    keyboard, firmware = mouse_keyboard()
+    firmware.macros[4] = bytes([9]) * 256
+    assert keyboard.write_macro(4, bytes(256))["changed"] is True
+    assert firmware.macros[4] == bytes(256)
+    assert len([command for command in firmware.sent if command[0] == 3]) == 5
+
+
+def test_macro_allocator_accepts_slot_49():
+    keyboard, firmware = mouse_keyboard()
+    data = bytes([7]) * 256
+    firmware.macros[49] = data
+    assert keyboard.read_macro(49) == data
+    with pytest.raises(ValueError):
+        keyboard.read_macro(50)
+    with pytest.raises(ValueError):
+        keyboard.write_macro(50, data)
+    assert not [command for command in firmware.sent if command[0] == 3]
+
+
+def test_macro_noop_checks_profile_before_return(monkeypatch):
+    keyboard, firmware = mouse_keyboard()
+    data = bytes([4]) * 256
+    firmware.macros[3] = data
+    profiles = iter((0, 1))
+    monkeypatch.setattr(keyboard, "get_profile", lambda: next(profiles))
+    with pytest.raises(ProtocolError, match="before macro write"):
+        keyboard.write_macro(3, data)
+    assert not [command for command in firmware.sent if command[0] == 3]
+
+
+def test_macro_profile_drift_stops_before_next_chunk(monkeypatch):
+    keyboard, firmware = mouse_keyboard()
+    profiles = iter((0, 0, 0, 1))
+    monkeypatch.setattr(keyboard, "get_profile", lambda: next(profiles))
+    with pytest.raises(ProtocolError, match="before macro write"):
+        keyboard.write_macro(0, bytes([8]) * 256)
+    writes = [command for command in firmware.sent if command[0] == 3]
+    assert len(writes) == 1
+
+
+@pytest.mark.parametrize("slot", [-1, 50, 256, True])
+def test_macro_slot_bounds_reject_before_io(slot):
+    keyboard, firmware = mouse_keyboard()
+    with pytest.raises(ValueError):
+        keyboard.read_macro(slot)
+    with pytest.raises(ValueError):
+        keyboard.write_macro(slot, bytes(256))
+    assert firmware.sent == []
+
+
+@pytest.mark.parametrize("data", [bytearray(256), bytes(255), bytes(257), "x"])
+def test_macro_write_requires_raw_256_byte_bytes(data):
+    keyboard, firmware = mouse_keyboard()
+    with pytest.raises(ValueError):
+        keyboard.write_macro(0, data)
+    assert firmware.sent == []
+
+
+def test_macro_write_readback_failure_is_reported():
+    keyboard, firmware = mouse_keyboard()
+    firmware.corrupt_macro = True
+    with pytest.raises(ProtocolError, match="macro readback"):
+        keyboard.write_macro(0, bytes([8]) * 256)
+
+
+def test_macro_write_drop_is_reported():
+    keyboard, firmware = mouse_keyboard()
+    firmware.drop_macro = True
+    with pytest.raises(ProtocolError, match="macro readback"):
+        keyboard.write_macro(0, bytes([8]) * 256)
 
 
 def test_matrix_raw_response_and_key_write_preserve_neighbors():
@@ -446,3 +569,73 @@ def test_dpi_edits_address_the_requested_profile_bank_only():
     assert mouse.get_dpi(7)["levels"][1]["x"] == 1600
     assert mouse.get_dpi(0) == before
     assert fw.profile == 0
+
+
+@pytest.mark.parametrize(
+    "error", [OSError("disconnected"), ProtocolError("bad reply"), KeyboardInterrupt()]
+)
+def test_macro_partial_failure_preserves_error_context(monkeypatch, error):
+    mouse, fw = mouse_keyboard()
+    original = fw.send
+
+    def fail(command):
+        if command[0] == 3 and command[2] == 2:
+            raise error
+        original(command)
+
+    monkeypatch.setattr(fw, "send", fail)
+    with pytest.raises(ProtocolError, match="slot 2.*partially") as caught:
+        mouse.write_macro(2, bytes([5]) * 256)
+    assert caught.value.__cause__ is error
+    assert len(fw.sent) == 2
+
+
+def test_macro_read_profile_drift_is_detected(monkeypatch):
+    mouse, fw = mouse_keyboard()
+    profiles = iter([0, 1])
+    monkeypatch.setattr(mouse, "get_profile", lambda: next(profiles))
+    with pytest.raises(ProtocolError, match="macro read"):
+        mouse.read_macro(0)
+
+
+def test_macro_final_profile_drift_reports_partial_state(monkeypatch):
+    mouse, fw = mouse_keyboard()
+    profiles = iter([0] * 7 + [1])
+    monkeypatch.setattr(mouse, "get_profile", lambda: next(profiles))
+    with pytest.raises(ProtocolError, match="during macro write.*partially"):
+        mouse.write_macro(0, bytes([1]) * 256)
+
+
+def test_macro_raw_page_shape_is_checked(monkeypatch):
+    mouse, fw = mouse_keyboard()
+    original = mouse.transport.exchange
+    monkeypatch.setattr(
+        mouse.transport,
+        "exchange",
+        lambda command, **kw: bytes(63) if command[0] == 0x83 else original(command, **kw),
+    )
+    with pytest.raises(ProtocolError, match="64 bytes"):
+        mouse.read_macro(0)
+
+
+def test_macro_write_preserves_other_slots_and_keymaps():
+    mouse, fw = mouse_keyboard()
+    fw.macros[1] = bytes([13]) * 256
+    fw.profile = 7
+    matrices = fw.matrix.copy()
+    before = fw.macros.copy()
+    data = bytes(range(256))
+    mouse.write_macro(49, data)
+    before[49] = data
+    assert fw.macros == before
+    assert fw.matrix == matrices
+    assert fw.profile == 7
+
+
+def test_macro_mutation_reidentifies_before_configuration_writes():
+    mouse, fw = mouse_keyboard()
+    mouse.identify()
+    fw.model_id = 3303
+    with pytest.raises(UnsupportedDevice):
+        mouse.write_macro(0, bytes(256))
+    assert not fw.sent

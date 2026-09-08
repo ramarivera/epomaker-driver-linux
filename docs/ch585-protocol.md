@@ -3,7 +3,7 @@
 This document records the independently derived wire facts for the five
 catalogued EPOMAKER mouse models that load `CommonMSCH585`: IDs 3961, 3303,
 3304, 3929, and 3919. The Linux backend implements USB identification, status, eight profiles, raw
-button mapping, DPI-level editing, report-rate selection and model-gated mouse settings. This is not a
+button mapping, named actions, macros, DPI-level editing, report-rate selection and model-gated mouse settings. This is not a
 claim of hardware validation. The catalog marks all five
 `hardware_verified: false`.
 
@@ -112,8 +112,9 @@ epomaker --device /dev/hidrawN mouse-dpi --profile 2 --current 1
 epomaker --device /dev/hidrawN mouse-rate 1000
 ```
 
-Mouse actions use their own raw four-byte format. Keyboard semantic binding
-commands are rejected for mice. The sample `0100f000` is the vendor's left-button
+Mouse actions use four-byte values. Shared keyboard/media/macro binding constructors
+match the vendor mouse conversion helper and are supported; keyboard Fn, OS and
+submode banks remain unavailable on mice. The sample `0100f000` is the vendor's left-button
 binding; matrix reads expose each slot for inspection.
 
 DPI writes preserve all eight X/Y/RGB entries, including hidden levels and
@@ -183,9 +184,68 @@ Simulated USB tests cover all five models, timer boundaries, unrelated-setting
 preservation, dropped writes, profile races, identity changes and version gates.
 No physical device writes have been performed.
 
+## Macros and named button assignments
+
+The mouse controller is `CM` in the Mac main bundle (constructor around line
+115546 checks protocol type `mouse`). Its single-key and full-configuration
+macro allocators both reserve **50 slots, 0–49**, across profiles. The equivalent
+Windows controller follows the same limit. The byte-sized protocol field does
+not establish 256 usable slots.
+
+`get-macro SLOT` returns exactly 256 raw bytes, with repeat count as uint16LE at
+0–1 and events starting at byte 2. `--decoded` uses the existing independent
+macro decoder. `macro SLOT FILE.json` accepts the same `{repeat, events}` format
+as the keyboard CLI, validates the file before opening HID, and verifies all
+256 bytes after writing. Examples are in [macros.md](macros.md).
+
+The shared main-bundle `Fn.macroEventToByte` has the same keyboard/button event
+format as the existing encoder. CH585 uses button codes f0–f4 and movement f9.
+Compact movement is ambiguous: the shared encoder stores a short delay directly,
+while the CH585 decoder shifts that byte right once. Linux writes the explicit
+six-byte movement form even for short delays. Ambiguous existing macros remain
+readable as raw hex; requesting decoded output fails explicitly.
+
+Raw reads request all four pages `[83, slot, page]`, without opcode matching on
+replies because the entire 64 bytes are data. This avoids the vendor's heuristic
+that stops after four consecutive zero bytes within a page. Writes send five
+contiguous 56-byte payloads: `[03, slot, chunk, 56, final, 0, 0, checksum]`, with
+24 padding zeros in the fifth payload. Only the fifth packet has final=1. The
+vendor counts nonzero chunks then sends that many chunks from the beginning,
+which can lose data after a zero-filled chunk and sends nothing for all-zero
+storage. Linux deliberately sends the complete replacement, including zeros.
+This relies on the recovered framing; physical firmware acceptance remains
+unverified and full readback is required. No-op writes send no configuration
+packets. Errors identify possible partial writes; the original macro is not
+automatically restored.
+
+Named bindings use the actual mouse action table `An` and `_i.configToMatrix`
+in the Mac main bundle (`pi.configToMatrix` on Windows). Existing `bind-key`,
+`bind-media`, `bind-mouse`, `bind-macro`, and `disable-key` commands now work on
+these mice. `mouse-bind` adds scroll steps, relative pointer movement, DPI
+changes, profile cycling, pairing and lighting cycling. The names describe
+vendor assignments, not a guarantee that a selected connection supports every
+resulting action. `mouse-matrix` includes decoded bindings and preserves raw
+bytes for every slot.
+
+```text
+epomaker --device /dev/hidrawN macro 0 macro.json
+epomaker --device /dev/hidrawN get-macro 0 --decoded
+epomaker --device /dev/hidrawN bind-macro 5 0 --mode held
+epomaker --device /dev/hidrawN bind-key 4 c --modifier ctrl
+epomaker --device /dev/hidrawN mouse-bind 6 dpi-cycle
+epomaker --device /dev/hidrawN mouse-bind 12 scroll-up
+```
+
+A binding targets the active profile; shared `bind-*` commands default to
+profile 0 and reject a different active profile unless `--profile` matches it.
+The dedicated `mouse-bind` defaults to the current profile. Wheel-up is
+`01 00 f7 00`; scroll-up is `01 00 f5 01`; these remain distinct. DPI-down is
+`00 02 00 14`, which must be recognized before generic keyboard decoding.
+Unknown bindings retain their four raw bytes.
+
 ## Remaining work
 
-Macro and semantic action editing, lighting writes, motion-sync/FPS controls,
+Additional function/gamepad/dual-action/recoil bindings, lighting writes, motion-sync/FPS controls,
 battery interpretation, backup/restore, reset, firmware upgrades,
 Bluetooth/receiver routing and GUI integration are unfinished.
 The PAN1080/PAN1080-8K mouse families require separate protocol implementations.

@@ -307,7 +307,9 @@
         "aggregate-settings-read",
         "mouse-sleep-debounce-scroll",
         "mouse-line-wave-correction",
-        "mouse-lod"
+        "mouse-lod",
+        "mouse-macros",
+        "mouse-named-bindings"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -319,7 +321,9 @@
         "backup": false,
         "restore": false,
         "boot_status": "not established; bootloader PIDs excluded",
-        "hardware_round_trips_verified": false
+        "hardware_round_trips_verified": false,
+        "macro_slots": 50,
+        "macro_bytes": 256
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -327,8 +331,7 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "mouse-semantic-actions",
-        "mouse-macros",
+        "mouse-additional-action-types",
         "mouse-lighting",
         "mouse-motion-sync-fps-controls",
         "configuration-recovery",
@@ -426,7 +429,9 @@
         "report-rate",
         "aggregate-settings-read",
         "mouse-sleep-debounce-scroll",
-        "mouse-line-wave-correction"
+        "mouse-line-wave-correction",
+        "mouse-macros",
+        "mouse-named-bindings"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -438,7 +443,9 @@
         "backup": false,
         "restore": false,
         "boot_status": "not established; bootloader PIDs excluded",
-        "hardware_round_trips_verified": false
+        "hardware_round_trips_verified": false,
+        "macro_slots": 50,
+        "macro_bytes": 256
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -446,8 +453,7 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "mouse-semantic-actions",
-        "mouse-macros",
+        "mouse-additional-action-types",
         "mouse-lighting",
         "mouse-motion-sync-fps-controls",
         "configuration-recovery",
@@ -546,7 +552,9 @@
         "aggregate-settings-read",
         "mouse-sleep-debounce-scroll",
         "mouse-line-wave-correction",
-        "mouse-lod"
+        "mouse-lod",
+        "mouse-macros",
+        "mouse-named-bindings"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -558,7 +566,9 @@
         "backup": false,
         "restore": false,
         "boot_status": "not established; bootloader PIDs excluded",
-        "hardware_round_trips_verified": false
+        "hardware_round_trips_verified": false,
+        "macro_slots": 50,
+        "macro_bytes": 256
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -566,8 +576,7 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "mouse-semantic-actions",
-        "mouse-macros",
+        "mouse-additional-action-types",
         "mouse-lighting",
         "mouse-motion-sync-fps-controls",
         "configuration-recovery",
@@ -669,7 +678,9 @@
         "mouse-sleep-debounce-scroll",
         "mouse-line-wave-correction",
         "mouse-lod",
-        "mouse-low-latency-firmware-gated"
+        "mouse-low-latency-firmware-gated",
+        "mouse-macros",
+        "mouse-named-bindings"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -681,7 +692,9 @@
         "backup": false,
         "restore": false,
         "boot_status": "not established; bootloader PIDs excluded",
-        "hardware_round_trips_verified": false
+        "hardware_round_trips_verified": false,
+        "macro_slots": 50,
+        "macro_bytes": 256
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -689,8 +702,7 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "mouse-semantic-actions",
-        "mouse-macros",
+        "mouse-additional-action-types",
         "mouse-lighting",
         "mouse-motion-sync-fps-controls",
         "configuration-recovery",
@@ -808,7 +820,9 @@
         "aggregate-settings-read",
         "mouse-sleep-debounce-scroll",
         "mouse-line-wave-correction",
-        "mouse-low-latency-firmware-gated"
+        "mouse-low-latency-firmware-gated",
+        "mouse-macros",
+        "mouse-named-bindings"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -820,7 +834,9 @@
         "backup": false,
         "restore": false,
         "boot_status": "not established; bootloader PIDs excluded",
-        "hardware_round_trips_verified": false
+        "hardware_round_trips_verified": false,
+        "macro_slots": 50,
+        "macro_bytes": 256
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -828,8 +844,7 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "mouse-semantic-actions",
-        "mouse-macros",
+        "mouse-additional-action-types",
         "mouse-lighting",
         "mouse-motion-sync-fps-controls",
         "configuration-recovery",

@@ -15,7 +15,10 @@ epomaker --device /dev/hidrawN disable-key 10
 epomaker --device /dev/hidrawN matrix --decoded
 ```
 
-Bindings accept `--profile`, `--fn` and `--os-mode` as the raw `key` command does.
+Keyboard bindings accept `--profile`, `--fn` and `--os-mode` as the raw `key` command does.
+[CH585 mice](ch585-protocol.md) support 50 macro slots and shared binding commands,
+but reject Fn/OS/submode banks. Mouse buttons use their model-specific slots;
+use `mouse-matrix` to inspect them and `mouse-bind` for additional mouse actions.
 Macro playback modes are `count`, `toggle` and `held`. Repeat count is stored in the
 macro itself. Binding writes use the existing model gate and readback verification.
 The `key` command remains available for four-byte actions not represented by a

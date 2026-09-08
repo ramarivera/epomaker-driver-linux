@@ -26,7 +26,8 @@ models have some backend support; their feature coverage differs substantially.
 [Magnetic recovery](he-recovery.md) adds backup and restore for all fourteen
 implemented magnetic IDs, including inactive fields and unreferenced macros.
 [Five CH585 mice](ch585-protocol.md) add USB profiles, raw button mappings,
-DPI and report-rate writes, sleep/debounce/scroll timing, LOD, correction and
+named button bindings and 50 macro slots, DPI and report-rate writes,
+sleep/debounce/scroll timing, LOD, correction and
 firmware-gated low latency, with verified readback.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
@@ -47,7 +48,7 @@ IDs do not establish that another model speaks the same protocol.
 | OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
-| Mice | Five CH585 models: USB identity/status, eight profiles, raw button bindings, model-specific DPI changes, report rate, sleep/debounce/scroll settings, sensor-gated LOD/correction and firmware-gated low latency | PAN1080 families, semantic actions, macros, lighting, motion-sync/FPS controls, battery, recovery and wireless routing |
+| Mice | Five CH585 models: USB identity/status, eight profiles, named/raw button bindings, 50 macro slots, model-specific DPI changes, report rate, sleep/debounce/scroll settings, sensor-gated LOD/correction and firmware-gated low latency | PAN1080 families, additional action types, lighting, motion-sync/FPS controls, battery, recovery and wireless routing |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |
