@@ -6,7 +6,7 @@ from he_snapshot_firmware import snapshot_keyboard
 from epomaker_driver.errors import ProtocolError
 
 
-@pytest.mark.parametrize("model", [3518, 3883])
+@pytest.mark.parametrize("model", [3518, 3883, 3613])
 @pytest.mark.parametrize(
     "mode,effect,speed,rgb,rainbow,flag",
     [
@@ -29,7 +29,7 @@ def test_ei_effect_packets_and_readback(model, mode, effect, speed, rgb, rainbow
     assert result["mode"] == mode and result["speed"] == speed and result["rgb"] == rgb
 
 
-@pytest.mark.parametrize("model", [3518, 3883])
+@pytest.mark.parametrize("model", [3518, 3883, 3613])
 @pytest.mark.parametrize(
     "mode,kwargs",
     [

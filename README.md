@@ -73,7 +73,10 @@ Hardware remains unverified.
 counts, four-effect `ei` side lighting, magnetic configuration, canonical switch
 codes, knob bindings and USB sleep settings. Hardware remains unverified.
 
-All twenty implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
+[HE75 V2 TMR model 3613](docs/he75-tmr-3613.md) adds the two-profile TMR
+variant, with its four-switch catalog, travel limits and side lighting.
+
+All twenty-one implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

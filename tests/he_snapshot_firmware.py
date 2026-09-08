@@ -9,7 +9,7 @@ from epomaker_driver.models import RY5088_IDS
 class SnapshotFirmware(Firmware):
     def __init__(self, model_id=3692):
         super().__init__(model_id=model_id)
-        count = 4 if model_id in RY5088_IDS and model_id != 3518 else 2
+        count = 4 if model_id in RY5088_IDS and model_id not in (3518, 3613) else 2
         self.profile_fields = {p: dict(self.fields) for p in range(count)}
         for p, fields in self.profile_fields.items():
             fields[0] = (200 + p).to_bytes(2, "little") * 128

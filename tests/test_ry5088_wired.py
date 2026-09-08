@@ -100,7 +100,7 @@ def test_model_specific_snap_restoration_and_precision(model, product):
         (2870, 0x5030),
         (3691, 0x5029),
         (2550, 0x502D),
-        (3613, 0x5054),
+        (2520, 0x502F),
     ],
 )
 def test_wrong_pid_or_unmigrated_sibling_cannot_write(model, product):

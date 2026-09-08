@@ -24,7 +24,7 @@ def install(monkeypatch, model=3692):
 
 
 @pytest.mark.parametrize(
-    "model", [3727, 3759, 2586, 2761, 3692, 3703, 3746, 3365, 4071, 3417, 3518, 3883]
+    "model", [3727, 3759, 2586, 2761, 3692, 3703, 3746, 3365, 4071, 3417, 3518, 3883, 3613]
 )
 def test_cli_backup_restore_schema7(model, monkeypatch, tmp_path, capsys):
     kb, fw, info = install(monkeypatch, model)

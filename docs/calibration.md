@@ -2,7 +2,7 @@
 
 The CLI provides a timed calibration session for migrated H60, HE68 Lite and
 HE60 Lite models and the [additional wired RY5088 models](ry5088-wired.md):
-internal IDs 3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746, 3365, 4071, 3417, 3518 and 3883. A
+internal IDs 3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746, 3365, 4071, 3417, 3518, 3883 and 3613. A
 wireless-capable keyboard must be connected through its supported USB command
 interface. Calibration is a device mutation; the implementation has only been
 validated with source inspection and simulated firmware, not physical keyboards.
@@ -77,7 +77,7 @@ The UI's visual threshold logic is at macOS main 122973–122991. This is separa
 from switch selection and ordinary actuation settings.
 
 Tests cover exact command order and checksum shape, baseline delay, raw reads
-whose first byte is not an opcode, all twenty model IDs through CLI dispatch,
+whose first byte is not an opcode, all twenty-one model IDs through CLI dispatch,
 USB/model gates, invalid duration, cancellation, partial starts, failed stops,
 malformed pages, lock scope and independent cleanup failures. Firmware behavior,
 physical calibration results, reconnect recovery and GUI integration remain
