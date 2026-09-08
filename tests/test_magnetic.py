@@ -184,3 +184,12 @@ def test_remaining_width_and_range_guards():
         key_field(bytes(128), 0, field=8)
     assert decode_field(252, b"\x05", multiplier=100) == 5
     assert decode_field(8, b"\x01\x02\x03\x04", multiplier=100) == b"\x01\x02\x03\x04"
+
+
+@pytest.mark.parametrize("field", [0, 1, 2, 3, 4, 6, 251])
+@pytest.mark.parametrize("multiplier", [100, 200])
+def test_decimal_travel_does_not_lose_one_wire_unit(field, multiplier):
+    # 0.29 * 100 is below 29 in binary floating-point; the UI quantum is exact.
+    raw = encode_field(field, 0.29, multiplier=multiplier)
+    assert int.from_bytes(raw, "little") == (29 if multiplier == 100 else 58)
+    assert decode_field(field, raw, multiplier=multiplier) == 0.29

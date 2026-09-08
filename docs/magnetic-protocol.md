@@ -26,7 +26,7 @@ modes 8, snap binding 9, and top dead zone 251. Travel fields are little-endian
 top-dead-zone values use the travel multiplier before being stored. Trigger
 modes are four bytes. Bulk field 10 is read-only and consists of four 128-byte
 stage arrays; field 8 is the four-byte simple-write form. Travel conversion
-truncates after multiplication, matching the vendor's bitwise conversion; it
+truncates fractional wire units after exact decimal multiplication; it
 does not round to the nearest integer. Out-of-range values are rejected
 instead of reproducing the vendor's integer wraparound.
 
@@ -82,3 +82,7 @@ and trigger packing; 113580–113608 reconstruct actions from submodes, and
 is a distinct operation: lines 113717 onward restore the base action and clear
 all three extra submodes. Ordinary mode updates must not silently perform that
 reset or erase unrelated submode data.
+
+Decimal scaling deliberately avoids the vendor’s binary-floating-point artifact
+for valid UI increments (for example, 2.3 × 100 encoding as 229). See the
+[precision correction](ry5088-wireless.md) and the raw-baseline regression tests.

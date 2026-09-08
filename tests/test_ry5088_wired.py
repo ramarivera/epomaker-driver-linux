@@ -8,7 +8,16 @@ from epomaker_driver.discovery import Collection, DeviceInfo, Report, classify
 from epomaker_driver.errors import UnsupportedDevice
 from epomaker_driver.models import data_file
 
-MODELS = [(2465, 0x5029), (2586, 0x502D), (2870, 0x502D), (3691, 0x5030)]
+MODELS = [
+    (2465, 0x5029),
+    (2586, 0x502D),
+    (2870, 0x502D),
+    (3691, 0x5030),
+    (3692, 0x5030),
+    (3703, 0x5030),
+    (2761, 0x5030),
+    (2959, 0x5030),
+]
 
 
 @pytest.mark.parametrize("model,product", MODELS)
@@ -38,9 +47,9 @@ def test_wired_model_cli_profile3_submode3_and_switch_gate(model, product, monke
     assert fw.matrices[3, 3][4:8] == bytes.fromhex("00000400")
     fw.sent.clear()
     result = cli.main(["--device", info.path, "switch-type", "33", "1"])
-    assert result == (0 if model == 2465 else 1)
+    assert result == (0 if model in (2465, 2761) else 1)
     capsys.readouterr()
-    assert bool(fw.sent) == (model == 2465)
+    assert bool(fw.sent) == (model in (2465, 2761))
     assert cli.main(["--device", info.path, "switch-type", "5", "1"]) == 0
     capsys.readouterr()
     assert fw.fields[252][1] == 5
@@ -54,7 +63,7 @@ def test_fn_maps_respect_catalog_os_banks(model, product):
     kb.set_key(1, action, fn=True)
     assert kb.read_matrix(fn=True)[4:8] == action
     before = len(fw.sent)
-    if model == 2586:
+    if model in (2586, 2761):
         with pytest.raises(UnsupportedDevice, match="Fn bank"):
             kb.read_matrix(fn=True, os_mode=1)
         with pytest.raises(UnsupportedDevice, match="Fn bank"):
@@ -91,7 +100,7 @@ def test_model_specific_snap_restoration_and_precision(model, product):
         (2870, 0x5030),
         (3691, 0x5029),
         (2550, 0x502D),
-        (3692, 0x5030),
+        (3365, 0x5030),
     ],
 )
 def test_wrong_pid_or_unmigrated_sibling_cannot_write(model, product):

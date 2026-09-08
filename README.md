@@ -52,7 +52,10 @@ firmware-dependent 0.1, 0.01 or 0.005 mm steps. [HE68 Lite variants](docs/ry5088
 and 3664, including lossless switch-type reads and selection. Other same-PID siblings remain gated.
 [Four additional wired RY5088 models](docs/ry5088-wired.md) add HE68 Mag,
 KIIBOOM-68C, Epomaker 65 and HE60 Wired, with model-specific Fn and side lighting.
-All ten migrated magnetic IDs also support a [timed USB calibration session](docs/calibration.md)
+The [four wireless-capable RY5088 additions](docs/ry5088-wireless.md) support USB
+configuration, including their three sleep timers and RF version handling.
+
+All fourteen migrated magnetic IDs also support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

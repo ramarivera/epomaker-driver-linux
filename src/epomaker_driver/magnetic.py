@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 
 from .codec import packet
 
@@ -111,6 +112,8 @@ def key_field(data, slot, *, field, stage=0):
 
 
 def encode_field(field, value, *, multiplier):
+    # Preserve decimal UI increments; binary multiplication can lose one unit.
+    # Fractional wire units still truncate; see docs/ry5088-wireless.md.
     _field(field)
     _multiplier(multiplier)
     if field == 10:
@@ -123,7 +126,7 @@ def encode_field(field, value, *, multiplier):
             or value < 0
         ):
             raise ValueError("top dead zone must be one byte")
-        raw = int(value * multiplier)
+        raw = int(Decimal(str(value)) * multiplier)
         if raw > 255:
             raise ValueError("top dead zone exceeds one-byte encoding")
         return bytes((raw,))
@@ -155,7 +158,7 @@ def encode_field(field, value, *, multiplier):
         or value < 0
     ):
         raise ValueError("magnetic travel must be finite and nonnegative")
-    raw = int(value * multiplier)
+    raw = int(Decimal(str(value)) * multiplier)
     if raw > 0xFFFF:
         raise ValueError("magnetic travel exceeds two-byte encoding")
     return raw.to_bytes(2, "little")

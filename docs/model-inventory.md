@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
 cross-references all 46 catalog rows with the Linux backend gates and the
 installer modules that load each model.
 
-There are **21 partial backends, 25 catalog-only entries and zero models verified
+There are **25 partial backends, 21 catalog-only entries and zero models verified
 on physical hardware**. These counts are not a feature-parity percentage. A
 weighted feature inventory, hardware comparisons and application-wide workflows
 remain necessary for the greater-than-95% target in [migration status](parity.md).
@@ -23,7 +23,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
   `backend_limits` records important restrictions. Neither means hardware-tested.
 - `protocol_family` on catalog-only rows is a name-prefix grouping, explicitly
   marked `family_evidence: name-prefix-only`. See the research candidates below
-  for additional source evidence; H60, the HE68 variants and [four additional wired models](ry5088-wired.md) have been enabled.
+  for additional source evidence; H60, the HE68 variants and [four additional wired models](ry5088-wired.md) and [four wireless-capable models over USB](ry5088-wireless.md) have been enabled.
 - `remaining_domains` is a migration checklist, not an exhaustive or weighted
   denominator. Shared application features must also be counted.
 
@@ -31,7 +31,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 | --- | --- | --- |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
-| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; recovery and hardware verification outstanding |
+| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; recovery and hardware verification outstanding |
 | HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; recovery and hardware verification outstanding |
 | RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
 
@@ -49,12 +49,12 @@ resolved names. The unresolved entry is **Epomaker M65, ID 2550**,
 loader match is a source ambiguity, not a reason to discard it or a claim that
 the physical keyboard is unsupported by the vendor.
 
-The 22 RY5088-named rows include eight partial backends and 14 catalog-only
+The 22 RY5088-named rows include twelve partial backends and 10 catalog-only
 entries. Direct inspection of the following model modules confirms that they import the same
 modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows, and declare
 512-byte default normal, Fn and Fn-Mac matrices without child method overrides.
 
-| Candidate | Internal ID | VID:PID | macOS module | Windows module |
+| Inspected model | Internal ID | VID:PID | macOS module | Windows module |
 | --- | --- | --- | --- | --- |
 | H60 | 3662 | 3151:5029 | 00bc96cb.js | 82c2850d.js |
 | HE68 Llte (vendor spelling) | 2762, 2883 | 3151:5029 | 1a9b921e.js | 4e6e3981.js |
@@ -62,12 +62,11 @@ modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows, and declare
 | HE60 Wireless | 3692 | 3151:5030 | bf16d6e2.js | dcf3221c.js |
 
 Their catalog declares four layers and one Fn layer per OS, compared with the
-two-profile HE60 Lite implementation. Shared command ancestry makes these useful
-next candidates; it does not justify routing their IDs directly into the existing
-two-profile backend. The [H60 migration](ry5088-h60.md) adds those model-specific
-limits for ID 3662; [HE68 Lite](ry5088-he68.md) adds three variants and switch-state
-reads. The remaining candidates still require capability validation
-before enablement.
+two-profile HE60 Lite implementation. The [H60 migration](ry5088-h60.md),
+[HE68 Lite](ry5088-he68.md), [wired additions](ry5088-wired.md) and
+[wireless-capable additions](ry5088-wireless.md) implement those model-specific
+limits. The ten remaining catalog-only RY5088 rows require further capability
+validation before enablement.
 
 The same direct base inheritance and absence of child method overrides hold for
 all 21 resolved RY5088 rows. Each declared matrix is 512 bytes and matches its

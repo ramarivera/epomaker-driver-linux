@@ -19,7 +19,15 @@ from .magnetic import (
     top_dead_zone_supported,
     travel_multiplier,
 )
-from .models import RY5088_IDS, RY5088_PRODUCTS, RY5088_SIDE_IDS, RY5088_SWITCH_IDS, model_by_id
+from .models import (
+    HE_RF_IDS,
+    HE_SLEEP_IDS,
+    RY5088_IDS,
+    RY5088_PRODUCTS,
+    RY5088_SIDE_IDS,
+    RY5088_SWITCH_IDS,
+    model_by_id,
+)
 from .versions import parse_version, version_request
 
 # The RY5088 H60 uses the same USB PID as several catalog siblings.  The
@@ -144,9 +152,11 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             raise UnsupportedDevice("side lighting is unavailable on this model")
         if self.expected_id != 3727 and any(command[0] in (0x06, 0x86) for command in commands):
             raise UnsupportedDevice("debounce is unavailable on wireless HE60 Lite")
-        if self.expected_id != 3759 and any(command[0] in (0x11, 0x91) for command in commands):
-            raise UnsupportedDevice("sleep is unavailable on wired HE60 Lite")
-        if self.expected_id != 3759 and any(command[0] == 0x80 for command in commands):
+        if self.expected_id not in HE_SLEEP_IDS and any(
+            command[0] in (0x11, 0x91) for command in commands
+        ):
+            raise UnsupportedDevice("sleep is unavailable on this model")
+        if self.expected_id not in HE_RF_IDS and any(command[0] == 0x80 for command in commands):
             raise UnsupportedDevice("RF version is unavailable on wired HE60 Lite")
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0, mode=0):
@@ -212,7 +222,7 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             profile = self._query(codec.packet([0x84]), expected=0x84)[1]
             usb = identity["usb_version"] or None
             rf = None
-            if self.expected_id == 3759:
+            if self.expected_id in HE_RF_IDS:
                 rf = parse_version("rf", self._query(version_request("rf"), expected=0x80))
             capabilities = [
                 "keymap",
@@ -250,7 +260,7 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             if self.expected_id == 3727:
                 result["capabilities"].append("debounce")
                 result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
-            elif self.expected_id == 3759:
+            elif self.expected_id in HE_SLEEP_IDS:
                 result["capabilities"].append("sleep")
                 result["sleep"] = self.get_sleep()
             return result
@@ -265,21 +275,31 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         return super().set_debounce(milliseconds)
 
     def get_sleep(self):
-        if self.expected_id != 3759:
-            raise UnsupportedDevice("sleep controls are unavailable on wired HE60 Lite")
+        self._supported()
+        if self.expected_id not in HE_SLEEP_IDS:
+            raise UnsupportedDevice("sleep controls are unavailable on this model")
         raw = self._query(codec.packet([0x91]), expected=0x91)
         parsed = codec.parse_sleep(raw)
         parsed.pop("deep_dongle")
         return parsed
 
     def set_sleep(self, bt, dongle, deep_bt, deep_dongle=None):
-        if self.expected_id != 3759:
-            raise UnsupportedDevice("sleep controls are unavailable on wired HE60 Lite")
+        self._supported()
+        if self.expected_id not in HE_SLEEP_IDS:
+            raise UnsupportedDevice("sleep controls are unavailable on this model")
         if deep_dongle is not None:
-            raise ValueError("wireless HE60 exposes three public sleep timers")
+            raise ValueError("this model exposes three public sleep timers")
         values = (bt, dongle, deep_bt)
-        if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
-            raise ValueError("HE60 sleep timers must be integers from 60 through 3600")
+        if self.expected_id == 3759:
+            if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
+                raise ValueError("wireless HE60 sleep timers must be integers from 60 through 3600")
+        elif (
+            any(type(value) is not int or not 0 <= value <= 64800 for value in values)
+            or deep_bt < 10
+        ):
+            raise ValueError(
+                "RY5088 sleep timers must be integers: BT/dongle 0–64800; deep BT 10–64800"
+            )
 
         def operation():
             original = self._query(codec.packet([0x91]), expected=0x91)
@@ -304,7 +324,7 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             usb = self.identity["usb_version"] or None
             rf = (
                 parse_version("rf", self._query(version_request("rf"), expected=0x80))
-                if self.expected_id == 3759
+                if self.expected_id in HE_RF_IDS
                 else None
             )
             multiplier = travel_multiplier(usb=usb, rf=rf)

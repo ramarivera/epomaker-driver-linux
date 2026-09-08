@@ -43,7 +43,11 @@ class Firmware:
         self.light[0] = 0x87
         self.pictures = {index: bytes([index]) * 378 for index in range(5)}
         self.macros = {slot: bytes(256) for slot in range(256)}
-        profile_count = 4 if model_id in (3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691) else 2
+        profile_count = (
+            4
+            if model_id in (3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959)
+            else 2
+        )
         self.matrices = {
             (profile, mode): bytes([profile, mode]) * 256
             for profile in range(profile_count)

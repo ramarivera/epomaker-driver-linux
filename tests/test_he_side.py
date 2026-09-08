@@ -9,7 +9,7 @@ from epomaker_driver import codec
 from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 
 
-@pytest.fixture(params=[2586, 2870])
+@pytest.fixture(params=[2586, 2870, 3703, 2959])
 def side_keyboard(request):
     firmware = Firmware(model_id=request.param)
     firmware.side_light = bytearray(codec.light("solid", side=True))
@@ -30,7 +30,7 @@ def side_keyboard(request):
 
     firmware.exchange = MethodType(side_exchange, firmware)
     firmware.send = MethodType(side_send, firmware)
-    return keyboard(firmware, product=0x502D), firmware
+    return keyboard(firmware, product=0x5030 if request.param in (3703, 2959) else 0x502D), firmware
 
 
 @pytest.mark.parametrize("mode", tuple(codec.SIDE_MODES))
@@ -130,7 +130,16 @@ def test_side_status_and_cli_use_real_product_gate(side_keyboard, monkeypatch, c
     assert "side-lighting" in status["capabilities"]
     assert status["side_light"]["mode"] == "solid"
     assert set(status["switch_types"].values()) == set(range(6))
-    info = DeviceInfo("/dev/side", "Keyboard", 3, 0x3151, 0x502D, b"", "usb", 0)
+    info = DeviceInfo(
+        "/dev/side",
+        "Keyboard",
+        3,
+        0x3151,
+        0x5030 if fw.model_id in (3703, 2959) else 0x502D,
+        b"",
+        "usb",
+        0,
+    )
 
     class Opened:
         def __enter__(self):

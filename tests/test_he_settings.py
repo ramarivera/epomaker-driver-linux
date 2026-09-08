@@ -224,13 +224,14 @@ def test_remaining_state_validation_branches():
         plan_update(3759, 0, {"top_deadzone": 0.5}, current)
 
 
-def test_vendor_truncation_compares_against_raw_baseline():
+def test_decimal_quantum_compares_against_raw_baseline():
     current = state(travel=2.0)
-    current["fields"]["0"] = (b"\xe6\x00" + bytes(254)).hex()
-    # The vendor bitwise conversion truncates 2.3 * 100 to 229. Re-encoding
-    # the raw baseline first would incorrectly report this change as a no-op.
+    current["fields"]["0"] = (b"\xe5\x00" + bytes(254)).hex()
+    # Correct the legacy binary-floating-point result of 229 to exact 230.
     result = plan_update(3759, 0, {"travel": 2.3}, current)
-    assert result["commands"] == [bytes.fromhex("6500000001000099e5") + bytes(55)]
+    assert result["commands"][0][8:10] == b"\xe6\x00"
+    current["fields"]["0"] = result["expected_fields"]["0"]
+    assert plan_update(3759, 0, {"travel": 2.3}, current)["commands"] == []
 
 
 def test_full_ordered_update_has_one_final_commit_and_preserves_input():

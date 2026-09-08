@@ -20,7 +20,8 @@ profiles and firmware-dependent magnetic precision.
 [Three HE68 Lite IDs](ry5088-he68.md) add their own matrices and lossless
 switch-type reads and selection to the same backend.
 [Four additional wired RY5088 models](ry5088-wired.md) add model-specific Fn and
-side-lighting gates. Twenty-one
+side-lighting gates. [Four wireless-capable models](ry5088-wireless.md) add USB
+configuration with model-specific sleep timers and RF version handling. Twenty-five
 models have some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
