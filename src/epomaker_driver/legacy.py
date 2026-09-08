@@ -39,6 +39,8 @@ COMMANDS = frozenset(
         "debounce",
         "get-auto-os",
         "auto-os",
+        "backup",
+        "restore",
     )
 )
 

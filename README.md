@@ -27,7 +27,8 @@ backup, restore and reset with recovery copies.
 [Older YC3121 support](docs/yc3121.md) adds RT100 and Dynatab75X-UK over USB:
 normal keymaps, three profiles, migrated Fn layer 0 addressing, macros, main lighting, one writable
 custom RGB picture, sleep timers, debounce, automatic OS selection and direct USB display
-workflows. Their OS-specific Fn banks and recovery remain unfinished; the GUI still supports
+workflows. Schema 6 backup and restore covers their migrated configuration; OS-specific Fn
+banks, manual OS options and screen pixels remain outside recovery. The GUI still supports
 Glyph only.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation

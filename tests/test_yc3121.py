@@ -5,7 +5,7 @@ import json
 import pytest
 from PIL import Image
 
-from epomaker_driver import cli, codec
+from epomaker_driver import cli, codec, legacy_snapshot
 from epomaker_driver.discovery import DeviceInfo, classify, parse_descriptor
 from epomaker_driver.errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from epomaker_driver.legacy import LegacyKeyboard
@@ -230,6 +230,212 @@ def test_fn_cli_matrix_and_binding(legacy, monkeypatch, capsys):
     assert cli.main([*prefix, "bind-macro", "4", "9", "--fn"]) == 0
     capsys.readouterr()
     assert fw.fn_matrix[16:20] == bytes([9, 0, 9, 0])
+
+
+def test_legacy_snapshot_roundtrip_and_recovery(legacy, tmp_path):
+    keyboard, fw = legacy
+    fw.matrices[0][28:32] = bytes([9, 0, 7, 0])
+    fw.macros[7][:] = bytes([17]) * 256
+    fw.light[4] = 1
+    fw.light[8] = 201
+    fw.light[9] = 77
+    original = legacy_snapshot.capture(keyboard)
+    assert original["schema_version"] == 6
+    assert original["fn"]["physical"] == bytes(fw.fn_matrix).hex()
+    changed = bytearray(fw.matrices[0])
+    changed[0:4] = bytes([8, 7, 6, 5])
+    changed[28:32] = bytes(4)  # macro 7 is unreferenced in the pre-restore state
+    keyboard.write_matrix(changed, 0)
+    keyboard.set_key(0, bytes([1, 2, 3, 4]), fn=True)
+    keyboard.write_picture(bytes([9]) * 384)
+    fw.macros[7][:] = bytes([33]) * 256
+    keyboard.set_debounce(20)
+    keyboard.set_auto_os(True)
+    keyboard.set_profile(2)
+    recovery = tmp_path / "before.json"
+    result = legacy_snapshot.restore(keyboard, original, recovery)
+    assert result["restored"]
+    assert recovery.exists()
+    assert recovery.stat().st_mode & 0o777 == 0o600
+    saved = json.loads(recovery.read_text())
+    assert saved["macros"]["7"] == bytes([33]).hex() * 256
+    assert bytes(fw.macros[7]) == bytes([17]) * 256
+    assert original["light"]["raw"][8:] == [0] * 56
+    assert legacy_snapshot.capture(keyboard) == original
+
+
+def test_legacy_snapshot_validation_and_cross_model_order(legacy, tmp_path):
+    keyboard, fw = legacy
+    value = legacy_snapshot.capture(keyboard)
+    with pytest.raises(ValueError, match="schema version 6"):
+        legacy_snapshot.validate({"schema_version": 5})
+    bad = dict(value, identity={"device_id": 1955})
+    with pytest.raises(ValueError, match="RT100 or Dynatab"):
+        legacy_snapshot.validate(bad)
+    missing = dict(value, matrices=list(value["matrices"]))
+    missing["matrices"][0] = (b"\x09\x00\x07\x00" + bytes(508)).hex()
+    missing["macros"] = {}
+    with pytest.raises(ValueError, match="omits a referenced"):
+        legacy_snapshot.validate(missing)
+    fw.model = 1723 if fw.model == 1379 else 1379
+    destination = tmp_path / "recovery.json"
+    with pytest.raises(ValueError, match="does not match"):
+        legacy_snapshot.restore(keyboard, value, destination)
+    assert not destination.exists()
+
+
+def test_legacy_snapshot_recovery_path_failure_writes_nothing(legacy, tmp_path):
+    keyboard, fw = legacy
+    value = legacy_snapshot.capture(keyboard)
+    fw.commands.clear()
+    blocked = tmp_path / "blocked"
+    blocked.write_text("not a directory")
+    with pytest.raises(OSError):
+        legacy_snapshot.restore(keyboard, value, blocked / "recovery.json")
+    assert not any(
+        command[0] in (0x05, 0x07, 0x0C, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17)
+        for command in fw.commands
+    )
+
+
+def test_legacy_snapshot_write_failure_keeps_recovery_and_profile(legacy, tmp_path):
+    keyboard, fw = legacy
+    value = legacy_snapshot.capture(keyboard)
+    keyboard.set_profile(2)
+    fw.commands.clear()
+    value["matrices"][0] = "00000500" + value["matrices"][0][8:]
+    fw.ignore_writes = True
+    recovery = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match=str(recovery)):
+        legacy_snapshot.restore(keyboard, value, recovery)
+    assert recovery.exists()
+    assert json.loads(recovery.read_text())["profile"] == 2
+    assert keyboard.get_profile() == 2
+    assert not any(command[0] == 5 for command in fw.commands)
+
+
+def test_legacy_snapshot_recovery_path_is_no_clobber(legacy, tmp_path):
+    keyboard, fw = legacy
+    value = legacy_snapshot.capture(keyboard)
+    recovery = tmp_path / "before.json"
+    recovery.write_text("sentinel")
+    fw.commands.clear()
+    with pytest.raises(FileExistsError):
+        legacy_snapshot.restore(keyboard, value, recovery)
+    assert recovery.read_text() == "sentinel"
+    assert not any(
+        command[0] in (0x05, 0x07, 0x0C, 0x11, 0x12, 0x13, 0x15, 0x16, 0x17)
+        for command in fw.commands
+    )
+
+
+def test_legacy_snapshot_cross_family_cli_rejects_before_open(
+    legacy, monkeypatch, tmp_path, capsys
+):
+    keyboard, fw = legacy
+    value = legacy_snapshot.capture(keyboard)
+    path = tmp_path / "schema6.json"
+    path.write_text(json.dumps(value))
+    glyph = DeviceInfo("/dev/hidraw99", "Glyph", 3, 0x3151, 0x5002, b"", "usb", 0)
+    monkeypatch.setattr(cli, "discover", lambda: [glyph])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("opened incompatible device"))
+    with pytest.raises(UnsupportedDevice, match="schema 6"):
+        cli.execute(
+            cli.parser().parse_args(
+                ["--device", glyph.path, "restore", str(path), "--backup", str(tmp_path / "r.json")]
+            )
+        )
+    capsys.readouterr()
+
+
+def test_legacy_snapshot_schema5_rejects_before_device_open(legacy, monkeypatch, tmp_path):
+    value = legacy_snapshot.capture(legacy[0])
+    value["schema_version"] = 5
+    path = tmp_path / "schema5.json"
+    path.write_text(json.dumps(value))
+    monkeypatch.setattr(cli, "select_device", lambda _: pytest.fail("opened invalid schema"))
+    with pytest.raises(ValueError, match="migrated Glyph"):
+        cli.execute(
+            cli.parser().parse_args(
+                [
+                    "--device",
+                    "/dev/hidraw99",
+                    "restore",
+                    str(path),
+                    "--backup",
+                    str(tmp_path / "r.json"),
+                ]
+            )
+        )
+
+
+def test_legacy_snapshot_rejects_unknown_light_before_save(legacy, tmp_path):
+    keyboard, fw = legacy
+    fw.light[1] = 250
+    with pytest.raises(ValueError, match="unsupported YC3121 light mode"):
+        legacy_snapshot.capture(keyboard)
+    assert not (tmp_path / "backup.json").exists()
+
+
+@pytest.mark.parametrize(
+    "mutate,match",
+    [
+        (lambda v: v.update(identity=None), "identity"),
+        (lambda v: v.update(identity={"device_id": 1955}), "RT100"),
+        (lambda v: v.update(matrices=[]), "normal matrices"),
+        (lambda v: v.update(matrices=["00"] * 3), "normal matrices must"),
+        (lambda v: v.update(fn={"physical": "00"}), "physical Fn"),
+        (lambda v: v["fn"].update(win="00" * 512), "only physical"),
+        (lambda v: v.update(macros=[]), "macros must"),
+        (lambda v: v["macros"].update({"01": "00" * 256}), "canonical"),
+        (lambda v: v["macros"].update({"0": "00"}), "macro must"),
+        (lambda v: v.update(picture="00"), "picture must"),
+        (lambda v: v.update(sleep={}), "sleep timers"),
+        (lambda v: v.update(auto_os=1), "auto_os"),
+        (lambda v: v.update(profile=3), "profile"),
+    ],
+)
+def test_legacy_snapshot_validation_rejects_malformed_fields(legacy, mutate, match):
+    value = legacy_snapshot.capture(legacy[0])
+    mutate(value)
+    with pytest.raises(ValueError, match=match):
+        legacy_snapshot.validate(value)
+
+
+@pytest.mark.parametrize(
+    "field,changes,match",
+    [
+        ("light", {"raw": [0] * 64}, "main-light"),
+        ("light", {"raw": [0x87, 250] + [0] * 62}, "light mode"),
+        ("light", {"raw": [0x87, 1, 0] + [0] * 61}, "speed"),
+        ("light", {"raw": [0x87, 1, 1, 5] + [0] * 60}, "speed"),
+        ("light", {"raw": [0x87, 4, 1, 1, 0x40] + [0] * 59}, "light option"),
+        ("light", {"raw": [0x87, 13, 1, 1, 0x01] + [0] * 59}, "picture-light"),
+        ("light", {"raw": [0x87, 22, 1, 1, 0x01] + [0] * 59}, "music-light"),
+        ("light", {"raw": [0x87, 21, 1, 1, 0x01] + [0] * 59}, "screen-light"),
+        ("light", {"raw": [0x87, 1, 1, 1, 0x09] + [0] * 59}, "color flags"),
+    ],
+)
+def test_legacy_snapshot_light_validation(legacy, field, changes, match):
+    value = legacy_snapshot.capture(legacy[0])
+    value[field] = changes
+    with pytest.raises(ValueError, match=match):
+        legacy_snapshot.validate(value)
+
+
+def test_legacy_snapshot_cli_backup_restore(legacy, monkeypatch, tmp_path, capsys):
+    keyboard, fw = legacy
+    info = DeviceInfo("/dev/hidraw99", "YC3121", 3, 0x3151, 0x4015, b"", "usb", 0)
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Transport(fw, "usb", sleep=lambda _: None))
+    prefix = ["--device", info.path]
+    backup = tmp_path / "backup.json"
+    recovery = tmp_path / "recovery.json"
+    assert cli.main([*prefix, "backup", str(backup)]) == 0
+    capsys.readouterr()
+    assert cli.main([*prefix, "restore", str(backup), "--backup", str(recovery)]) == 0
+    capsys.readouterr()
+    assert recovery.exists()
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,7 @@
 # Configuration snapshots and recovery
 
-`backup` writes a version 3 JSON snapshot for Glyph or version 4 for RT85/RT75 and version 5 for RY6602. It captures
+`backup` writes a version 3 JSON snapshot for Glyph, version 4 for RT85/RT75,
+version 5 for RY6602, or schema version 6 for RT100/Dynatab75X-UK. It captures
 all three Glyph/RT75 or four RT85 normal matrices,
 Windows/Mac Fn matrices, every macro referenced by those matrices, main/side lighting
 configuration, sleep timers, active profile, debounce, keyboard options and automatic
@@ -10,9 +11,23 @@ preserved. Files are atomically created with user-only permissions.
 Screen pixels and unreferenced macro slots are not captured
 by an ordinary backup. These omissions are recorded in the file. A snapshot is not a
 firmware image or a complete device-memory dump. The current importer can inspect vendor
-JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3, 4 and 5 schemas.
+JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3, 4, 5 and 6 schemas.
 Restoring version 2 leaves custom RGB pictures unchanged and reports that limitation.
 Earlier version 1 snapshots can still be inspected; create a new backup before restoring.
+
+## YC3121 schema version 6
+
+RT100 and Dynatab75X-UK backups use schema version 6. They contain all three normal
+512-byte maps, the migrated Fn layer 0 map, referenced macros plus incoming macro
+slots, custom picture 0, validated raw main-light fields, four sleep timers,
+debounce, automatic OS selection and the active profile. Restore validates the
+complete snapshot, identifies the connected model, saves an atomic no-clobber
+recovery copy, then verifies every write and selects the active profile last.
+
+Manual OS options are excluded because the older vendor setter has ambiguous
+semantics. Screen pixels, unreferenced macros and independent OS-specific Fn banks
+are also excluded; the snapshot records these limitations and does not claim that
+Fn layer 0 is separate Windows and Mac storage.
 
 ```sh
 epomaker --device /dev/hidrawN backup saved.json

@@ -59,3 +59,12 @@ known flag instead of reproducing that conversion bug.
 
 Automatic OS selection (`17`/`97`) is a separate, already migrated command.
 These manual-option ambiguities do not invalidate that implementation.
+
+## Reset boundary
+
+The older parent declares `FEA_CMD_SET_RESERT = 2` and sends `[02]` with the
+byte-7 checksum, then waits four seconds (`ef0a2b57.js` lines 468–474; equivalent
+Windows parent `17f7eda9.js`). CommonKbYc500 does not override it. The newer
+backend's opcode `01` must not be reused. Reset remains gated while recovery
+of the older manual-option fields is unresolved: ordinary snapshot restoration
+can leave those fields untouched, but a factory reset may change them.

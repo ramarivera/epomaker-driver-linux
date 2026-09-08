@@ -8,7 +8,17 @@ import sys
 import time
 from pathlib import Path
 
-from . import __version__, actions, codec, macros, media, profiles, snapshot, system_info
+from . import (
+    __version__,
+    actions,
+    codec,
+    legacy_snapshot,
+    macros,
+    media,
+    profiles,
+    snapshot,
+    system_info,
+)
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError, UnsupportedDevice
@@ -195,7 +205,10 @@ def execute(args):
     elif args.command == "restore":
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-        snapshot.validate(prepared)
+        if isinstance(prepared, dict) and prepared.get("schema_version") == 6:
+            legacy_snapshot.validate(prepared)
+        else:
+            snapshot.validate(prepared)
     elif args.command == "picture":
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
@@ -210,6 +223,13 @@ def execute(args):
             codec.bounded(int(color, 16), 0xFFFFFF, "rgb").to_bytes(3, "big") for color in colors
         )
     device = select_device(args.device)
+    if (
+        args.command == "restore"
+        and isinstance(prepared, dict)
+        and prepared.get("schema_version") == 6
+        and device.product_id != 0x4015
+    ):
+        raise UnsupportedDevice("schema 6 snapshots require a YC3121 device")
     with Transport.open(device) as transport:
         if device.product_id == 0x4015:
             if args.command not in LEGACY_COMMANDS:
@@ -278,6 +298,8 @@ def execute(args):
             keyboard.set_auto_os(args.enabled == "on")
             return {"ok": True}
         if args.command == "restore":
+            if device.product_id == 0x4015:
+                return legacy_snapshot.restore(keyboard, prepared, args.backup)
             return snapshot.restore(keyboard, prepared, args.backup)
         if args.command == "sleep":
             return keyboard.set_sleep(args.bt, args.dongle, args.deep_bt, args.deep_dongle)
@@ -326,7 +348,11 @@ def execute(args):
         elif args.command == "clock":
             keyboard.sync_clock()
         elif args.command == "backup":
-            value = snapshot.capture(keyboard)
+            value = (
+                legacy_snapshot.capture(keyboard)
+                if device.product_id == 0x4015
+                else snapshot.capture(keyboard)
+            )
             profiles.save(args.path, value, overwrite=args.overwrite)
             return {"saved": str(args.path), "limitations": value["limitations"]}
         return {"ok": True}
