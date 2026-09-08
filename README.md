@@ -38,6 +38,8 @@ Device access may require [permissions](docs/hardware.md).
 .venv/bin/epomaker --device /dev/hidrawN backup ./backups/glyph.json
 # Restore after saving the current configuration to a new recovery file.
 .venv/bin/epomaker --device /dev/hidrawN restore ./backups/glyph.json --backup ./backups/before-restore.json
+# Reset configuration only after saving a new recovery snapshot.
+.venv/bin/epomaker --device /dev/hidrawN factory-reset --backup ./backups/before-reset.json
 # Select the Mac Fn layer or automatic OS selection.
 .venv/bin/epomaker --device /dev/hidrawN options --system mac
 .venv/bin/epomaker --device /dev/hidrawN auto-os on

@@ -265,3 +265,13 @@ def test_display_bank_cli(cli_device, firmware, tmp_path):
     assert all(p[1:3] == bytes([4, 1]) for p in firmware.sent if p[0] == 0x25)
     assert cli.main(["--device", cli_device.path, "display-language-toggle"]) == 0
     assert firmware.sent[-1][:2] == bytes([0x27, 1])
+
+
+def test_factory_reset_cli(cli_device, firmware, tmp_path, capsys):
+    destination = tmp_path / "recovery.json"
+    assert (
+        cli.main(["--device", cli_device.path, "factory-reset", "--backup", str(destination)]) == 0
+    )
+    result = json.loads(capsys.readouterr().out)
+    assert result["reset_sent"] and result["previous_configuration"] == str(destination)
+    assert firmware.sent[-1][:8] == bytes.fromhex("01000000000000fe")

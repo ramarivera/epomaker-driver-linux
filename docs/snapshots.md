@@ -39,3 +39,29 @@ with a different new `--backup` path. No automatic reconnect or rollback is atte
 These operations have simulated-firmware tests, including restoration and recovery in
 both directions, invalid inputs, preexisting recovery files, dropped writes and macro
 replacement. They remain unverified on physical hardware.
+
+## Factory reset
+
+```sh
+epomaker --device /dev/hidrawN factory-reset --backup before-reset.json
+```
+
+This explicitly resets device configuration. Before sending the reset command, the
+CLI captures all normal/Fn maps, settings, custom colors, and **all 256 macro slots**,
+including unreferenced slots. It atomically saves a private recovery snapshot and
+refuses to overwrite an existing file. A failed capture or save prevents the reset.
+Screen pixels cannot currently be read back and are not recoverable from this file.
+
+The implementation sends one checksum-protected command `01 00 00 00 00 00 00 fe`
+followed by 56 zero bytes and waits two seconds. This follows `reset(true)` in the
+recovered YC3123 keyboard base (`623d2d52.js`, lines 140–148). It does not flash firmware.
+A successful host write returns `reset_sent: true` and
+`factory_defaults_verified: false`. Cached identity is discarded after the attempt,
+so the next operation must identify the device again. A disconnect or write error
+reports that the reset outcome is unknown and includes the existing recovery path;
+the command never retries a possibly completed reset automatically.
+
+Reconnect and inspect the physical keyboard after resetting. Use `restore` with the
+saved file and another new recovery path if you want to put the saved configuration
+back. Factory behavior, which device memories are reset, and reconnect timing remain
+hardware-unverified. This operation is currently available through the CLI.

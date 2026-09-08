@@ -121,3 +121,51 @@ def test_picture_snapshots_and_legacy_restore(firmware, tmp_path):
         with pytest.raises(ValueError, match="five 378-byte"):
             snapshot.restore(keyboard, bad, tmp_path / "invalid.json")
         assert firmware.sent == before
+
+
+def test_factory_reset_preserves_unreferenced_macros_before_reset(firmware, tmp_path):
+    keyboard = Keyboard(firmware)
+    firmware.macros[255] = bytearray([17] * 256)
+    destination = tmp_path / "before-reset.json"
+    sent = firmware.send
+    sleeps = []
+    firmware.sleep = sleeps.append
+
+    def send(command, **options):
+        import json
+
+        value = json.loads(destination.read_text())
+        assert len(value["macros"]) == 256
+        assert value["macros"]["255"] == bytes([17] * 256).hex()
+        sent(command, **options)
+
+    firmware.send = send
+    result = snapshot.factory_reset(keyboard, destination)
+    assert firmware.sent == [bytes.fromhex("01000000000000fe") + bytes(56)]
+    assert sleeps == [2]
+    assert result["reset_sent"] and not result["factory_defaults_verified"]
+    assert keyboard.identity is None and keyboard.model is None
+    with pytest.raises(FileExistsError):
+        snapshot.factory_reset(keyboard, destination)
+    assert len(firmware.sent) == 1
+
+
+def test_factory_reset_failure_keeps_recovery_and_invalidates_identity(firmware, tmp_path):
+    keyboard = Keyboard(firmware)
+    destination = tmp_path / "before-reset.json"
+
+    def fail(*args, **kwargs):
+        raise OSError("disconnected")
+
+    firmware.send = fail
+    with pytest.raises(ProtocolError, match="reset outcome is unknown"):
+        snapshot.factory_reset(keyboard, destination)
+    assert destination.exists()
+    assert keyboard.identity is None
+    firmware.sent.clear()
+    destination = tmp_path / "missing-backup.json"
+    firmware.exchange = fail
+    with pytest.raises(OSError, match="disconnected"):
+        snapshot.factory_reset(keyboard, destination)
+    assert not destination.exists()
+    assert not firmware.sent

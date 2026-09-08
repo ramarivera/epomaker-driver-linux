@@ -133,3 +133,31 @@ def restore(keyboard, value, backup_path):
         }
 
     return keyboard.transport.transaction(operation)
+
+
+def factory_reset(keyboard, backup_path):
+    """Save every macro slot and current settings before sending the vendor reset."""
+
+    def operation():
+        current = capture(keyboard, extra_macro_slots=range(256))
+        current["limitations"] = ["screen pixels are not included"]
+        profiles.save(backup_path, current)
+        try:
+            keyboard._supported()
+            keyboard.transport.send(codec.packet([1]))
+            keyboard.transport.sleep(2)
+        except Exception as error:
+            raise ProtocolError(
+                f"reset outcome is unknown; recovery snapshot is saved at {backup_path}: {error}"
+            ) from error
+        finally:
+            keyboard.identity = None
+            keyboard.model = None
+        return {
+            "reset_sent": True,
+            "factory_defaults_verified": False,
+            "previous_configuration": str(backup_path),
+            "limitations": current["limitations"],
+        }
+
+    return keyboard.transport.transaction(operation)

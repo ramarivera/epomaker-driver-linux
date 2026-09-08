@@ -37,6 +37,9 @@ def parser():
     )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
+    commands.add_parser(
+        "factory-reset", help="save recovery snapshot, then reset keyboard configuration"
+    ).add_argument("--backup", type=Path, required=True)
     commands.add_parser("clock", help="synchronize the display clock")
     for name in ("host-info", "system-info"):
         info = commands.add_parser(
@@ -300,6 +303,8 @@ def execute(args):
             keyboard.upload_screen(prepared, (0, 0, 428, 142), frame=args.bank - 1)
         elif args.command == "display-language-toggle":
             keyboard.toggle_display_language()
+        elif args.command == "factory-reset":
+            return snapshot.factory_reset(keyboard, args.backup)
         elif args.command == "animation":
             frames, delay = prepared
             keyboard.upload_animation(frames, delay)
