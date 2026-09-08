@@ -15,12 +15,12 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph and RT85 key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Three Glyph / four RT85 matrices; active profile selection; Glyph configuration restore | Vendor export semantics, other models |
+| Profiles | Three Glyph / four RT85 matrices; active profile selection; model-checked Glyph/RT85 configuration restore | Vendor export semantics, other models |
 | Lighting | Glyph and RT85 main/side modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings and RT85 sleep timers; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph and RT85 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
-| Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
+| Backups | Glyph and RT85 key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph and RT85 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | Catalog only | Older YC3121 and model-specific protocols |
@@ -28,7 +28,7 @@ IDs do not establish that another model speaks the same protocol.
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |
-| Factory reset | Explicit CLI reset after saving settings and all 256 macro slots | GUI integration, factory-state and reconnect hardware comparison |
+| Factory reset | Glyph and RT85 explicit CLI reset after saving settings and all 256 macro slots | GUI integration, factory-state and reconnect hardware comparison |
 | Firmware management | Research only | Image validation, upgrade transport and recovery |
 | Vendor online services | Research only | Accounts, community, cloud profiles and supported service integrations |
 | Installation | Python package and CLI | Desktop packaging, permissions integration and upgrades |

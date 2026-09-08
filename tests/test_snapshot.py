@@ -169,3 +169,111 @@ def test_factory_reset_failure_keeps_recovery_and_invalidates_identity(firmware,
         snapshot.factory_reset(keyboard, destination)
     assert not destination.exists()
     assert not firmware.sent
+
+
+def rt85_keyboard(firmware):
+    from epomaker_driver.models import default_matrix
+
+    firmware.model_id = 2895
+    firmware.matrices = [bytearray(default_matrix(2895)) for _ in range(4)]
+    firmware.fn = [
+        bytearray(default_matrix(2895, name)) for name in ("defaultFnMatrix", "defaultFnMacMatrix")
+    ]
+    return Keyboard(firmware)
+
+
+def test_rt85_full_recovery_roundtrip(firmware, tmp_path):
+    keyboard = rt85_keyboard(firmware)
+    keyboard.set_profile(3)
+    keyboard.write_macro(255, bytes([123]) * 256)
+    keyboard.set_key(9, [9, 0, 255, 0], profile=3)
+    keyboard.set_light("wave", side=True, speed=4)
+    original = snapshot.capture(keyboard)
+    assert original["schema_version"] == 4 and original["debounce"] is None
+    assert len(original["matrices"]) == 4 and "255" in original["macros"]
+    keyboard.write_matrix(bytes(512), 3)
+    keyboard.set_profile(1)
+    keyboard.set_light("solid", side=True)
+    current = snapshot.capture(keyboard)
+    firmware.sent.clear()
+    destination = tmp_path / "recovery.json"
+    result = snapshot.restore(keyboard, original, destination)
+    assert result["restored"]
+    assert snapshot.capture(keyboard) == original
+    assert json.loads(destination.read_text())["matrices"] == current["matrices"]
+    assert all(p[0] != 6 for p in firmware.sent)  # no unmigrated debounce write
+    with pytest.raises(FileExistsError):
+        snapshot.restore(keyboard, original, destination)
+
+
+@pytest.mark.parametrize("source,target", [(2895, 3059), (3059, 2895)])
+def test_cross_model_restore_stops_before_backup_or_writes(firmware, tmp_path, source, target):
+    keyboard = rt85_keyboard(firmware) if source == 2895 else Keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    firmware.model_id = target
+    firmware.sent.clear()
+    destination = tmp_path / "recovery.json"
+    with pytest.raises(ValueError, match="does not match"):
+        snapshot.restore(keyboard, value, destination)
+    assert not destination.exists() and not firmware.sent
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        lambda v: v.update(schema_version=3),
+        lambda v: v["matrices"].pop(),
+        lambda v: v.update(profile=4),
+        lambda v: v.update(debounce=5),
+        lambda v: v["side_light"]["raw"].__setitem__(1, 5),
+        lambda v: v["side_light"]["raw"].__setitem__(2, 4),
+        lambda v: v["identity"].__setitem__("device_id", 2895.0),
+    ],
+)
+def test_rt85_invalid_snapshot_never_writes(firmware, tmp_path, damage):
+    keyboard = rt85_keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    damage(value)
+    with pytest.raises(ValueError):
+        snapshot.restore(keyboard, value, tmp_path / "bad.json")
+    assert not firmware.sent
+    assert not (tmp_path / "bad.json").exists()
+
+
+def test_rt85_factory_reset_saves_all_profiles_macros(firmware, tmp_path):
+    keyboard = rt85_keyboard(firmware)
+    firmware.macros[255] = bytearray([42] * 256)
+    firmware.matrices[3][36:40] = bytes([0, 0, 5, 0])
+    destination = tmp_path / "reset.json"
+    send = firmware.send
+
+    def reset(command, **kwargs):
+        if command[0] == 1:
+            saved = json.loads(destination.read_text())
+            assert len(saved["matrices"]) == 4
+            assert len(saved["macros"]) == 256
+            assert saved["macros"]["255"] == bytes([42] * 256).hex()
+            assert saved["debounce"] is None
+        send(command, **kwargs)
+
+    firmware.send = reset
+    result = snapshot.factory_reset(keyboard, destination)
+    assert result["reset_sent"] and not result["factory_defaults_verified"]
+    assert firmware.sent == [codec.packet([1])]
+    assert keyboard.identity is None
+
+
+def test_rt85_bad_recovery_state_prevents_reset(firmware, tmp_path):
+    keyboard = rt85_keyboard(firmware)
+    firmware.side_light[1] = 5  # not a supported RT85 side mode
+    path = tmp_path / "reset.json"
+    with pytest.raises(ValueError, match="side lighting"):
+        snapshot.factory_reset(keyboard, path)
+    assert not path.exists() and not firmware.sent
+
+
+def test_glyph_version4_import(firmware, tmp_path):
+    keyboard = Keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    value["schema_version"] = 4
+    assert snapshot.restore(keyboard, value, tmp_path / "glyph.json")["restored"]

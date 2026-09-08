@@ -328,3 +328,24 @@ def test_rt85_lighting_and_os_cli(cli_device, firmware):
     before = len(firmware.sent)
     assert cli.main([*prefix, "light", "snake", "--side"]) != 0
     assert len(firmware.sent) == before
+
+
+def test_rt85_backup_restore_reset_cli(cli_device, firmware, tmp_path):
+    from epomaker_driver.models import default_matrix
+
+    firmware.model_id = 2895
+    firmware.matrices = [bytearray(default_matrix(2895)) for _ in range(4)]
+    firmware.profile = 3
+    prefix = ["--device", cli_device.path]
+    original = tmp_path / "rt85.json"
+    assert cli.main([*prefix, "backup", str(original)]) == 0
+    value = json.loads(original.read_text())
+    assert value["schema_version"] == 4 and len(value["matrices"]) == 4
+    firmware.profile = 0
+    assert (
+        cli.main([*prefix, "restore", str(original), "--backup", str(tmp_path / "before.json")])
+        == 0
+    )
+    assert firmware.profile == 3
+    assert cli.main([*prefix, "factory-reset", "--backup", str(tmp_path / "reset.json")]) == 0
+    assert firmware.sent[-1][0] == 1

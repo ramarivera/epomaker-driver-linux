@@ -39,6 +39,7 @@ class Keyboard:
         if self.identity["device_id"] == 2895:
             for command in commands:
                 if command[0] not in (
+                    1,
                     4,
                     7,
                     8,

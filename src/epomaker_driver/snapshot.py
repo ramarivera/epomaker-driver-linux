@@ -1,7 +1,8 @@
-"""Versioned Glyph configuration snapshots; validate all fields before restoration."""
+"""Versioned keyboard configuration snapshots; validate all fields before restoration."""
 
 from . import codec, profiles
-from .errors import ProtocolError, UnsupportedDevice
+from .errors import ProtocolError
+from .models import model_by_id
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
 
@@ -13,9 +14,9 @@ def macro_slots(matrices):
 def capture(keyboard, *, extra_macro_slots=()):
     def operation():
         identity = keyboard.identify()
-        if identity["device_id"] != 3059:
-            raise UnsupportedDevice("Configuration snapshots currently support Glyph only")
-        matrices = [keyboard.read_matrix(p) for p in range(3)]
+        keyboard._supported()
+        rt85 = identity["device_id"] == 2895
+        matrices = [keyboard.read_matrix(p) for p in range(keyboard.model["layer"])]
         fn = {
             name: keyboard.read_matrix(fn=True, os_mode=mode)
             for name, mode in (("win", 0), ("mac", 1))
@@ -24,7 +25,7 @@ def capture(keyboard, *, extra_macro_slots=()):
         macros = {str(slot): keyboard.read_macro(slot).hex() for slot in slots}
         status = keyboard.status()
         return {
-            "schema_version": 3,
+            "schema_version": 4 if rt85 else 3,
             "identity": identity,
             "matrices": [m.hex() for m in matrices],
             "fn": {k: v.hex() for k, v in fn.items()},
@@ -34,7 +35,7 @@ def capture(keyboard, *, extra_macro_slots=()):
             "side_light": keyboard.get_light(side=True),
             "sleep": keyboard.get_sleep(),
             "profile": status["profile"],
-            "debounce": status["debounce"],
+            "debounce": None if rt85 else status["debounce"],
             "options": keyboard.get_options(),
             "auto_os": keyboard.get_auto_os(),
             "limitations": LIMITATIONS.copy(),
@@ -46,14 +47,18 @@ def capture(keyboard, *, extra_macro_slots=()):
 def validate(value):
     """Return decoded bytes and reject incomplete/incompatible snapshots without I/O."""
     try:
-        if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3):
-            raise ValueError("restoration requires a version 2 or 3 snapshot")
-        if value["identity"]["device_id"] != 3059:
-            raise ValueError("snapshot is not for Glyph ID 3059")
+        if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3, 4):
+            raise ValueError("restoration requires a version 2, 3 or 4 snapshot")
+        model_id = value["identity"]["device_id"]
+        if type(model_id) is not int or model_id not in (2895, 3059):
+            raise ValueError("snapshot model must be Glyph ID 3059 or RT85 ID 2895")
+        if value["schema_version"] < 4 and model_id != 3059:
+            raise ValueError("version 2 and 3 snapshots are only for Glyph ID 3059")
+        count = model_by_id(model_id)["layer"]
         matrices = [bytes.fromhex(m) for m in value["matrices"]]
         fn = {name: bytes.fromhex(value["fn"][name]) for name in ("win", "mac")}
-        if len(matrices) != 3 or any(len(m) != 512 for m in matrices + list(fn.values())):
-            raise ValueError("snapshot matrices must each be 512 bytes")
+        if len(matrices) != count or any(len(m) != 512 for m in matrices + list(fn.values())):
+            raise ValueError("snapshot must contain every model profile as a 512-byte matrix")
         macros = {}
         for key, raw in value["macros"].items():
             slot = codec.bounded(int(key), 255, "macro slot")
@@ -66,7 +71,7 @@ def validate(value):
         if not set(macro_slots(matrices + list(fn.values()))) <= set(macros):
             raise ValueError("snapshot omits a referenced macro")
         pictures = []
-        if value["schema_version"] == 3:
+        if value["schema_version"] >= 3:
             pictures = [bytes.fromhex(raw) for raw in value["pictures"]]
             if len(pictures) != 5 or any(len(p) != 378 for p in pictures):
                 raise ValueError("snapshot requires five 378-byte RGB pictures")
@@ -75,6 +80,9 @@ def validate(value):
             raw = bytes(value[key]["raw"])
             if len(raw) != 64 or raw[0] != opcode + 128:
                 raise ValueError(f"invalid {key} response data")
+            if model_id == 2895 and key == "side_light":
+                if raw[1] not in range(5) or raw[2] > (4 if raw[1] == 4 else 3):
+                    raise ValueError("RT85 side lighting mode or speed is unsupported")
             payload = bytes([opcode]) + raw[1 : 8 if opcode != 9 else 7]
             settings.append(codec.packet(payload, 7 if opcode == 9 else 8))
         sleep = value["sleep"]
@@ -82,8 +90,12 @@ def validate(value):
         sleep_command = codec.sleep_times(*times)
         if min(times[2:]) < 10:
             raise ValueError("deep sleep must be at least 10 seconds")
-        codec.bounded(value["profile"], 2, "profile")
-        codec.bounded(value["debounce"], 255, "debounce")
+        codec.bounded(value["profile"], count - 1, "profile")
+        if model_id == 2895:
+            if value["debounce"] is not None:
+                raise ValueError("RT85 snapshots must leave debounce null")
+        else:
+            codec.bounded(value["debounce"], 255, "debounce")
         if type(value["auto_os"]) is not bool:
             raise ValueError("auto_os must be boolean")
         return matrices, fn, macros, settings, sleep_command, pictures
@@ -95,8 +107,12 @@ def restore(keyboard, value, backup_path):
     matrices, fn, macros, settings, sleep_command, pictures = validate(value)
 
     def operation():
+        identity = keyboard.identify()
+        if identity["device_id"] != value["identity"]["device_id"]:
+            raise ValueError("snapshot model does not match the connected keyboard")
         # Save current configuration before the first write; no-clobber is intentional.
         current = capture(keyboard, extra_macro_slots=macros)
+        validate(current)
         profiles.save(backup_path, current)
         try:
             for slot, data in macros.items():
@@ -119,7 +135,8 @@ def restore(keyboard, value, backup_path):
                     raise ProtocolError(f"{key} readback differs")
             if keyboard.get_sleep() != value["sleep"]:
                 raise ProtocolError("sleep readback differs")
-            keyboard.set_debounce(value["debounce"])
+            if value["debounce"] is not None:
+                keyboard.set_debounce(value["debounce"])
             keyboard.set_auto_os(value["auto_os"])
             keyboard.set_profile(value["profile"])
         except Exception as error:
@@ -144,6 +161,7 @@ def factory_reset(keyboard, backup_path):
         keyboard._check_commands([codec.packet([1])])
         current = capture(keyboard, extra_macro_slots=range(256))
         current["limitations"] = ["screen pixels are not included"]
+        validate(current)
         profiles.save(backup_path, current)
         try:
             keyboard._supported()

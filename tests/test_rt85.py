@@ -2,7 +2,7 @@
 
 import pytest
 
-from epomaker_driver import codec, snapshot
+from epomaker_driver import codec
 from epomaker_driver.device import Keyboard
 from epomaker_driver.errors import UnsupportedDevice
 from epomaker_driver.models import default_matrix, model_by_id
@@ -81,22 +81,12 @@ def test_profile_limits_before_writes(firmware, model_id, invalid, method):
     "operation",
     [
         lambda k: k.set_debounce(5),
-        lambda k: k._write([codec.packet([4, 0]), codec.packet([1])]),
+        lambda k: k._write([codec.packet([4, 0]), codec.packet([0x22])]),
     ],
 )
 def test_unmigrated_operations_never_write(rt85, firmware, operation):
     with pytest.raises(UnsupportedDevice, match="RT85 currently supports"):
         operation(rt85)
-    assert firmware.sent == []
-
-
-def test_snapshots_and_reset_refused(rt85, firmware, tmp_path):
-    with pytest.raises(UnsupportedDevice, match="snapshots"):
-        snapshot.capture(rt85)
-    path = tmp_path / "reset.json"
-    with pytest.raises(UnsupportedDevice, match="RT85"):
-        snapshot.factory_reset(rt85, path)
-    assert not path.exists()
     assert firmware.sent == []
 
 

@@ -11,8 +11,8 @@ families and background features remain in the migration plan.
 
 [RT85 support](docs/rt85.md) is also available through the CLI: four normal
 profiles, Windows/Mac Fn layers, macros, sleep timers, its 320×172 display,
-main/side lighting, custom RGB pictures and OS options. Full RT85 snapshots and
-its graphical interface remain unfinished.
+main/side lighting, custom RGB pictures, OS options, snapshots and factory reset
+with a recovery copy. Its graphical interface remains unfinished.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
