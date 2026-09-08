@@ -25,8 +25,30 @@ COMMANDS = frozenset(
         "bind-macro",
         "disable-key",
         "mouse-bind",
+        "backup",
+        "restore",
     )
 )
+
+
+def setting_options_for(model, usb_version):
+    """Shared vendor UI gates for live settings and schema-8 validation."""
+    lod = {
+        "PAW3950": ["0.7", "1", "2"],
+        "PAW3955": ["0.7", "1", "2"],
+        "PAW3395": ["1", "2"],
+    }.get(model["sensor"], [])
+    other = model.get("other", {})
+    version = format(usb_version or 0, "x")
+    # Vendor Number(version.toString(16)): hex letters become NaN, not a version.
+    low_latency = bool(
+        other.get("lowLatency") and version.isdecimal() and int(version) > other["lowLatency"]
+    )
+    return {
+        "lod_mm": lod,
+        "low_latency": low_latency,
+        "sleep_bt": not other.get("noShowBT", False),
+    }
 
 
 class Mouse:
@@ -85,6 +107,46 @@ class Mouse:
         codec.bounded(profile, 7, "mouse profile")
         # The entire 16-slot matrix is raw data, without an echoed opcode.
         return self._query([0x81, profile, 1])
+
+    def write_matrix(self, profile, data):
+        """Replace one complete 64-byte profile matrix with two raw chunks."""
+
+        codec.bounded(profile, 7, "mouse profile")
+        if not isinstance(data, bytes) or len(data) != 64:
+            raise ValueError("mouse matrix data must be exactly 64 bytes")
+
+        def operation():
+            self.identify()
+            active = self.get_profile()
+            before = self.read_matrix(profile)
+            if self.get_profile() != active:
+                raise ProtocolError(f"mouse profile changed while reading profile {profile}")
+            if before == data:
+                return {"profile": profile, "changed": False}
+
+            chunk = 0
+            try:
+                for chunk in range(2):
+                    if self.get_profile() != active:
+                        raise ProtocolError(
+                            f"mouse active profile changed before profile {profile} chunk {chunk}"
+                        )
+                    payload = data[chunk * 56 : (chunk + 1) * 56].ljust(56, b"\0")
+                    command = codec.packet(bytes([1, profile, chunk]) + bytes(5) + payload)
+                    self._write(command)
+                actual = self.read_matrix(profile)
+                if actual != data:
+                    raise ProtocolError(f"mouse matrix readback differs for profile {profile}")
+                if self.get_profile() != active:
+                    raise ProtocolError(f"mouse active profile changed after profile {profile}")
+            except (Exception, KeyboardInterrupt) as error:
+                raise ProtocolError(
+                    f"mouse matrix profile {profile} failed at chunk {chunk}; "
+                    f"matrix may be partially written: {error}"
+                ) from error
+            return {"profile": profile, "changed": True}
+
+        return self.transport.transaction(operation)
 
     def set_key(self, slot, action, *, profile=None):
         codec.bounded(slot, 15, "mouse slot")
@@ -277,24 +339,8 @@ class Mouse:
         return mouse_codec.aggregate(self._query([0x9F], 0x9F))
 
     def setting_options(self):
-        """Vendor mouse UI capabilities, separate from keyboard catalog flags."""
         self._supported()
-        lod = {
-            "PAW3950": ["0.7", "1", "2"],
-            "PAW3955": ["0.7", "1", "2"],
-            "PAW3395": ["1", "2"],
-        }.get(self.model["sensor"], [])
-        other = self.model.get("other", {})
-        version = format(self.identity["usb_version"] or 0, "x")
-        # Vendor Number(version.toString(16)): hex letters become NaN, not a version.
-        low_latency = bool(
-            other.get("lowLatency") and version.isdecimal() and int(version) > other["lowLatency"]
-        )
-        return {
-            "lod_mm": lod,
-            "low_latency": low_latency,
-            "sleep_bt": not other.get("noShowBT", False),
-        }
+        return setting_options_for(self.model, self.identity["usb_version"])
 
     def _setting_supported(self, name, value=None):
         options = self.setting_options()

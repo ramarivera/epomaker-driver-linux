@@ -29,6 +29,8 @@ implemented magnetic IDs, including inactive fields and unreferenced macros.
 named button bindings and 50 macro slots, DPI and report-rate writes,
 sleep/debounce/scroll timing, LOD, correction and
 firmware-gated low latency, with verified readback.
+[Mouse recovery](mouse-recovery.md) adds complete snapshots of supported settings,
+eight profile observations and all 50 macro slots.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
@@ -38,7 +40,7 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for 25 migrated keyboards; eight-profile support for five mice | Vendor export semantics and application-local magnetic caches, other models |
+| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for 25 migrated keyboards and five mice; eight-profile support for five mice | Vendor export semantics and application-local magnetic caches, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0; HE60 21 effects and three/five picture banks, with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; HE60 wired debounce and wireless three-timer sleep; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
@@ -48,7 +50,7 @@ IDs do not establish that another model speaks the same protocol.
 | OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
-| Mice | Five CH585 models: USB identity/status, eight profiles, named/raw button bindings, 50 macro slots, model-specific DPI changes, report rate, sleep/debounce/scroll settings, sensor-gated LOD/correction and firmware-gated low latency | PAN1080 families, additional action types, lighting, motion-sync/FPS controls, battery, recovery and wireless routing |
+| Mice | Five CH585 models: USB identity/status, eight profiles, named/raw button bindings, 50 macro slots, model-specific DPI changes, report rate, sleep/debounce/scroll settings, sensor-gated LOD/correction and firmware-gated low latency | PAN1080 families, additional action types, motion-sync/FPS controls, battery and wireless routing |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |

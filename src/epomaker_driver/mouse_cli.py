@@ -1,6 +1,6 @@
 """CH585 command-line dispatch, separate from keyboard action encodings."""
 
-from . import actions, codec, macros, mouse_actions, mouse_codec
+from . import actions, codec, macros, mouse_actions, mouse_codec, mouse_snapshot, profiles
 
 SHARED_COMMANDS = frozenset(
     (
@@ -14,6 +14,8 @@ SHARED_COMMANDS = frozenset(
         "bind-mouse",
         "bind-macro",
         "disable-key",
+        "backup",
+        "restore",
     )
 )
 
@@ -50,6 +52,12 @@ def parsers(commands):
 
 
 def run(mouse, args, prepared=None):
+    if args.command == "backup":
+        value = mouse_snapshot.capture(mouse)
+        profiles.save(args.path, value, overwrite=args.overwrite)
+        return {"saved": str(args.path), "limitations": value["limitations"]}
+    if args.command == "restore":
+        return mouse_snapshot.restore(mouse, prepared, args.backup)
     if args.command == "identify":
         return mouse.identify()
     if args.command == "status":

@@ -309,7 +309,9 @@
         "mouse-line-wave-correction",
         "mouse-lod",
         "mouse-macros",
-        "mouse-named-bindings"
+        "mouse-named-bindings",
+        "configuration-backup",
+        "configuration-restore"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -318,12 +320,14 @@
         "dpi_levels": 6,
         "dpi_entries_preserved": 8,
         "usb_report_rate_max": 8000,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": true,
         "boot_status": "not established; bootloader PIDs excluded",
         "hardware_round_trips_verified": false,
         "macro_slots": 50,
-        "macro_bytes": 256
+        "macro_bytes": 256,
+        "snapshot_schema": 8,
+        "lighting": "not exposed: lightLayout absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -332,9 +336,7 @@
         "vendor-online-services",
         "graphical-interface",
         "mouse-additional-action-types",
-        "mouse-lighting",
         "mouse-motion-sync-fps-controls",
-        "configuration-recovery",
         "wireless-transports"
       ]
     },
@@ -431,7 +433,9 @@
         "mouse-sleep-debounce-scroll",
         "mouse-line-wave-correction",
         "mouse-macros",
-        "mouse-named-bindings"
+        "mouse-named-bindings",
+        "configuration-backup",
+        "configuration-restore"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -440,12 +444,14 @@
         "dpi_levels": 6,
         "dpi_entries_preserved": 8,
         "usb_report_rate_max": 1000,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": true,
         "boot_status": "not established; bootloader PIDs excluded",
         "hardware_round_trips_verified": false,
         "macro_slots": 50,
-        "macro_bytes": 256
+        "macro_bytes": 256,
+        "snapshot_schema": 8,
+        "lighting": "not exposed: lightLayout absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -454,9 +460,7 @@
         "vendor-online-services",
         "graphical-interface",
         "mouse-additional-action-types",
-        "mouse-lighting",
         "mouse-motion-sync-fps-controls",
-        "configuration-recovery",
         "wireless-transports"
       ]
     },
@@ -554,7 +558,9 @@
         "mouse-line-wave-correction",
         "mouse-lod",
         "mouse-macros",
-        "mouse-named-bindings"
+        "mouse-named-bindings",
+        "configuration-backup",
+        "configuration-restore"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -563,12 +569,14 @@
         "dpi_levels": 6,
         "dpi_entries_preserved": 8,
         "usb_report_rate_max": 8000,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": true,
         "boot_status": "not established; bootloader PIDs excluded",
         "hardware_round_trips_verified": false,
         "macro_slots": 50,
-        "macro_bytes": 256
+        "macro_bytes": 256,
+        "snapshot_schema": 8,
+        "lighting": "not exposed: lightLayout absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -577,9 +585,7 @@
         "vendor-online-services",
         "graphical-interface",
         "mouse-additional-action-types",
-        "mouse-lighting",
         "mouse-motion-sync-fps-controls",
-        "configuration-recovery",
         "wireless-transports"
       ]
     },
@@ -680,7 +686,9 @@
         "mouse-lod",
         "mouse-low-latency-firmware-gated",
         "mouse-macros",
-        "mouse-named-bindings"
+        "mouse-named-bindings",
+        "configuration-backup",
+        "configuration-restore"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -689,12 +697,14 @@
         "dpi_levels": 7,
         "dpi_entries_preserved": 8,
         "usb_report_rate_max": 8000,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": true,
         "boot_status": "not established; bootloader PIDs excluded",
         "hardware_round_trips_verified": false,
         "macro_slots": 50,
-        "macro_bytes": 256
+        "macro_bytes": 256,
+        "snapshot_schema": 8,
+        "lighting": "not exposed: lightLayout absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -703,9 +713,7 @@
         "vendor-online-services",
         "graphical-interface",
         "mouse-additional-action-types",
-        "mouse-lighting",
         "mouse-motion-sync-fps-controls",
-        "configuration-recovery",
         "wireless-transports"
       ]
     },
@@ -822,7 +830,9 @@
         "mouse-line-wave-correction",
         "mouse-low-latency-firmware-gated",
         "mouse-macros",
-        "mouse-named-bindings"
+        "mouse-named-bindings",
+        "configuration-backup",
+        "configuration-restore"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -831,12 +841,14 @@
         "dpi_levels": 6,
         "dpi_entries_preserved": 8,
         "usb_report_rate_max": 1000,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": true,
         "boot_status": "not established; bootloader PIDs excluded",
         "hardware_round_trips_verified": false,
         "macro_slots": 50,
-        "macro_bytes": 256
+        "macro_bytes": 256,
+        "snapshot_schema": 8,
+        "lighting": "not exposed: lightLayout absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -845,9 +857,7 @@
         "vendor-online-services",
         "graphical-interface",
         "mouse-additional-action-types",
-        "mouse-lighting",
         "mouse-motion-sync-fps-controls",
-        "configuration-recovery",
         "wireless-transports"
       ]
     },

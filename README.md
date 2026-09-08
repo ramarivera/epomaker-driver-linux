@@ -65,7 +65,8 @@ and hardware-validation status separately. No model is hardware-verified yet.
 
 [Five CH585 mice](docs/ch585-protocol.md) now support USB identification, eight
 profiles, named/raw button mappings, 50 macro slots, DPI-level editing, report-rate selection, sleep/
-debounce/scroll timing and model-gated sensor settings.
+debounce/scroll timing, model-gated sensor settings and
+[configuration backup/restore](docs/mouse-recovery.md).
 Mouse commands use their own protocol and are rejected on keyboards.
 
 ## Run

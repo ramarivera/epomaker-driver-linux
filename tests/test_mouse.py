@@ -24,6 +24,7 @@ class MouseFirmware:
         self.corrupt_dpi_after_write = False
         self.corrupt_matrix = False
         self.corrupt_matrix_after_write = False
+        self.drop_matrix = False
         self.matrix = {
             (profile, slot): bytes([(profile + slot) & 255, 1, 2, 3])
             for profile in range(8)
@@ -118,6 +119,14 @@ class MouseFirmware:
             if not self.drop_profile:
                 slot = command[1]
                 self.matrix[(self.profile, slot)] = bytes(command[8:12])
+        elif op == 0x01:
+            if not self.drop_matrix:
+                profile, chunk = command[1], command[2]
+                current = bytearray(b"".join(self.matrix[(profile, slot)] for slot in range(16)))
+                current[chunk * 56 : (chunk + 1) * 56] = command[8:64]
+                for slot in range(16):
+                    start = slot * 4
+                    self.matrix[(profile, slot)] = bytes(current[start : start + 4])
         elif op == 0x10:
             if not self.drop_dpi:
                 assert command[4:7] == bytes(3)
@@ -342,6 +351,74 @@ def test_matrix_corruption_is_detected():
     firmware.corrupt_matrix_after_write = True
     with pytest.raises(ProtocolError):
         keyboard.set_key(1, b"1234")
+
+
+@pytest.mark.parametrize("profile", range(8))
+def test_matrix_write_restores_all_profiles_in_two_chunks(profile):
+    keyboard, firmware = mouse_keyboard()
+    data = bytes((profile * 17 + offset) & 255 for offset in range(64))
+    result = keyboard.write_matrix(profile, data)
+    assert result == {"profile": profile, "changed": True}
+    assert keyboard.read_matrix(profile) == data
+    assert firmware.profile == 0
+    writes = [command for command in firmware.sent if command[0] == 1]
+    assert len(writes) == 2
+    assert [command[1:3] for command in writes] == [bytes([profile, 0]), bytes([profile, 1])]
+    assert all(command[7] == (255 - sum(command[:7])) & 255 for command in writes)
+
+
+def test_matrix_write_pads_second_chunk_and_preserves_exact_payload():
+    keyboard, firmware = mouse_keyboard()
+    data = bytes(range(64))
+    keyboard.write_matrix(2, data)
+    writes = [command for command in firmware.sent if command[0] == 1]
+    assert writes[0][8:] == data[:56]
+    assert writes[1][8:16] == data[56:]
+    assert writes[1][16:] == bytes(48)
+
+
+@pytest.mark.parametrize("data", [bytearray(64), bytes(63), bytes(65), "x"])
+def test_matrix_write_requires_raw_64_byte_bytes(data):
+    keyboard, firmware = mouse_keyboard()
+    with pytest.raises(ValueError):
+        keyboard.write_matrix(0, data)
+    assert firmware.sent == []
+
+
+@pytest.mark.parametrize("profile", [-1, 8, True])
+def test_matrix_write_profile_bounds_reject_before_io(profile):
+    keyboard, firmware = mouse_keyboard()
+    with pytest.raises(ValueError):
+        keyboard.write_matrix(profile, bytes(64))
+    assert firmware.sent == []
+
+
+def test_matrix_write_noop_skips_packets_and_preserves_active_profile():
+    keyboard, firmware = mouse_keyboard()
+    firmware.profile = 3
+    data = keyboard.read_matrix(6)
+    firmware.sent.clear()
+    assert keyboard.write_matrix(6, data) == {"profile": 6, "changed": False}
+    assert firmware.profile == 3
+    assert not [command for command in firmware.sent if command[0] == 1]
+
+
+@pytest.mark.parametrize("failure", ["drop_matrix", "corrupt_matrix_after_write"])
+def test_matrix_write_reports_partial_state_on_write_or_readback_failure(failure):
+    keyboard, firmware = mouse_keyboard()
+    setattr(firmware, failure, True)
+    with pytest.raises(ProtocolError, match=r"profile 4.*partially written"):
+        keyboard.write_matrix(4, bytes([8]) * 64)
+
+
+def test_matrix_write_detects_profile_drift_on_noop(monkeypatch):
+    keyboard, firmware = mouse_keyboard()
+    data = keyboard.read_matrix(2)
+    profiles = iter((0, 1))
+    monkeypatch.setattr(keyboard, "get_profile", lambda: next(profiles))
+    with pytest.raises(ProtocolError, match="profile 2"):
+        keyboard.write_matrix(2, data)
+    assert not [command for command in firmware.sent if command[0] == 1]
 
 
 def test_dpi_patch_preserves_all_other_levels_and_rgb():

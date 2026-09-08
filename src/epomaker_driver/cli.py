@@ -18,6 +18,7 @@ from . import (
     macros,
     media,
     mouse_cli,
+    mouse_snapshot,
     profiles,
     snapshot,
     system_info,
@@ -268,7 +269,9 @@ def execute(args):
     elif args.command == "restore":
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-        if isinstance(prepared, dict) and prepared.get("schema_version") == 7:
+        if isinstance(prepared, dict) and prepared.get("schema_version") == 8:
+            mouse_snapshot.validate(prepared)
+        elif isinstance(prepared, dict) and prepared.get("schema_version") == 7:
             he_snapshot.validate(prepared)
         elif isinstance(prepared, dict) and prepared.get("schema_version") == 6:
             legacy_snapshot.validate(prepared)
@@ -323,6 +326,8 @@ def execute(args):
         raise UnsupportedDevice("schema 6 snapshots require a YC3121 device")
     if args.command == "restore" and (prepared.get("schema_version") == 7) != is_he:
         raise UnsupportedDevice("schema 7 snapshots require a supported magnetic keyboard")
+    if args.command == "restore" and (prepared.get("schema_version") == 8) != is_mouse:
+        raise UnsupportedDevice("schema 8 snapshots require a supported CH585 mouse")
     with Transport.open(device) as transport:
         if is_mouse:
             return mouse_cli.run(Mouse(transport, product_id=device.product_id), args, prepared)
