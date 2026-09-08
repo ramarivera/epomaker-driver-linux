@@ -1,0 +1,2120 @@
+[
+  {
+    "id": 2666,
+    "vid": 12625,
+    "pid": 20530,
+    "name": "mouse_pan1076_m11_3311",
+    "displayName": "Epomaker Click Lite",
+    "type": "mouse",
+    "sensor": "PAW3311",
+    "company": "EPOMAKER",
+    "layer": 8,
+    "dpi": {
+      "count": 6,
+      "max": 12000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        800,
+        1600,
+        2400,
+        3200,
+        5000,
+        12000
+      ],
+      "defaultCurrentDPI": 1
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5032",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2261,
+    "vid": 12625,
+    "pid": 16426,
+    "name": "mouse_m11b_3950_8k_8k",
+    "displayName": "Click",
+    "type": "mouse",
+    "sensor": "PAW3950",
+    "company": "EPOMAKER",
+    "layer": 8,
+    "mouseLayout": "RongYuanMouselayout7",
+    "dpi": {
+      "count": 6,
+      "max": 42000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "deBounce": 10,
+      "defaultDPI": [
+        800,
+        1600,
+        2400,
+        3200,
+        5000,
+        42000
+      ],
+      "defaultCurrentDPI": 1
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x402a",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3961,
+    "vid": 12625,
+    "pid": 20538,
+    "name": "mouse_ry6608_qfn48_yj_g91_yj_zg169_3955_8k_8k_3m",
+    "displayName": "Epomaker EM5 PRO",
+    "type": "mouse",
+    "sensor": "PAW3955",
+    "company": "EPOMAKER",
+    "mouseLayout": "RongYuanMouselayout7",
+    "layer": 8,
+    "dpi": {
+      "count": 6,
+      "max": 65000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        800,
+        1600,
+        3600,
+        8000,
+        12000,
+        40000
+      ],
+      "defaultCurrentDPI": 1
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x503a",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3303,
+    "vid": 12625,
+    "pid": 20547,
+    "name": "mouse_ry6601_qfn48_xmg_m11_3311_1k_1k_3m",
+    "displayName": "Click Lite",
+    "type": "mouse",
+    "sensor": "PAW3311",
+    "company": "EPOMAKER",
+    "mouseLayout": "RongYuanMouselayout9",
+    "layer": 8,
+    "dpi": {
+      "count": 6,
+      "max": 12000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        800,
+        1600,
+        2400,
+        3200,
+        5000,
+        12000
+      ],
+      "defaultCurrentDPI": 1
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5043",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3304,
+    "vid": 12625,
+    "pid": 20538,
+    "name": "mouse_ry6608_qfn48_xmg_m11_3950_8k_8k_3m",
+    "displayName": "Click",
+    "type": "mouse",
+    "sensor": "PAW3950",
+    "company": "EPOMAKER",
+    "mouseLayout": "RongYuanMouselayout9",
+    "layer": 8,
+    "dpi": {
+      "count": 6,
+      "max": 30000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        800,
+        1600,
+        2400,
+        3200,
+        5000,
+        42000
+      ],
+      "defaultCurrentDPI": 1
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x503a",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3929,
+    "vid": 12625,
+    "pid": 20538,
+    "name": "mouse_ry6608_g33_yj_zc28_3395_8k_8k",
+    "displayName": "EM3 PRO",
+    "type": "mouse",
+    "sensor": "PAW3395",
+    "company": "EPOMAKER",
+    "mouseLayout": "RongYuanMouselayout7",
+    "layer": 8,
+    "dpi": {
+      "count": 7,
+      "max": 30000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        400,
+        800,
+        1200,
+        1600,
+        3200,
+        5600,
+        26000
+      ],
+      "defaultCurrentDPI": 2,
+      "lowLatency": 799
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x503a",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3919,
+    "vid": 12625,
+    "pid": 20547,
+    "name": "mouse_ry6601_qfn48_g33_yj_zc5_3315_1k_1k",
+    "displayName": "Epomaker EM3",
+    "type": "mouse",
+    "sensor": "PAW3315",
+    "company": "EPOMAKER",
+    "mouseLayout": "RongYuanMouselayout7",
+    "layer": 8,
+    "dpi": {
+      "count": 6,
+      "max": 32000,
+      "min": 50,
+      "delt": 50
+    },
+    "other": {
+      "defaultDPI": [
+        800,
+        1600,
+        3200,
+        6400,
+        8000,
+        16000
+      ],
+      "defaultCurrentDPI": 1,
+      "lowLatency": 99,
+      "dpiDoubleStartValue": 10000,
+      "dpiStepRanges": [
+        {
+          "min": 50,
+          "max": 10000,
+          "step": 50
+        },
+        {
+          "min": 10000,
+          "max": 16000,
+          "step": 100
+        },
+        {
+          "min": 16000,
+          "max": 32000,
+          "step": 200
+        }
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5043",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3960,
+    "vid": 12625,
+    "pid": 20544,
+    "name": "dangle_ry6608_yj_zg169_8k_led_screen_dongle",
+    "displayName": "EM5 PRO Dongle",
+    "type": "dongle",
+    "company": "EPOMAKER",
+    "other": {
+      "screen": {
+        "mode": "16",
+        "size": {
+          "w": 160,
+          "h": 80,
+          "memorySize": 5
+        },
+        "date": true,
+        "canSwitchMenu": true
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5040",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3930,
+    "vid": 12625,
+    "pid": 20544,
+    "name": "dangle_ry6608_g33_yj_zc28_screen_8k",
+    "displayName": "EM3 PRO Dongle",
+    "type": "dongle",
+    "company": "EPOMAKER",
+    "other": {
+      "screen": {
+        "mode": "16",
+        "size": {
+          "w": 128,
+          "h": 128
+        },
+        "date": true
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5040",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3691,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_fq_x80_1m_8k",
+    "displayName": "HE60 Wired",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3692,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_fq_x80_3m_8k_8k",
+    "displayName": "HE60 Wireless",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3703,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_fq_x122_ry1049es_3m_jp",
+    "displayName": "G84 HE JIS",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "keyboardLanguageType": "japanese",
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3662,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_hf_k1_1m_8k",
+    "displayName": "H60",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": false
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3664,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_hf_kf109_he68_llte_b_uk_1m_8k",
+    "displayName": "HE68 Llte",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "keyboardLanguageType": "german",
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "冰玉"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3613,
+    "vid": 12625,
+    "pid": 20564,
+    "name": "ry5088_jc_8642_tmr_3m_8k_8k",
+    "displayName": "HE75 V2 TMR",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 2,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "云玉磁轴",
+        "泰山轴",
+        "磁玉pro",
+        "万磁王"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 3.3,
+          "step": 0.01,
+          "default": 2
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5054",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3518,
+    "vid": 12625,
+    "pid": 20564,
+    "name": "ry5088_jc_gk8642gw_bmq_v1_3m_8k_8k",
+    "displayName": "EPOMAKER HE75 V2",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 2,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "灭霸轴",
+        "白星",
+        "云玉磁轴"
+      ],
+      "specialSwitchDisplayName": {
+        "灭霸轴": "紫星轴"
+      },
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5054",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2550,
+    "vid": 12625,
+    "pid": 20525,
+    "name": "ry5088_mmdkm60c_dm_8k_002",
+    "displayName": "Epomaker M65",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502d",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2520,
+    "vid": 12625,
+    "pid": 20527,
+    "name": "ry5088_x87a_he75mag_8k_8k_002",
+    "displayName": "HE75 Mag",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "磁白轴",
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800,
+          "default": 1800
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 4,
+          "step": 0.02
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "default": 0.3,
+          "step": 0.02
+        },
+        "firePress": {
+          "min": 0.01,
+          "max": 2
+        },
+        "fireLift": {
+          "min": 0.01,
+          "max": 2
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502f",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2586,
+    "vid": 12625,
+    "pid": 20525,
+    "name": "ry5088_kiiboom68c_dm_8k",
+    "displayName": "KIIBOOM-68C",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502d",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2761,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_hf_kf109_3m_8k_1k",
+    "displayName": "HE68 Llte",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "冰玉"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2465,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_x82he68_dm_8k",
+    "displayName": "HE68 Mag",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "冰玉"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2762,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_hf_kf109_1m_8k",
+    "displayName": "HE68 Llte",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "冰玉"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2870,
+    "vid": 12625,
+    "pid": 20525,
+    "name": "ry5088_epomaker65_dm_8k",
+    "displayName": "Epomaker 65",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502d",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2284,
+    "vid": 12625,
+    "pid": 20517,
+    "name": "pan1086_fq_x83_soc",
+    "displayName": "HE65 Mec",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "noMagneticSwitch": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800,
+          "default": 1800
+        }
+      },
+      "deBounce": 10,
+      "screen": {
+        "size": {
+          "w": 128,
+          "h": 128,
+          "memorySize": 6
+        },
+        "mode": "16",
+        "date": true,
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5025",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2959,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_fq_x122_3m_8k_8k",
+    "displayName": "G84 HE",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2883,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_hf_kf109_1m_8k",
+    "displayName": "HE68 Llte",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "冰玉"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3365,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_fq_x113c_8k",
+    "displayName": "EpomakerHE108",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "高特",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 3.3,
+          "step": 0.005,
+          "default": 2
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3417,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_MLCY_EPOMAKERHE65Pro",
+    "displayName": "HE65 V2",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "云玉磁轴",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王",
+        "机械轴"
+      ],
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ],
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2376,
+    "vid": 12625,
+    "pid": 20527,
+    "name": "ry5088_fq_x83_soc_8k_002",
+    "displayName": "HE65 Mag",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": false,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "screen": {
+        "size": {
+          "w": 128,
+          "h": 128,
+          "memorySize": 6
+        },
+        "mode": "16",
+        "date": true,
+        "canSwitchLanguage": true,
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 4,
+          "step": 0.02
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "default": 0.3,
+          "step": 0.02
+        },
+        "firePress": {
+          "min": 0.01,
+          "max": 2
+        },
+        "fireLift": {
+          "min": 0.01,
+          "max": 2
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502f",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3746,
+    "vid": 12625,
+    "pid": 20521,
+    "name": "ry5088_jc_gk8149g_1m_8k_ry1049es",
+    "displayName": "Epomaker_HE60",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "云玉磁轴",
+        "天青轴"
+      ],
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 3.4,
+          "step": 0.005
+        },
+        "firePress": {
+          "min": 0.005,
+          "max": 2.5,
+          "step": 0.005
+        },
+        "fireLift": {
+          "min": 0.005,
+          "max": 2.5,
+          "step": 0.005,
+          "default": 1.5
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "step": 0.005,
+          "default": 0.3
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5029",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3883,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_jc_cy_gk8652gw_3m_8k_8k",
+    "displayName": "HE75 V2 TMR",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0
+        },
+        "deep": {
+          "min": 0
+        }
+      },
+      "supportedSwitchTypes": [
+        "灭霸轴",
+        "天霸轴",
+        "精灵王轴",
+        "芭比轴",
+        "泰山轴"
+      ],
+      "specialSwitchDisplayName": {
+        "灭霸轴": "紫星轴"
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 3.3,
+          "step": 0.01,
+          "default": 2
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 4071,
+    "vid": 12625,
+    "pid": 20528,
+    "name": "ry5088_0005_fq_x122_a_us_3m_8k_8k",
+    "displayName": "G84HE  PRO",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnLayer": 1,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600,
+          "default": 120
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600,
+          "default": 120
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600,
+          "default": 1800
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 3.3,
+          "step": 0.005,
+          "downDefault": 2,
+          "default": 2
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "step": 0.005,
+          "default": 0.3
+        }
+      },
+      "isSwitchReplaceable": true,
+      "supportedSwitchTypes": [
+        "海木比目鱼轴",
+        "磁玉",
+        "磁玉pro",
+        "磁玉gaming",
+        "天王",
+        "万磁王"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5030",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 1723,
+    "vid": 12625,
+    "pid": 16405,
+    "name": "yc3121_kf850_uk_screen",
+    "displayName": "Dynatab75X-UK",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isSwitchReplaceable": false,
+      "noMagneticSwitch": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "screen": {
+        "mode": "24",
+        "size": {
+          "w": 60,
+          "h": 9
+        },
+        "date": true,
+        "canSyncSystemInfo": true,
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x4015",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 1379,
+    "vid": 12625,
+    "pid": 16405,
+    "name": "yc3121_cy_rt100_soc",
+    "displayName": "RT100",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "noMagneticSwitch": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 600,
+          "max": 3600
+        }
+      },
+      "screen": {
+        "size": {
+          "w": 162,
+          "h": 173,
+          "size": 1,
+          "memorySize": 6
+        },
+        "mode": "16",
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "canSwitchLanguage": true,
+        "date": true,
+        "canSyncSystemInfo": true
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "MediaPlayPause",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x4015",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 1955,
+    "vid": 12625,
+    "pid": 16405,
+    "name": "yc3121_x87_soc_hall",
+    "displayName": "HE75 Mag",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 2,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800,
+          "default": 1800
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0.1,
+          "max": 4,
+          "step": 0.02
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "default": 0.3,
+          "step": 0.02
+        },
+        "firePress": {
+          "min": 0.01,
+          "max": 2
+        },
+        "fireLift": {
+          "min": 0.01,
+          "max": 2
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeUp",
+        "AudioVolumeMute",
+        "AudioVolumeDown"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x4015",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 2895,
+    "vid": 12625,
+    "pid": 20482,
+    "name": "yc3123_ss_sn001",
+    "displayName": "RT85",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "screen": {
+        "size": {
+          "w": 320,
+          "h": 172,
+          "memorySize": 6
+        },
+        "mode": "16",
+        "date": true,
+        "canSwitchLanguage": true,
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5002",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3059,
+    "vid": 12625,
+    "pid": 20482,
+    "name": "yc3123_hf_kf107_3m_oled_1k_rgb_kb_soc_v100",
+    "displayName": "Epomaker Glyph",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "MediaPlayPause",
+        "AudioVolumeUp"
+      ],
+      "screen": {
+        "mode": "16",
+        "size": {
+          "w": 428,
+          "h": 142,
+          "memorySize": 6
+        },
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "canSwitchLanguage": true,
+        "canSyncSystemInfo": true,
+        "date": true
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5002",
+    "implementation": "glyph",
+    "hardware_verified": false
+  },
+  {
+    "id": 3152,
+    "vid": 12625,
+    "pid": 20482,
+    "name": "yc3123_hf_kf111_3m_1k",
+    "displayName": "RT100 PRO",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "deBounce": 10,
+      "noMagneticSwitch": true,
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "screen": {
+        "mode": "16",
+        "size": {
+          "w": 240,
+          "h": 240
+        },
+        "date": true,
+        "canSwitchLanguage": true,
+        "canSyncSystemInfo": true,
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "knobKeyCodes": [
+        "AudioVolumeUp",
+        "AudioVolumeMute",
+        "AudioVolumeDown"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5002",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3223,
+    "vid": 12625,
+    "pid": 20482,
+    "name": "yc3123_kf110_3m_1k",
+    "displayName": "RT75",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isYC3123": true,
+      "noMagneticSwitch": true,
+      "isSwitchReplaceable": false,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "screen": {
+        "mode": "16",
+        "size": {
+          "w": 240,
+          "h": 240,
+          "memorySize": 6
+        },
+        "date": true,
+        "canSwitchLanguage": true,
+        "canSyncSystemInfo": true
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5002",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3759,
+    "vid": 12625,
+    "pid": 20526,
+    "name": "yc3123_hf_k1_v2_3m_1k_1k",
+    "displayName": "HE60 Lite",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 2,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "isSwitchReplaceable": false,
+      "sleep24": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 60,
+          "max": 3600
+        },
+        "deep": {
+          "min": 60,
+          "max": 3600
+        }
+      },
+      "travelSetting": {
+        "travel": {
+          "min": 0,
+          "max": 3.3,
+          "step": 0.1
+        },
+        "firePress": {
+          "min": 0.1,
+          "max": 2,
+          "step": 0.1
+        },
+        "fireLift": {
+          "min": 0.1,
+          "max": 2,
+          "step": 0.1
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502e",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3727,
+    "vid": 12625,
+    "pid": 20524,
+    "name": "yc3121_hf_k1_1m_1k",
+    "displayName": "HE60 Lite",
+    "type": "keyboard",
+    "company": "EPOMAKER",
+    "layer": 2,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "magnetism": true,
+    "other": {
+      "deBounce": 10,
+      "travelSetting": {
+        "travel": {
+          "min": 0,
+          "max": 3.3,
+          "step": 0.1
+        },
+        "firePress": {
+          "min": 0.1,
+          "max": 2,
+          "step": 0.1
+        },
+        "fireLift": {
+          "min": 0.1,
+          "max": 2,
+          "step": 0.1
+        },
+        "deadzone": {
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x502c",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3858,
+    "vid": 12625,
+    "pid": 20566,
+    "name": "ry6602_saishun_sn020_3m_1k_1k",
+    "displayName": "SN020",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 4,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "isRY6602": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 600,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 600,
+          "max": 64800
+        },
+        "deep": {
+          "min": 600,
+          "max": 64800
+        }
+      },
+      "screen": {
+        "size": {
+          "w": 33,
+          "h": 7,
+          "size": 30,
+          "memorySize": 8
+        },
+        "mode": "24",
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5056",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3633,
+    "vid": 12625,
+    "pid": 20566,
+    "name": "ry6602_fq_x159a_3m_1k_1k",
+    "displayName": "Epomaker EK75",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isSwitchReplaceable": false,
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "isRY6602": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 600,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 600,
+          "max": 64800
+        },
+        "deep": {
+          "min": 600,
+          "max": 64800
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5056",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3673,
+    "vid": 12625,
+    "pid": 20566,
+    "name": "ry6602_fq_ak_x159d_3m_1k_1k",
+    "displayName": "TH80 V3 MAX",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isSwitchReplaceable": false,
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "isRY6602": true,
+      "deBounce": 10,
+      "screen": {
+        "size": {
+          "w": 7,
+          "h": 7,
+          "size": 8,
+          "memorySize": 2
+        },
+        "mode": "24",
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "sleep24": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 7200
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 0,
+          "max": 64800,
+          "default": 240
+        },
+        "deep": {
+          "min": 0,
+          "max": 64800,
+          "default": 1800
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5056",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3573,
+    "vid": 12625,
+    "pid": 20566,
+    "name": "ry6602_fq_ak_x159e_3m_1k_1k",
+    "displayName": "TH80 V2",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isSwitchReplaceable": false,
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "isRY6602": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 10,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "knobKeyCodes": [
+        "AudioVolumeDown",
+        "AudioVolumeMute",
+        "AudioVolumeUp"
+      ]
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5056",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  },
+  {
+    "id": 3674,
+    "vid": 12625,
+    "pid": 20566,
+    "name": "ry6602_fq_ak_x160d_3m_1k_1k",
+    "displayName": "TH65 Max",
+    "company": "EPOMAKER",
+    "type": "keyboard",
+    "layer": 3,
+    "fnSysLayer": {
+      "win": 1,
+      "mac": 1
+    },
+    "other": {
+      "isSwitchReplaceable": false,
+      "noMagneticSwitch": true,
+      "isYC3123": true,
+      "isRY6602": true,
+      "deBounce": 10,
+      "sleep24": {
+        "sleep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "sleepBT": {
+        "sleep": {
+          "min": 10,
+          "max": 64800
+        },
+        "deep": {
+          "min": 10,
+          "max": 64800
+        }
+      },
+      "screen": {
+        "size": {
+          "w": 7,
+          "h": 7,
+          "size": 30,
+          "memorySize": 2352
+        },
+        "mode": "24",
+        "layer": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    },
+    "vidHex": "0x3151",
+    "pidHex": "0x5056",
+    "implementation": "catalogued",
+    "hardware_verified": false
+  }
+]

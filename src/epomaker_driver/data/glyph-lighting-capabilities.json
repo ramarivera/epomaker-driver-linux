@@ -1,0 +1,221 @@
+{
+  "main": {
+    "isRgb": true,
+    "types": [
+      {
+        "type": "LightWave",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "options": [
+          "向右",
+          "向左",
+          "向下",
+          "向上"
+        ],
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightRipple",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightRaindrop",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightSnake",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "options": [
+          "Z字形",
+          "回形"
+        ],
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightPressAction",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightConverage",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightSineWave",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightKaleidoscope",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "options": [
+          "向外",
+          "向内"
+        ],
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightPressActionOff",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightLineWave",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "options": [
+          "向右",
+          "向左"
+        ],
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightLaser",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightCircleWave",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "options": [
+          "逆时针",
+          "顺时针"
+        ],
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightDazzing",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightRainDown",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightMeteor",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightOff"
+      },
+      {
+        "type": "LightAlwaysOn",
+        "maxValue": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightBreath",
+        "maxValue": 4,
+        "maxSpeed": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightNeon",
+        "maxValue": 4,
+        "maxSpeed": 4
+      },
+      {
+        "type": "LightUserPicture",
+        "options": [
+          "图案1",
+          "图案2",
+          "图案3",
+          "图案4",
+          "图案5"
+        ],
+        "maxValue": 4
+      },
+      {
+        "type": "LightMusicFollow2",
+        "options": [
+          "upright",
+          "separate",
+          "intersect"
+        ],
+        "maxValue": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightScreenColor",
+        "maxValue": 4
+      }
+    ]
+  },
+  "side": {
+    "isRgb": true,
+    "types": [
+      {
+        "type": "LightWave",
+        "maxValue": 4,
+        "maxSpeed": 3,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightSnake",
+        "maxValue": 4,
+        "maxSpeed": 3,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightOff"
+      },
+      {
+        "type": "LightAlwaysOn",
+        "maxValue": 4,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightBreath",
+        "maxValue": 4,
+        "maxSpeed": 3,
+        "rgb": true,
+        "dazzle": true
+      },
+      {
+        "type": "LightNeon",
+        "maxValue": 4,
+        "maxSpeed": 3
+      }
+    ]
+  }
+}

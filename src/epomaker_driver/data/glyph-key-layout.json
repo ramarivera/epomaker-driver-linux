@@ -1,0 +1,857 @@
+{
+  "width": 788,
+  "height": 277,
+  "layout": {
+    "AudioVolumeDown": {
+      "x": 736,
+      "y": 0,
+      "width": 17,
+      "height": 52,
+      "type": "knob"
+    },
+    "MediaPlayPause": {
+      "x": 753,
+      "y": 0,
+      "width": 18,
+      "height": 52,
+      "type": "knob"
+    },
+    "AudioVolumeUp": {
+      "x": 771,
+      "y": 0,
+      "width": 17,
+      "height": 52,
+      "type": "knob"
+    },
+    "Backspace": {
+      "x": 599,
+      "y": 52,
+      "width": 86,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "BackSpace"
+      ]
+    },
+    "Tab": {
+      "x": 1,
+      "y": 98,
+      "width": 66,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Tab"
+      ]
+    },
+    "CapsLock": {
+      "x": 1,
+      "y": 144,
+      "width": 72,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Caps"
+      ]
+    },
+    "Enter": {
+      "x": 585,
+      "y": 144,
+      "width": 100,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Enter"
+      ]
+    },
+    "ShiftLeft": {
+      "x": 1,
+      "y": 190,
+      "width": 93,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Shift"
+      ]
+    },
+    "ShiftRight": {
+      "x": 560,
+      "y": 190,
+      "width": 79,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Shift"
+      ]
+    },
+    "ControlLeft": {
+      "x": 1,
+      "y": 236,
+      "width": 48,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Ctrl"
+      ]
+    },
+    "MetaLeft": {
+      "x": 55,
+      "y": 236,
+      "width": 48,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Win"
+      ]
+    },
+    "AltLeft": {
+      "x": 109,
+      "y": 236,
+      "width": 48,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Alt"
+      ]
+    },
+    "Space": {
+      "x": 163,
+      "y": 236,
+      "width": 292,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Space"
+      ]
+    },
+    "AltRight": {
+      "x": 461,
+      "y": 236,
+      "width": 48,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Alt"
+      ]
+    },
+    "Fn": {
+      "x": 515,
+      "y": 236,
+      "width": 48,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Fn"
+      ]
+    },
+    "Backslash": {
+      "x": 625,
+      "y": 98,
+      "width": 60,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "\\|"
+      ]
+    },
+    "Escape": {
+      "x": 1,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Esc"
+      ]
+    },
+    "Backquote": {
+      "x": 1,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "`~"
+      ]
+    },
+    "Digit1": {
+      "x": 47,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "1!"
+      ]
+    },
+    "Digit2": {
+      "x": 93,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "2@"
+      ]
+    },
+    "Digit3": {
+      "x": 139,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "3#"
+      ]
+    },
+    "Digit4": {
+      "x": 185,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "4$"
+      ]
+    },
+    "Digit5": {
+      "x": 231,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "5%"
+      ]
+    },
+    "Digit6": {
+      "x": 277,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "6^"
+      ]
+    },
+    "Digit7": {
+      "x": 323,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "7&"
+      ]
+    },
+    "Digit8": {
+      "x": 369,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "8*"
+      ]
+    },
+    "Digit9": {
+      "x": 415,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "9("
+      ]
+    },
+    "Digit0": {
+      "x": 461,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "0)"
+      ]
+    },
+    "Minus": {
+      "x": 507,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "-_"
+      ]
+    },
+    "Equal": {
+      "x": 553,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "=+"
+      ]
+    },
+    "KeyQ": {
+      "x": 73,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Q"
+      ]
+    },
+    "KeyW": {
+      "x": 119,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "W"
+      ]
+    },
+    "KeyE": {
+      "x": 165,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "E"
+      ]
+    },
+    "KeyR": {
+      "x": 211,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "R"
+      ]
+    },
+    "KeyT": {
+      "x": 257,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "T"
+      ]
+    },
+    "KeyY": {
+      "x": 303,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Y"
+      ]
+    },
+    "KeyU": {
+      "x": 349,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "U"
+      ]
+    },
+    "KeyI": {
+      "x": 395,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "I"
+      ]
+    },
+    "KeyO": {
+      "x": 441,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "O"
+      ]
+    },
+    "KeyP": {
+      "x": 487,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "P"
+      ]
+    },
+    "BracketLeft": {
+      "x": 533,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "[{"
+      ]
+    },
+    "BracketRight": {
+      "x": 579,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "]}"
+      ]
+    },
+    "KeyA": {
+      "x": 79,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "A"
+      ]
+    },
+    "KeyS": {
+      "x": 125,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "S"
+      ]
+    },
+    "KeyD": {
+      "x": 171,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "D"
+      ]
+    },
+    "KeyF": {
+      "x": 217,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F"
+      ]
+    },
+    "KeyG": {
+      "x": 263,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "G"
+      ]
+    },
+    "KeyH": {
+      "x": 309,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "H"
+      ]
+    },
+    "KeyJ": {
+      "x": 355,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "J"
+      ]
+    },
+    "KeyK": {
+      "x": 401,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "K"
+      ]
+    },
+    "KeyL": {
+      "x": 447,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "L"
+      ]
+    },
+    "Semicolon": {
+      "x": 493,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        ";:"
+      ]
+    },
+    "Quote": {
+      "x": 539,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "‘”"
+      ]
+    },
+    "F1": {
+      "x": 47,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F1"
+      ]
+    },
+    "F2": {
+      "x": 93,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F2"
+      ]
+    },
+    "F3": {
+      "x": 139,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F3"
+      ]
+    },
+    "F4": {
+      "x": 185,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F4"
+      ]
+    },
+    "F5": {
+      "x": 231,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F5"
+      ]
+    },
+    "F6": {
+      "x": 277,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F6"
+      ]
+    },
+    "F7": {
+      "x": 323,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F7"
+      ]
+    },
+    "F8": {
+      "x": 369,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F8"
+      ]
+    },
+    "F9": {
+      "x": 415,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F9"
+      ]
+    },
+    "F10": {
+      "x": 461,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F10"
+      ]
+    },
+    "F11": {
+      "x": 507,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F11"
+      ]
+    },
+    "F12": {
+      "x": 553,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "F12"
+      ]
+    },
+    "ArrowLeft": {
+      "x": 599,
+      "y": 236,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "←"
+      ]
+    },
+    "ArrowDown": {
+      "x": 645,
+      "y": 236,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "↓"
+      ]
+    },
+    "ArrowUp": {
+      "x": 645,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "↑"
+      ]
+    },
+    "PageUp": {
+      "x": 691,
+      "y": 144,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "PgUp"
+      ]
+    },
+    "PageDown": {
+      "x": 691,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "PgDn"
+      ]
+    },
+    "ArrowRight": {
+      "x": 691,
+      "y": 236,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "→"
+      ]
+    },
+    "KeyZ": {
+      "x": 100,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Z"
+      ]
+    },
+    "KeyX": {
+      "x": 146,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "X"
+      ]
+    },
+    "KeyC": {
+      "x": 192,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "C"
+      ]
+    },
+    "KeyV": {
+      "x": 238,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "V"
+      ]
+    },
+    "KeyB": {
+      "x": 284,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "B"
+      ]
+    },
+    "KeyN": {
+      "x": 330,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "N"
+      ]
+    },
+    "KeyM": {
+      "x": 376,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "M"
+      ]
+    },
+    "Comma": {
+      "x": 422,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        ",<"
+      ]
+    },
+    "Period": {
+      "x": 468,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        ".>"
+      ]
+    },
+    "Slash": {
+      "x": 514,
+      "y": 190,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "/?"
+      ]
+    },
+    "PrintScreen": {
+      "x": 599,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Print"
+      ]
+    },
+    "End": {
+      "x": 645,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "End"
+      ]
+    },
+    "Insert": {
+      "x": 691,
+      "y": 6,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Ins"
+      ]
+    },
+    "Home": {
+      "x": 691,
+      "y": 52,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Home"
+      ]
+    },
+    "Delete": {
+      "x": 691,
+      "y": 98,
+      "width": 40,
+      "height": 40,
+      "type": "key",
+      "displayText": [
+        "Del"
+      ]
+    }
+  }
+}

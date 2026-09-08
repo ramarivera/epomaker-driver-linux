@@ -1,0 +1,98 @@
+import random
+
+import pytest
+
+from epomaker_driver import codec
+from epomaker_driver.errors import ProtocolError, UnsupportedDevice
+from epomaker_driver.models import glyph_matrix, model_by_id
+
+
+def test_random_header_checksums_leave_payload_untouched():
+    random_source = random.Random(3059)
+    for checksum in (7, 8):
+        for _ in range(100):
+            raw = bytes(random_source.randrange(256) for _ in range(64))
+            encoded = codec.packet(raw, checksum)
+            assert sum(encoded[: checksum + 1]) & 255 == 255
+            assert encoded[checksum + 1 :] == raw[checksum + 1 :]
+    assert codec.packet(bytes(64), None) == bytes(64)
+
+
+@pytest.mark.parametrize(
+    "make",
+    [
+        lambda: codec.packet([1], 6),
+        lambda: codec.bluetooth_report(b"x"),
+        lambda: codec.usb_report(b"x"),
+        lambda: codec.single_key(0, 0, [0, 1]),
+        lambda: codec.fn_single(0, [0, 1]),
+        lambda: codec.light("invalid"),
+        lambda: codec.matrix_chunks(b"x").__next__(),
+        lambda: codec.macro_data(1, [{"hid_usage": 4, "down": True, "delay_ms": 1}] * 128),
+        lambda: list(codec.macro_chunks(0, b"x")),
+        lambda: list(codec.picture_chunks(b"x")),
+        lambda: codec.macro_keyboard_event(0, True, 1),
+        lambda: codec.screen_prepare(4, (1, 2, 3)),
+        lambda: codec.screen_prepare(4, (0, 0, 1, 1), frames=0),
+        lambda: list(codec.screen_chunks(b"", frames=1)),
+        lambda: codec.rgb565_column_major([]),
+        lambda: codec.rgb565_column_major([[]]),
+    ],
+)
+def test_input_limits(make):
+    with pytest.raises(ValueError):
+        make()
+
+
+def test_lighting_all_capabilities_and_wire_details():
+    for mode in codec.LIGHT_MODES:
+        p = codec.light(mode, rgb=0x123456, rainbow=True)
+        assert p[0] == 7
+        assert p[1] == codec.LIGHT_MODES[mode]
+        response = bytearray(p)
+        response[0] = 0x87
+        assert codec.parse_light(response)["mode"] == mode
+    for mode in codec.SIDE_MODES:
+        p = codec.light(mode, side=True, speed=3)
+        assert p[2] == 3
+    assert codec.light("picture", option=4)[5:8] == bytes([0, 200, 200])
+    assert codec.light("music")[4] == 4
+    assert codec.light("screen")[4] == 0
+    assert codec.light("neon", side=True)[4] == 8
+    raw = bytearray(64)
+    raw[0] = 0x87
+    raw[1] = 200
+    raw[4] = 3
+    assert codec.parse_light(raw)["mode"] == "unknown"
+    assert codec.parse_light(raw)["rgb"] == 0x00FF00
+    for function in (codec.parse_light, codec.parse_sleep):
+        with pytest.raises(ProtocolError):
+            function(bytes(64))
+
+
+def test_macro_hole_and_last_partial_chunk():
+    data = bytearray(256)
+    data[0] = 1
+    data[255] = 7
+    chunks = list(codec.macro_chunks(3, data))
+    assert len(chunks) == 5
+    assert chunks[4][2] == 4
+    assert chunks[4][4] == 1
+    assert chunks[4][39] == 7
+    assert chunks[4][40:] == bytes(24)
+    assert len(list(codec.macro_chunks(0, bytes(256)))) == 1
+
+
+def test_model_resolution():
+    assert model_by_id(3059)["displayName"] == "Epomaker Glyph"
+    with pytest.raises(UnsupportedDevice):
+        model_by_id(999999)
+    with pytest.raises(ValueError):
+        glyph_matrix("nonexistent")
+
+
+def test_picture_shape():
+    chunks = list(codec.picture_chunks(bytes([255]) * 378, picture=4))
+    assert len(chunks) == 7
+    assert chunks[-1][4:6] == bytes([42, 1])
+    assert chunks[-1][50:] == bytes(14)
