@@ -10,6 +10,8 @@ enabled, plus [five RY6602 models](ry6602.md) with core configuration support.
 [Two older YC3121 models](yc3121.md), RT100 and Dynatab75X-UK, additionally have
 USB keymap/profile/macro/lighting/custom-picture/sleep/debounce/automatic-OS configuration. Ten models have
 some backend support; their feature coverage differs substantially.
+[RT100 PRO](rt100pro.md) uses the shared modern YC3123 protocol and has its own
+three-profile matrices and five-bank RGB565 display workflow.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
@@ -19,15 +21,15 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Per-model three/four matrices; active profile selection; model-checked configuration restore for eight migrated models | Vendor export semantics, other models |
+| Profiles | Per-model three/four matrices; active profile selection; model-checked configuration restore for nine migrated models | Vendor export semantics, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0 with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
-| Screen | Glyph, RT85, RT75, RT100 and Dynatab75X-UK, plus three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, model-gated language/system-info and clock sync | Hardware comparison and remaining display settings |
+| Screen | Glyph, RT85, RT75, RT100, Dynatab75X-UK and RT100 PRO, plus three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, model-gated language/system-info and clock sync | Hardware comparison and remaining display settings |
 | Backups | Eight migrated models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; RT100/Dynatab schema 6 recovery with physical Fn layer 0 and atomic pre-restore copies | Unreferenced macros, screen pixels, and YC3121 manual OS options/OS-specific Fn banks |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
-| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
+| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |

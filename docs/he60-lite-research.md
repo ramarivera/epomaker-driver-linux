@@ -1,0 +1,62 @@
+# HE60 Lite variants: migration evidence
+
+These findings come from the two installers in
+[source-releases.json](source-releases.json). Both catalog entries have the
+same display name but must be selected by internal identity and USB metadata.
+Neither is enabled by this research note, and neither has hardware validation.
+
+| Fact | Internal ID 3759 | Internal ID 3727 |
+| --- | --- | --- |
+| Catalog name | `yc3123_hf_k1_v2_3m_1k_1k` | `yc3121_hf_k1_1m_1k` |
+| USB vendor/product | `3151:502e` | `3151:502c` |
+| Normal profiles | 2 | 2 |
+| Fn catalog | one Windows, one Mac | one Windows, one Mac |
+| Magnetic flag | true | true |
+| macOS model chunk | `83b9b413.js` | `a2674888.js` |
+| Windows model chunk | `96bb6751.js` | `fd9b8328.js` |
+| macOS immediate parent | `2cea305b.js` | `95b381df.js` |
+| Windows immediate parent | `c6c9152c.js` | `d249f8ae.js` |
+
+Each model chunk pair is identical after imported chunk filenames are normalized.
+The `95b381df.js` / `d249f8ae.js` parent pair also matches under that normalization.
+It inherits the modern keyboard base (`623d2d52.js` / `17dc9c62.js`) and overrides
+only firmware upgrading. The YC3121 name on ID 3727 therefore must not route it
+to the older RT100/CommonKbYc500 implementation. Its upgrade override calls the
+USB upgrader with allocation argument 65536 and retry argument 10; this is not
+sufficient evidence to enable firmware writes.
+
+Both catalogs specify travel 0–3.3 mm in 0.1 mm increments, rapid-trigger press
+and lift travel 0.1–2 mm in 0.1 mm increments, and dead zone 0–1 mm in 0.1 mm
+increments. Only 3727 advertises the debounce control. The wireless 3759 entry
+exposes ordinary Bluetooth/receiver sleep and Bluetooth deep sleep, all
+60–3600 seconds; receiver deep sleep is absent. The wired 3727 entry has no
+sleep controls. Do not infer these capabilities from shared base methods.
+
+## Firmware-dependent magnetic encoding
+
+The modern base's `get磁轴行程步进倍数` (macOS pretty module lines 129–139) selects
+RF version when truthy, otherwise USB version. The travel multiplier is 10
+below `0300`, 100 from `0300` through `04ff`, and 200 from `0500` onward; absent
+version defaults to 10. The advertised UI increment is not itself the wire
+multiplier. Top dead zone is gated separately: either RF or USB version at
+least `0400` enables it (lines 124–128).
+
+`setMagnetismInfoSimple` selects fields for each key and delegates to
+`_sendMagnetismInfoSimpleCMD`. Its field IDs include press travel 0, lift travel
+1, rapid-trigger press/lift 2/3, dynamic travel 4, MT time 5, dead zone 6,
+mode/rapid-trigger option 7, trigger modes 8, and top dead zone 251. The mode
+write may precede field writes, with the final write carrying commit state.
+A Linux implementation needs the complete read/modify/write encoding and
+firmware-version queries before exposing these controls; this list alone is
+not a ready-to-send packet specification.
+
+Normal keymap addressing uses the modern base: `8a` reads profile at byte 1,
+`ff` at byte 2, page at byte 3 and submode at byte 4. Single-key `0a` writes
+profile at byte 1, slot at byte 2, commit at byte 5 and submode at byte 6, with
+four action bytes beginning at byte 8 (lines 752–790). Migration must preserve
+magnetic submodes instead of treating the default submode as the complete
+keyboard configuration.
+
+Remaining evidence work includes USB command descriptors, model-specific
+lighting layouts, version retrieval, complete magnetic field decoding,
+calibration and dynamic-action semantics, and hardware comparisons.

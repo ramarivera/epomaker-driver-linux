@@ -2,7 +2,7 @@
 
 from . import codec, profiles
 from .errors import ProtocolError
-from .models import RY6602_IDS, RY6602_SIDE_IDS, model_by_id, validate_sleep_times
+from .models import RT100_PRO_IDS, RY6602_IDS, RY6602_SIDE_IDS, model_by_id, validate_sleep_times
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
 
@@ -65,9 +65,15 @@ def validate(value):
         if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3, 4, 5):
             raise ValueError("restoration requires a version 2, 3, 4 or 5 snapshot")
         model_id = value["identity"]["device_id"]
-        if type(model_id) is not int or model_id not in (2895, 3059, 3223, *RY6602_IDS):
+        if type(model_id) is not int or model_id not in (
+            2895,
+            3059,
+            3223,
+            *RT100_PRO_IDS,
+            *RY6602_IDS,
+        ):
             raise ValueError(
-                "snapshot model must be a migrated Glyph, RT85, RT75 or RY6602 keyboard"
+                "snapshot model must be a migrated Glyph, RT85, RT75, RT100 PRO or RY6602 keyboard"
             )
         if value["schema_version"] < 4 and model_id != 3059:
             raise ValueError("version 2 and 3 snapshots are only for Glyph ID 3059")

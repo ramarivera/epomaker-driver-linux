@@ -11,6 +11,7 @@ from .errors import UnsupportedDevice
 RY6602_IDS = (3858, 3633, 3673, 3573, 3674)
 RY6602_SIDE_IDS = (3673, 3573, 3674)
 RY6602_SCREEN_IDS = (3858, 3673, 3674)
+RT100_PRO_IDS = (3152,)
 
 
 def data_file(name: str):
@@ -37,6 +38,7 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
         3059: "glyph",
         2895: "rt85",
         3223: "rt75",
+        3152: "rt100pro",
         **{mid: f"ry6602-{mid}" for mid in RY6602_IDS},
     }
     if device_id not in names:
@@ -49,7 +51,7 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
 
 def display_spec(device_id: int) -> dict:
     """Migrated RGB display limits, derived from the installer catalog."""
-    if device_id not in (2895, 3059, 3223, 1379, 1723, *RY6602_SCREEN_IDS):
+    if device_id not in (2895, 3059, 3223, 1379, 1723, *RT100_PRO_IDS, *RY6602_SCREEN_IDS):
         raise UnsupportedDevice("No migrated display protocol for this model")
     screen = model_by_id(device_id)["other"]["screen"]
     size = screen["size"]
@@ -61,7 +63,7 @@ def display_spec(device_id: int) -> dict:
     # The vendor drawing board defaults an omitted memorySize to 7 MiB.
     memory_size = size.get("memorySize")
     if memory_size is None:
-        if device_id != 1723:
+        if device_id not in (1723, *RT100_PRO_IDS):
             raise UnsupportedDevice("Display memory is missing from the model catalog")
         memory_size = 7
     maximum = min(255, (memory_size * 1024 * 1024 - 4096) // block_bytes - banks)

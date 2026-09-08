@@ -1680,7 +1680,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5002",
-    "implementation": "catalogued",
+    "implementation": "rt100pro-partial",
     "hardware_verified": false
   },
   {

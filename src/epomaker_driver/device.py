@@ -7,6 +7,7 @@ import datetime
 from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from .models import (
+    RT100_PRO_IDS,
     RY6602_IDS,
     RY6602_SCREEN_IDS,
     RY6602_SIDE_IDS,
@@ -33,7 +34,7 @@ class Keyboard:
     def _supported(self):
         if self.identity is None:
             self.identify()
-        if self.identity["device_id"] not in (2895, 3059, 3223, *RY6602_IDS):
+        if self.identity["device_id"] not in (2895, 3059, 3223, *RT100_PRO_IDS, *RY6602_IDS):
             raise UnsupportedDevice("This model has no migrated configuration protocol")
         if self.identity["is_boot"]:
             raise UnsupportedDevice("Device is in bootloader mode")
@@ -74,7 +75,7 @@ class Keyboard:
                         "RT85 currently supports keymaps, Fn layers, macros, profiles, sleep, display, lighting and OS controls"
                     )
 
-        if self.identity["device_id"] == 3223:
+        if self.identity["device_id"] in (3223, *RT100_PRO_IDS):
             # RT75 display/light metadata differs; migrated operations: docs/rt75.md.
             allowed = (
                 1,
@@ -105,7 +106,7 @@ class Keyboard:
             )
             if any(command[0] not in allowed for command in commands):
                 raise UnsupportedDevice(
-                    "RT75 currently supports keymaps, Fn, macros, profiles, sleep, debounce, OS controls, main lighting and display"
+                    "RT75 and RT100 PRO support keymaps, Fn, macros, profiles, sleep, debounce, OS controls, main lighting and display"
                 )
 
         if self.identity["device_id"] in RY6602_IDS:
@@ -218,7 +219,7 @@ class Keyboard:
                 "sleep": self.get_sleep(),
                 "display": display_spec(2895),
             }
-        if self.identity["device_id"] == 3223:
+        if self.identity["device_id"] in (3223, *RT100_PRO_IDS):
             return {
                 "identity": self.identity,
                 "model": self.model["displayName"],
@@ -237,7 +238,7 @@ class Keyboard:
                     "lighting",
                     "display",
                 ],
-                "display": display_spec(3223),
+                "display": display_spec(self.identity["device_id"]),
                 "light": self.get_light(),
                 "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
                 "sleep": self.get_sleep(),
@@ -328,8 +329,10 @@ class Keyboard:
         self._supported()
         side = options.get("side", False)
         speed_max = 3
-        if self.identity["device_id"] == 3223 and (side or mode == "off"):
-            raise UnsupportedDevice("RT75 has no side-light layout or explicit off mode")
+        if self.identity["device_id"] in (3223, *RT100_PRO_IDS) and (side or mode == "off"):
+            raise UnsupportedDevice(
+                "RT75 and RT100 PRO have no side-light layout or explicit off mode"
+            )
         if side and self.identity["device_id"] == 2895:
             # RT85's Kt layout differs from Glyph's Q: docs/rt85.md.
             if mode not in ("off", "solid", "breathing", "neon", "wave"):

@@ -18,6 +18,12 @@ with a recovery copy. Its graphical interface remains unfinished.
 timers, debounce, OS options, main lighting, its 240×240 display, snapshots and
 reset with recovery through the CLI.
 
+[RT100 PRO support](docs/rt100pro.md) adds the three-profile YC3123 backend:
+normal and Windows/Mac Fn maps, macros, sleep/debounce and OS settings, shared
+RGB lighting, snapshots/reset, and its five-bank 240×240 RGB565 display. The
+catalog omits display memory, so the installer drawing-board default of 7 MiB
+limits animations to 56 frames.
+
 [RY6602 core support](docs/ry6602.md) covers SN020, EK75, TH80 V3 MAX, TH80 V2
 and TH65 Max: keymaps, Fn layers, macros, profiles, three sleep timers, debounce
 and OS controls, lighting and custom RGB pictures. SN020, TH80 V3 MAX and TH65
