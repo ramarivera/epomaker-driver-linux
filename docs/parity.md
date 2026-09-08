@@ -21,9 +21,10 @@ profiles and firmware-dependent magnetic precision.
 switch-type reads and selection to the same backend.
 [Four additional wired RY5088 models](ry5088-wired.md) add model-specific Fn and
 side-lighting gates. [Four wireless-capable models](ry5088-wireless.md) add USB
-configuration with model-specific sleep timers and RF version handling. Thirty
+configuration with model-specific sleep timers and RF version handling.
+[HE60 model 3746](ry5088-he60.md) adds its switch codes and catalog travel limits. Thirty-one
 models have some backend support; their feature coverage differs substantially.
-[Magnetic recovery](he-recovery.md) adds backup and restore for all fourteen
+[Magnetic recovery](he-recovery.md) adds backup and restore for all fifteen
 implemented magnetic IDs, including inactive fields and unreferenced macros.
 [Five CH585 mice](ch585-protocol.md) add USB profiles, raw button mappings,
 named button bindings and 50 macro slots, DPI and report-rate writes,
@@ -40,12 +41,12 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for 25 migrated keyboards and five mice; eight-profile support for five mice | Vendor export semantics and application-local magnetic caches, other models |
+| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for 26 migrated keyboards and five mice; eight-profile support for five mice | Vendor export semantics and application-local magnetic caches, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0; HE60 21 effects and three/five picture banks, with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; HE60 wired debounce and wireless three-timer sleep; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph, RT85, RT75, RT100, Dynatab75X-UK and RT100 PRO, plus three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, model-gated language/system-info and clock sync | Hardware comparison and remaining display settings |
-| Backups | Nine modern models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; RT100/Dynatab schema 6 recovery with physical Fn layer 0; fourteen magnetic models have schema 7 complete raw configuration and all 256 macros, with atomic pre-restore copies | Unreferenced macros on nonmagnetic models, screen pixels, and YC3121 manual OS options/OS-specific Fn banks |
+| Backups | Nine modern models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; RT100/Dynatab schema 6 recovery with physical Fn layer 0; fifteen magnetic models have schema 7 complete raw configuration and all 256 macros, with atomic pre-restore copies | Unreferenced macros on nonmagnetic models, screen pixels, and YC3121 manual OS options/OS-specific Fn banks |
 | Magnetic keyboards | HE60 Lite, H60 and HE68 Lite magnetic-field reads, per-key actuation/rapid-trigger writes with complete-field readback, firmware-dependent scaling, normal/DKS/MT/toggle mode definitions and reciprocal snap pairing/removal with action readback, raw mode preservation, four submodes per profile and timed USB calibration with telemetry/cleanup | Persistent sensor calibration recovery, hardware comparison and GUI integration |
 | OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |

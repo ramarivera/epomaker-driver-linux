@@ -7,9 +7,9 @@ from importlib.resources import files
 
 from .errors import UnsupportedDevice
 
-# Shared modern magnetic protocol; model gates documented in docs/ry5088-he68.md.
+# Shared modern magnetic protocol; gates: docs/ry5088-he68.md and docs/ry5088-he60.md.
 RY5088_PRODUCTS = {
-    0x5029: (3662, 3664, 2762, 2883, 2465),
+    0x5029: (3662, 3664, 3746, 2762, 2883, 2465),
     0x502D: (2586, 2870),
     0x5030: (3691, 3692, 3703, 2761, 2959),
 }

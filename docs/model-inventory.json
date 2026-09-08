@@ -15,8 +15,8 @@
   ],
   "counts": {
     "catalog_rows": 46,
-    "partial_backends": 30,
-    "catalog_only": 16,
+    "partial_backends": 31,
+    "catalog_only": 15,
     "hardware_verified": 0,
     "rows_with_loaders_in_both_installers": 45,
     "catalog_name_prefixes": {
@@ -3987,9 +3987,9 @@
       "catalog_name": "ry5088_jc_gk8149g_1m_8k_ry1049es",
       "vid": "0x3151",
       "pid": "0x5029",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -4084,15 +4084,62 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "backup",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "restore",
+        "status",
+        "switch-type"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "side_lighting": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": false,
+        "magnetic_step": "catalog 0.005 mm; firmware wire precision applies",
+        "axis_write": true,
+        "snapshot_macro_slots": 256,
+        "switch_types": {
+          "云玉磁轴": 93,
+          "天青轴": 55
+        },
+        "magnetic_travel_max_mm": 3.4,
+        "rapid_trigger_max_mm": 2.5
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "model-backend"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {

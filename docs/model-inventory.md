@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
 cross-references all 46 catalog rows with the Linux backend gates and the
 installer modules that load each model.
 
-There are **30 partial backends, 16 catalog-only entries and zero models verified
+There are **31 partial backends, 15 catalog-only entries and zero models verified
 on physical hardware**. These counts are not a feature-parity percentage. A
 weighted feature inventory, hardware comparisons and application-wide workflows
 remain necessary for the greater-than-95% target in [migration status](parity.md).
@@ -29,10 +29,10 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 
 | Implemented family | Internal IDs | Current scope |
 | --- | --- | --- |
-| CH585 mice | 3961, 3303, 3304, 3929, 3919 | USB profiles, raw button mapping, DPI levels and report rate; settings reads; [protocol and limitations](ch585-protocol.md) |
+| CH585 mice | 3961, 3303, 3304, 3929, 3919 | USB profiles, named/raw bindings, macros, DPI/settings, backup/restore and reset; [protocol and limitations](ch585-protocol.md) |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
-| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; schema 7 recovery; hardware verification outstanding |
+| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; schema 7 recovery; hardware verification outstanding |
 | HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; schema 7 recovery; hardware verification outstanding |
 | RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
 
@@ -59,14 +59,15 @@ modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows, and declare
 | --- | --- | --- | --- | --- |
 | H60 | 3662 | 3151:5029 | 00bc96cb.js | 82c2850d.js |
 | HE68 Llte (vendor spelling) | 2762, 2883 | 3151:5029 | 1a9b921e.js | 4e6e3981.js |
+| HE60 | 3746 | 3151:5029 | fa455a99.js | bb2c7696.js |
 | HE60 Wired | 3691 | 3151:5030 | 66d72914.js | 8b45ed1f.js |
 | HE60 Wireless | 3692 | 3151:5030 | bf16d6e2.js | dcf3221c.js |
 
 Their catalog declares four layers and one Fn layer per OS, compared with the
 two-profile HE60 Lite implementation. The [H60 migration](ry5088-h60.md),
 [HE68 Lite](ry5088-he68.md), [wired additions](ry5088-wired.md) and
-[wireless-capable additions](ry5088-wireless.md) implement those model-specific
-limits. The ten remaining catalog-only RY5088 rows require further capability
+[wireless-capable additions](ry5088-wireless.md) and [HE60 3746](ry5088-he60.md) implement those model-specific
+limits. The nine remaining catalog-only RY5088 rows require further capability
 validation before enablement.
 
 The same direct base inheritance and absence of child method overrides hold for

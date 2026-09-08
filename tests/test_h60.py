@@ -51,12 +51,10 @@ def test_h60_status_capabilities_have_no_sleep_or_debounce():
     assert "magnetic-axis-read" not in status["capabilities"]
 
 
-def test_h60_same_pid_sibling_rejected_before_io():
+def test_h60_same_pid_he60_sibling_is_distinguished_before_io():
     fw = Firmware(model_id=3746)
     kb = keyboard(fw, product=0x5029)
-    with pytest.raises(UnsupportedDevice):
-        kb.status()
-    assert fw.sent == []
+    assert kb.identify()["device_id"] == 3746
 
 
 def test_h60_magnetic_mode_and_snap_clear_use_profile3():

@@ -69,12 +69,10 @@ def test_he68_mode_and_snap_clear_at_profile3(model):
     assert all(c[1] == 3 for c in fw.sent if c[0] == 0x0A)
 
 
-def test_he68_sibling_3746_is_rejected_before_writes():
+def test_he68_sibling_3746_is_supported_by_the_shared_protocol():
     fw = Firmware(model_id=3746)
     kb = keyboard(fw, product=0x5029)
-    with pytest.raises(UnsupportedDevice):
-        kb.identify()
-    assert fw.sent == []
+    assert kb.identify()["device_id"] == 3746
 
 
 @pytest.mark.parametrize("model", HE68)
@@ -133,7 +131,7 @@ def test_shared_pid_cached_identity_cannot_bypass_approved_ids():
     fw = Firmware(model_id=2762)
     kb = keyboard(fw, product=0x5029)
     kb.identify()
-    kb.identity["device_id"] = kb.expected_id = 3746
+    kb.identity["device_id"] = kb.expected_id = 9999
     with pytest.raises(UnsupportedDevice):
         kb.set_key(1, bytes(4))
     assert fw.sent == []

@@ -45,7 +45,8 @@ class Firmware:
         self.macros = {slot: bytes(256) for slot in range(256)}
         profile_count = (
             4
-            if model_id in (3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959)
+            if model_id
+            in (3662, 3664, 3746, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959)
             else 2
         )
         self.matrices = {
@@ -243,12 +244,10 @@ def test_h60_uses_four_profiles_and_five_picture_banks():
     assert "magnetic-read" in status["capabilities"]
 
 
-def test_h60_same_pid_sibling_is_rejected_before_writes():
+def test_h60_same_pid_sibling_is_identified_before_writes():
     fw = Firmware(model_id=3746)
     kb = keyboard(fw, product=0x5029)
-    with pytest.raises(UnsupportedDevice, match="internal ID"):
-        kb.identify()
-    assert fw.sent == []
+    assert kb.identify()["device_id"] == 3746
 
 
 def test_he_identity_and_matrix_submodes_use_usb():

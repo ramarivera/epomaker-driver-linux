@@ -17,7 +17,7 @@ from .magnetic import (
     travel_multiplier,
     write_commands,
 )
-from .models import RY5088_IDS
+from .models import RY5088_IDS, model_by_id
 
 _MODE_NAMES = {0: "normal", 2: "dks", 3: "mt", 4: "tgl_hold", 5: "tgl_dots", 7: "snap"}
 _PATCH_FIELDS = {
@@ -111,13 +111,48 @@ def plan_update(model_id, slot, patch, state):
     fields = _state_bytes(state)
     usb, rf, multiplier = _state_versions(state)
     effective_version = rf if rf is not None else usb if usb is not None else 0
-    max_travel = 4 if 0 < effective_version < 0x300 else 3.3
     if model_id in RY5088_IDS:
         step = 0.1 if effective_version < 0x300 else 0.01 if effective_version < 0x500 else 0.005
     else:
         step = 0.1
-    rapid_min = step
-    rapid_max = 2.5 if model_id in RY5088_IDS and effective_version < 0x300 else 2
+    # The migrated RY5088 family uses these catalog limits.  Other HE
+    # families retain their established protocol-specific behavior even when
+    # their catalog metadata describes a UI range.
+    catalog_travel = (
+        model_by_id(model_id).get("other", {}).get("travelSetting", {})
+        if model_id in RY5088_IDS
+        else {}
+    )
+    wire_step = Decimal(1) / Decimal(multiplier)
+    limits = {
+        "travel": (0.1, 4 if 0 < effective_version < 0x300 else 3.3, step),
+        "lift": (0.1, 4 if 0 < effective_version < 0x300 else 3.3, step),
+        "rapid_press": (
+            step,
+            2.5 if model_id in RY5088_IDS and effective_version < 0x300 else 2,
+            step,
+        ),
+        "rapid_lift": (
+            step,
+            2.5 if model_id in RY5088_IDS and effective_version < 0x300 else 2,
+            step,
+        ),
+        "deadzone": (0, 4 if effective_version < 0x300 else 1, step),
+    }
+    for name, catalog_name in (
+        ("travel", "travel"),
+        ("lift", "travel"),
+        ("rapid_press", "firePress"),
+        ("rapid_lift", "fireLift"),
+        ("deadzone", "deadzone"),
+    ):
+        setting = catalog_travel.get(catalog_name)
+        if setting is not None:
+            limits[name] = (
+                setting["min"],
+                setting["max"],
+                max(Decimal(str(setting["step"])), wire_step),
+            )
     modes = state.get("modes")
     if (
         not isinstance(modes, list)
@@ -148,23 +183,13 @@ def plan_update(model_id, slot, patch, state):
     for name, field in _PATCH_FIELDS.items():
         if name not in patch:
             continue
-        maximum = (
-            max_travel
-            if name in ("travel", "lift")
-            else rapid_max
-            if name.startswith("rapid")
-            else 1
-        )
-        if name == "deadzone" and effective_version < 0x300:
-            maximum = 4
+        minimum, maximum, field_step = limits.get(name, (0, 1, step))
         values[field] = _aligned(
             patch[name],
-            minimum=(
-                0.1 if name in ("travel", "lift") else rapid_min if name.startswith("rapid") else 0
-            ),
+            minimum=minimum,
             maximum=maximum,
             name=name,
-            step=step,
+            step=field_step,
         )
     if (new_fire and not fire) or ("rapid_press" in patch or "rapid_lift" in patch):
         for field in (2, 3):
@@ -175,13 +200,16 @@ def plan_update(model_id, slot, patch, state):
                 resulting = decode_field(
                     field, key_field(fields[field], slot, field=field), multiplier=multiplier
                 )
-            if not rapid_min <= resulting <= rapid_max:
+            rapid_name = "rapid_press" if field == 2 else "rapid_lift"
+            minimum, maximum, _ = limits[rapid_name]
+            if not minimum <= resulting <= maximum:
                 raise ValueError("provide valid rapid_press and rapid_lift when enabling fire")
     if "lift" in patch:
         deadzone = values.get(
             6, decode_field(6, key_field(fields[6], slot, field=6), multiplier=multiplier)
         )
-        if Decimal(str(values[1])) > Decimal(str(max_travel)) - Decimal(str(deadzone)):
+        max_travel = Decimal(str(limits["travel"][1]))
+        if Decimal(str(values[1])) > max_travel - Decimal(str(deadzone)):
             raise ValueError("lift must not exceed maximum travel minus deadzone")
     mode_changed = new_fire != fire
     if mode_changed:

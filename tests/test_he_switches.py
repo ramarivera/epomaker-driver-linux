@@ -43,12 +43,17 @@ def test_switch_type_noop_and_invalid_slots_do_not_write():
 
 
 def test_h60_and_unknown_catalog_switch_are_rejected_before_writes():
-    for model in (3662, 3746):
-        fw = Firmware(model_id=model)
-        kb = HEKeyboard(keyboard(fw, product=0x5029).transport, product_id=0x5029)
-        with pytest.raises(UnsupportedDevice):
-            kb.set_switch_type([1], 0)
-        assert fw.sent == []
+    fw = Firmware(model_id=3662)
+    kb = HEKeyboard(keyboard(fw, product=0x5029).transport, product_id=0x5029)
+    with pytest.raises(UnsupportedDevice):
+        kb.set_switch_type([1], 0)
+    assert fw.sent == []
+
+    fw = Firmware(model_id=3746)
+    kb = HEKeyboard(keyboard(fw, product=0x5029).transport, product_id=0x5029)
+    with pytest.raises(ValueError):
+        kb.set_switch_type([1], 0)
+    assert fw.sent == []
 
 
 def test_switch_type_readback_damage_is_protocol_error():
@@ -67,7 +72,9 @@ def test_switch_invalid_physical_slots_never_write(slots):
     assert fw.sent == []
 
 
-@pytest.mark.parametrize("name,code", SWITCH_TYPES.items())
+@pytest.mark.parametrize(
+    "name,code", [(name, code) for name, code in SWITCH_TYPES.items() if code < 6 or code == 33]
+)
 def test_all_switch_codes_write_only_selected_axis(name, code):
     fw = Firmware(model_id=2762)
     fw.fields[252] = bytes([255]) * 128

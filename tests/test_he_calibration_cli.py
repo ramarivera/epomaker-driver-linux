@@ -56,7 +56,8 @@ def install(monkeypatch, model, *, cancel=False):
 
 
 @pytest.mark.parametrize(
-    "model", (3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959)
+    "model",
+    (3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746),
 )
 def test_calibration_cli_orders_start_stop_and_reports_raw_readings(model, monkeypatch, capsys):
     fw, path = install(monkeypatch, model)

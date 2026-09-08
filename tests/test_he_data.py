@@ -80,6 +80,12 @@ HASHES = {
         "3662",
         "defaultFnMacMatrix",
     ): "e9f96a2bd42521911c0accbc97c5e4635357a00a9d0ae4619bb2fce4d9c8debe",
+    ("3746", "defaultMatrix"): "c864e07a8521a009235d8b4632a8cf0f3d3cfd0fa64cee7485cf38b166682aff",
+    ("3746", "defaultFnMatrix"): "e7013592b988cbd0b2687bd8716fde7fa3d4fd545dce08209ed4381add3c3a21",
+    (
+        "3746",
+        "defaultFnMacMatrix",
+    ): "6929e22667a23a22092f0e201cd862b8464926d6c89d5f85a114be1c2ec2ee23",
     ("3727", "defaultMatrix"): "9eb8b1bea7207b96fdea519efb7a1e7cdd5fed70b4623ed4a79eeca3763c892a",
     ("3727", "defaultFnMatrix"): "8ef17515ac1cad0af713a997982db0f4cfce94edc34a58e2467048ee89be93b4",
     (
@@ -107,6 +113,7 @@ def test_matrix_schema_lengths_and_byte_values():
     assert set(DATA) == {
         "3662",
         "3664",
+        "3746",
         "2762",
         "2883",
         "3727",
