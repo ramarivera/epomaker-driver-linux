@@ -3,9 +3,11 @@
 Evidence, USB routing and remaining features: docs/yc3121.md.
 """
 
+import datetime
+
 from . import codec
-from .errors import ProtocolError, UnsupportedDevice
-from .models import model_by_id, validate_sleep_times
+from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
+from .models import display_spec, model_by_id, validate_sleep_times
 
 YC3121_IDS = (1379, 1723)
 COMMANDS = frozenset(
@@ -21,6 +23,11 @@ COMMANDS = frozenset(
         "get-picture",
         "picture",
         "picture-key",
+        "screen",
+        "animation",
+        "clock",
+        "system-info",
+        "display-language-toggle",
         "get-light",
         "light",
         "get-macro",
@@ -333,6 +340,104 @@ class LegacyKeyboard:
 
         self.transport.transaction(operation)
 
+    def _display(self):
+        self._supported()
+        return display_spec(self.identity["device_id"])
+
+    def sync_clock(self, value=None):
+        self._display()
+        if not self.model["other"]["screen"].get("date"):
+            raise UnsupportedDevice("This YC3121 display has no clock capability")
+        value = value or datetime.datetime.now()
+        self.transport.transaction(
+            lambda: self._send(
+                codec.clock_command(
+                    value.year, value.month, value.day, value.hour, value.minute, value.second
+                )
+            )
+        )
+
+    def sync_system_info(self, values):
+        self._display()
+        if not self.model["other"]["screen"].get("canSyncSystemInfo"):
+            raise UnsupportedDevice("This YC3121 display has no system-information capability")
+        self.transport.transaction(lambda: self._send(codec.system_info(values)))
+
+    def toggle_display_language(self):
+        self._display()
+        if not self.model["other"]["screen"].get("canSwitchLanguage"):
+            raise UnsupportedDevice("This YC3121 display has no language switch")
+        self.transport.transaction(lambda: self._send(codec.packet([0x27, 1])))
+
+    def upload_screen(self, pixels, bounds, *, frame=0, frames=1, delay=0, progress=None):
+        spec = self._display()
+        if frames > spec["max_frames"]:
+            raise ValueError("animation exceeds model display memory")
+        prepare = codec.screen_prepare(
+            len(pixels),
+            bounds,
+            frame,
+            frames,
+            delay,
+            size=(spec["width"], spec["height"]),
+            rgb_bits=spec["pixel_bytes"] * 8,
+        )
+        expected = (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) * spec["pixel_bytes"]
+        if len(pixels) != expected:
+            raise ValueError("RGB payload does not match screen bounds")
+        chunks = list(
+            codec.screen_chunks(pixels, frame, frames, delay, rgb_bits=spec["pixel_bytes"] * 8)
+        )
+        self._transfer_screen(prepare, chunks, progress)
+
+    def upload_animation(self, frames, delay, *, progress=None):
+        spec = self._display()
+        width, height, maximum = spec["width"], spec["height"], spec["max_frames"]
+        if not 2 <= len(frames) <= maximum:
+            raise ValueError(f"animation must contain 2..{maximum} frames")
+        size = width * height * spec["pixel_bytes"]
+        if any(len(frame) != size for frame in frames):
+            raise ValueError(f"animation frames must be complete {width}x{height} RGB images")
+        prepare = codec.screen_prepare(
+            len(frames[0]),
+            (0, 0, width, height),
+            0,
+            len(frames),
+            delay,
+            size=(width, height),
+            rgb_bits=spec["pixel_bytes"] * 8,
+        )
+        chunks = [
+            chunk
+            for index, frame in enumerate(frames)
+            for chunk in codec.screen_chunks(
+                frame, index, len(frames), delay, rgb_bits=spec["pixel_bytes"] * 8
+            )
+        ]
+        self._transfer_screen(prepare, chunks, progress)
+
+    def _transfer_screen(self, prepare, chunks, progress):
+        self._supported()
+
+        def operation():
+            for _ in range(11):
+                try:
+                    response = self.transport.exchange(prepare, read_delay=0.1, expected=prepare[0])
+                except ResponseTimeout:
+                    response = b""
+                if len(response) >= 2 and response[1] == 1:
+                    break
+                self.transport.sleep(0.1)
+            else:
+                raise ProtocolError("screen transfer was not accepted")
+            self.transport.sleep(0.1)
+            for index, chunk in enumerate(chunks):
+                self.transport.send(chunk, delay=0.005)
+                if progress:
+                    progress((index + 1) / len(chunks))
+
+        self.transport.transaction(operation)
+
     def status(self):
         self._supported()
         return {
@@ -348,6 +453,7 @@ class LegacyKeyboard:
                 "auto-os",
                 "macro",
                 "lighting",
+                "display",
             ],
             "sleep": self.get_sleep(),
             "debounce": self.get_debounce(),

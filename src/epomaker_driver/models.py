@@ -49,7 +49,7 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
 
 def display_spec(device_id: int) -> dict:
     """Migrated RGB display limits, derived from the installer catalog."""
-    if device_id not in (2895, 3059, 3223, *RY6602_SCREEN_IDS):
+    if device_id not in (2895, 3059, 3223, 1379, 1723, *RY6602_SCREEN_IDS):
         raise UnsupportedDevice("No migrated display protocol for this model")
     screen = model_by_id(device_id)["other"]["screen"]
     size = screen["size"]
@@ -58,7 +58,13 @@ def display_spec(device_id: int) -> dict:
     # Vendor rounds to the next block even when exactly aligned; docs/display.md.
     pixel_bytes = 3 if screen["mode"] == "24" else 2
     block_bytes = (width * height * pixel_bytes // 4096 + 1) * 4096
-    maximum = min(255, (size["memorySize"] * 1024 * 1024 - 4096) // block_bytes - banks)
+    # The vendor drawing board defaults an omitted memorySize to 7 MiB.
+    memory_size = size.get("memorySize")
+    if memory_size is None:
+        if device_id != 1723:
+            raise UnsupportedDevice("Display memory is missing from the model catalog")
+        memory_size = 7
+    maximum = min(255, (memory_size * 1024 * 1024 - 4096) // block_bytes - banks)
     if device_id == 3674:
         maximum = size["memorySize"] // (width * height * pixel_bytes)
     return {

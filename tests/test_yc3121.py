@@ -3,11 +3,13 @@
 import json
 
 import pytest
+from PIL import Image
 
 from epomaker_driver import cli, codec
 from epomaker_driver.discovery import DeviceInfo, classify, parse_descriptor
-from epomaker_driver.errors import ProtocolError, UnsupportedDevice
+from epomaker_driver.errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from epomaker_driver.legacy import LegacyKeyboard
+from epomaker_driver.models import display_spec
 from epomaker_driver.transport import Transport
 
 
@@ -26,6 +28,7 @@ class Firmware:
         self.light[:8] = bytes.fromhex("8701050407123456")
         self.auto_os = False
         self.commands = []
+        self.screen_chunks = []
         self.response = bytes(64)
         self.closed = False
         self.ignore_writes = False
@@ -62,6 +65,8 @@ class Firmware:
             raw[2] = self.debounce
         elif op == 0x97:
             raw[1] = int(self.auto_os)
+        elif op in (0xA5, 0xA9):
+            raw[1] = 1
         elif not self.ignore_writes:
             if op == 5:
                 self.profile = p[1]
@@ -88,6 +93,11 @@ class Firmware:
                 self.debounce = p[2]
             elif op == 0x17:
                 self.auto_os = bool(p[1])
+            elif op in (0x22, 0x27, 0x28, 0x25, 0x29):
+                if op in (0x25, 0x29):
+                    self.screen_chunks.append(
+                        (op, p[1], p[2], p[3], p[4] | p[5] << 8, p[6], bytes(p[8:64]))
+                    )
             else:
                 pytest.fail(f"unimplemented opcode {op:02x}")
         self.response = bytes(raw)
@@ -119,6 +129,7 @@ def test_core_roundtrip(legacy):
         "auto-os",
         "macro",
         "lighting",
+        "display",
     ]
     assert status["profiles"] == 3 and status["profile"] == 0
     assert status["sleep"]["bluetooth"] == 120
@@ -147,6 +158,121 @@ def test_core_roundtrip(legacy):
     assert keyboard.get_auto_os()
     keyboard.set_auto_os(False)
     assert not keyboard.get_auto_os()
+
+
+@pytest.mark.parametrize(
+    "model,expected",
+    [
+        (1379, {"width": 162, "height": 173, "banks": 5, "max_frames": 104, "pixel_bytes": 2}),
+        (1723, {"width": 60, "height": 9, "banks": 5, "max_frames": 255, "pixel_bytes": 3}),
+    ],
+)
+def test_display_specs_include_legacy_fallback(model, expected):
+    assert display_spec(model) == expected
+
+
+def test_legacy_display_protocol_and_capabilities(legacy):
+    keyboard, fw = legacy
+    spec = display_spec(fw.model)
+    payload = bytes(spec["pixel_bytes"])
+    keyboard.upload_screen(payload, (0, 0, 1, 1), frame=4)
+    display_commands = [p for p in fw.commands if p[0] in (0xA5, 0xA9, 0x25, 0x29)]
+    assert display_commands[0][0] == (0xA5 if fw.model == 1379 else 0xA9)
+    assert display_commands[1][0] == (0x25 if fw.model == 1379 else 0x29)
+    keyboard.sync_clock()
+    keyboard.sync_system_info(
+        {
+            "disk_available": 0,
+            "disk_total": 0,
+            "memory_used": 0,
+            "memory_total": 0,
+            "cpu_usage": 0,
+            "cpu_temperature": None,
+            "network_up": 0,
+            "network_down": 0,
+        }
+    )
+    assert [p[0] for p in fw.commands[-2:]] == [0x28, 0x22]
+    if fw.model == 1379:
+        keyboard.toggle_display_language()
+        assert fw.commands[-1][0] == 0x27
+    else:
+        with pytest.raises(UnsupportedDevice, match="language"):
+            keyboard.toggle_display_language()
+
+
+@pytest.mark.parametrize("failure", ["short", "timeout"])
+def test_legacy_display_prepare_failures(legacy, monkeypatch, failure):
+    keyboard, fw = legacy
+    exchange = keyboard.transport.exchange
+
+    def broken(command, **kwargs):
+        if command[0] in (0xA5, 0xA9):
+            if failure == "timeout":
+                raise ResponseTimeout("display prepare timed out")
+            return bytes(1)
+        return exchange(command, **kwargs)
+
+    monkeypatch.setattr(keyboard.transport, "exchange", broken)
+    with pytest.raises(ProtocolError, match="screen transfer was not accepted"):
+        keyboard.upload_screen(bytes(display_spec(fw.model)["pixel_bytes"]), (0, 0, 1, 1))
+
+
+def test_legacy_animation_reconstructs_frames_and_progress(legacy):
+    keyboard, fw = legacy
+    spec = display_spec(fw.model)
+    size = spec["width"] * spec["height"] * spec["pixel_bytes"]
+    frames = [bytes([value]) * size for value in (1, 2)]
+    progress = []
+    keyboard.upload_animation(frames, 80, progress=progress.append)
+    prepare = [p for p in fw.commands if p[0] in (0xA5, 0xA9)]
+    assert len(prepare) == 1
+    assert prepare[0][1:4] == bytes([0, 2, 80])
+    chunks = [p for p in fw.screen_chunks if p[0] in (0x25, 0x29)]
+    assert chunks and all(p[2] == 2 for p in chunks)
+    assert [p[1] for p in chunks] == [0] * (len(chunks) // 2) + [1] * (len(chunks) // 2)
+    reconstructed = []
+    for frame in (0, 1):
+        data = b"".join(p[6][: p[5]] for p in chunks if p[1] == frame)
+        reconstructed.append(data)
+    assert reconstructed == frames
+    assert progress and progress[-1] == 1
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda k: k.upload_animation([], 80),
+        lambda k: k.upload_animation([bytes(2), bytes(2)], 80),
+        lambda k: k.upload_screen(bytes(2), (0, 0, 2, 1)),
+    ],
+)
+def test_legacy_display_invalid_inputs_write_no_display_packets(legacy, operation):
+    keyboard, fw = legacy
+    with pytest.raises(ValueError):
+        operation(keyboard)
+    assert not any(p[0] in (0xA5, 0xA9, 0x25, 0x29) for p in fw.commands)
+
+
+def test_legacy_display_cli_converts_model_dimensions(legacy, monkeypatch, tmp_path, capsys):
+    keyboard, fw = legacy
+    info = DeviceInfo("/dev/hidraw99", "YC3121", 3, 0x3151, 0x4015, b"", "usb", 0)
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Transport(fw, "usb", sleep=lambda _: None))
+    spec = display_spec(fw.model)
+    still = tmp_path / "still.png"
+    Image.new("RGB", (1, 1), (255, 0, 0)).save(still)
+    animated = tmp_path / "animated.gif"
+    Image.new("RGB", (1, 1), (0, 255, 0)).save(
+        animated, save_all=True, append_images=[Image.new("RGB", (1, 1), (0, 0, 255))], duration=80
+    )
+    prefix = ["--device", info.path]
+    assert cli.main([*prefix, "screen", str(still), "--fit"]) == 0
+    assert cli.main([*prefix, "animation", str(animated), "--fit"]) == 0
+    capsys.readouterr()
+    display_packets = [p for p in fw.commands if p[0] in (0xA5, 0xA9, 0x25, 0x29)]
+    assert display_packets[0][0] == (0xA5 if spec["pixel_bytes"] == 2 else 0xA9)
+    assert display_packets[-1][0] == (0x25 if spec["pixel_bytes"] == 2 else 0x29)
 
 
 @pytest.mark.parametrize(
@@ -246,9 +372,9 @@ def test_descriptor_and_cli(legacy, monkeypatch, capsys):
         assert cli.main([*prefix, *command]) == 0
         assert json.loads(capsys.readouterr().out) is not None
     fw.commands.clear()
-    assert cli.main([*prefix, "clock"]) == 1
-    assert "not been migrated" in capsys.readouterr().err
-    assert fw.commands == []
+    assert cli.main([*prefix, "clock"]) == 0
+    capsys.readouterr()
+    assert fw.commands
     assert fw.closed
 
 

@@ -7,7 +7,7 @@ epomaker --device /dev/hidrawN animation moving.gif --fit
 epomaker --device /dev/hidrawN animation moving.gif --fit --delay-ms 80
 ```
 
-Without `--fit`, frames must be exactly 428×142 pixels for Glyph, 320×172 for RT85 or 240×240 for RT75. With it, the image is scaled
+Without `--fit`, frames must be exactly 428×142 pixels for Glyph, 320×172 for RT85, 240×240 for RT75, 162×173 for RT100, or 60×9 for Dynatab75X-UK. With it, the image is scaled
 with preserved aspect ratio and black borders. Transparency is composited onto black.
 The CLI opens the selected HID device and reads its identity to choose the dimensions;
 all frames are then decoded, converted and validated before any display writes. GIF
@@ -109,3 +109,29 @@ upload select the format from `display_spec.pixel_bytes`. All three have five
 still banks. SN020/TH80 V3 MAX allow 255 animation frames; TH65 Max allows 16
 because of its special byte-sized allocation. See [ry6602.md](ry6602.md) for
 the source paths, formulas and missing physical verification.
+
+## YC3121 screens
+
+RT100 uses the inherited RGB565 transfer (`a5`/`25`) at 162×173 with six MiB of
+display memory and five still banks. Dynatab75X-UK uses RGB24 (`a9`/`29`) at 60×9
+with five still banks. The vendor catalog omits Dynatab's memory size; its drawing
+board defaults an omitted value to 7 MiB, which `models.display_spec` follows.
+Both support clock and system-information writes; only RT100 advertises the language
+toggle. As with other migrated displays, uploads have no pixel readback and physical
+rendering remains unverified.
+
+The 7 MiB fallback is explicit in both installers' drawing-board initialization:
+macOS `f2896358.js` and `5b38b4bd.js` assign
+`deviceType.other?.screen?.size.memorySize ?? 7`; Windows `c0b36d47.js` and
+`a9d6b129.js` do the same. The model catalog still supplies Dynatab's dimensions,
+mode and five layers; only `memorySize` is absent. The Linux fallback is therefore
+restricted to model ID 1723 rather than applied to arbitrary incomplete catalog
+entries.
+
+The older parent/model pair and the newer shared display class were compared for
+the fields used here. Both use the same clock payload (`0x28`, big-endian year at
+byte 8 and month through second at bytes 10–14), system-info payload (`0x22`, four
+little-endian GiB values, CPU/temperature bytes and two network values), and display
+prepare/chunk metadata (current frame, frame count, delay, byte length, bounds,
+chunk index and chunk length). Format-specific opcodes remain `0xA5/0x25` for
+RGB565 and `0xA9/0x29` for RGB24. This is why the existing shared codec is reused.
