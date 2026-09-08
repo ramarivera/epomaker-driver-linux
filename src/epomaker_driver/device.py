@@ -208,6 +208,31 @@ class Keyboard:
 
     def write_picture(self, colors, picture=0):
         self._write(list(codec.picture_chunks(colors, picture)))
+        if self.read_picture(picture) != bytes(colors):
+            raise ProtocolError("custom RGB picture readback differs")
+
+    def read_picture(self, picture=0):
+        codec.bounded(picture, 4, "picture")
+
+        def operation():
+            pages = [self._query(codec.packet([0x8C, picture, 255, page])) for page in range(6)]
+            if any(len(page) != 64 for page in pages):
+                raise ProtocolError("incomplete custom RGB picture response")
+            # Vendor writes only 126 RGB slots; the final six read bytes are not writable.
+            return b"".join(pages)[:378]
+
+        return self.transport.transaction(operation)
+
+    def set_picture_key(self, picture, slot, rgb):
+        codec.bounded(slot, 125, "RGB slot")
+        codec.bounded(rgb, 0xFFFFFF, "rgb")
+
+        def operation():
+            colors = bytearray(self.read_picture(picture))
+            colors[slot * 3 : slot * 3 + 3] = rgb.to_bytes(3, "big")
+            self.write_picture(colors, picture)
+
+        self.transport.transaction(operation)
 
     def sync_clock(self, value=None):
         value = value or datetime.datetime.now()

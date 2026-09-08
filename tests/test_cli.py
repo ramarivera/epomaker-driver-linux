@@ -147,3 +147,25 @@ def test_restore_cli(cli_device, tmp_path, firmware):
     assert cli.main([*prefix, "restore", str(source), "--backup", str(recovery)]) == 0
     assert firmware.profile == 0
     assert json.loads(recovery.read_text())["profile"] == 2
+
+
+@pytest.mark.parametrize("activate", [False, True])
+def test_picture_cli(cli_device, firmware, tmp_path, capsys, activate):
+    prefix = ["--device", cli_device.path]
+    path = tmp_path / "colors.json"
+    value = {"colors": ["123456"] * 126}
+    path.write_text(json.dumps(value))
+    args = [*prefix, "picture", "4", str(path)]
+    assert cli.main(args + (["--activate"] if activate else [])) == 0
+    capsys.readouterr()
+    assert cli.main([*prefix, "get-picture", "4"]) == 0
+    assert json.loads(capsys.readouterr().out) == value
+    assert cli.main([*prefix, "picture-key", "4", "125", "#abcdef"]) == 0
+    assert firmware.pictures[4][375:378] == bytes.fromhex("abcdef")
+    if activate:
+        assert firmware.light[1] == 13 and firmware.light[4] == 0x40
+    before = list(firmware.sent)
+    for invalid in ({}, {"colors": ["ffffff"]}, {"colors": [3] * 126}):
+        path.write_text(json.dumps(invalid))
+        assert cli.main(args) == 1
+        assert firmware.sent == before

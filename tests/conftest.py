@@ -35,12 +35,15 @@ class SimulatedKeyboard:
         self.accept_screen = True
         self.options = bytearray(codec.packet([9, 0, 0, 1, 3, 0, 17]))
         self.auto_os = False
+        self.pictures = [bytearray(384) for _ in range(5)]
 
     def transaction(self, fn):
         return fn()
 
     def exchange(self, command, **options):
         op = command[0]
+        if op == 0x8C:
+            return bytes(self.pictures[command[1]][command[3] * 64 : (command[3] + 1) * 64])
         if op == 0x89:
             return codec.packet(bytes([op]) + bytes(self.options[1:7]))
         if op == 0x97:
@@ -76,6 +79,9 @@ class SimulatedKeyboard:
     def send(self, command, **options):
         self.sent.append(command)
         op = command[0]
+        if op == 0x0C:
+            start, count = command[3] * 56, command[4]
+            self.pictures[command[1]][start : start + count] = command[8 : 8 + count]
         if op == 9:
             self.options = bytearray(command)
         elif op == 0x17:

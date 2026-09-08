@@ -96,3 +96,28 @@ def test_short_macro_replacement_clears_old_tail(firmware):
     firmware.macros[3] = bytearray([5] * 256)
     keyboard.write_macro(3, codec.macro_data(1, []))
     assert firmware.macros[3] == bytes([1]) + bytes(255)
+
+
+def test_picture_snapshots_and_legacy_restore(firmware, tmp_path):
+    keyboard = Keyboard(firmware)
+    for index in range(5):
+        firmware.pictures[index][:378] = bytes([index + 1] * 378)
+    value = snapshot.capture(keyboard)
+    assert value["schema_version"] == 3
+    firmware.pictures[4][:378] = bytes(378)
+    snapshot.restore(keyboard, value, tmp_path / "recovery.json")
+    assert bytes(firmware.pictures[4][:378]) == bytes([5] * 378)
+    legacy = copy.deepcopy(value)
+    legacy["schema_version"] = 2
+    del legacy["pictures"]
+    firmware.pictures[0][:378] = bytes([7] * 378)
+    result = snapshot.restore(keyboard, legacy, tmp_path / "legacy-recovery.json")
+    assert "unchanged" in result["limitations"][-1]
+    assert bytes(firmware.pictures[0][:378]) == bytes([7] * 378)
+    for invalid in ([], [bytes(377).hex()] * 5):
+        bad = copy.deepcopy(value)
+        bad["pictures"] = invalid
+        before = list(firmware.sent)
+        with pytest.raises(ValueError, match="five 378-byte"):
+            snapshot.restore(keyboard, bad, tmp_path / "invalid.json")
+        assert firmware.sent == before

@@ -136,3 +136,31 @@ def test_fn_matrix_validation_and_readback(firmware):
     firmware.send = lambda *a, **kw: None
     with pytest.raises(ProtocolError, match="Fn matrix"):
         keyboard.write_fn_matrix(bytes(512))
+
+
+def test_picture_roundtrip_and_single_slot(firmware):
+    keyboard = Keyboard(firmware)
+    colors = bytes(i % 256 for i in range(378))
+    firmware.pictures[4][378:] = bytes([99] * 6)
+    keyboard.write_picture(colors, 4)
+    assert keyboard.read_picture(4) == colors
+    keyboard.set_picture_key(4, 125, 0xABCDEF)
+    assert keyboard.read_picture(4) == colors[:375] + bytes.fromhex("abcdef")
+    assert firmware.pictures[4][378:] == bytes([99] * 6)
+    with pytest.raises(ValueError):
+        keyboard.set_picture_key(4, 126, 0)
+    with pytest.raises(ValueError):
+        keyboard.read_picture(5)
+    firmware.send = lambda *a, **kw: None
+    with pytest.raises(ProtocolError, match="picture readback"):
+        keyboard.write_picture(bytes(378), 4)
+
+
+def test_partial_picture_is_not_zero_filled(firmware):
+    keyboard = Keyboard(firmware)
+    exchange = firmware.exchange
+    firmware.exchange = lambda p, **kw: (
+        bytes(63) if p[0] == 0x8C and p[3] == 5 else exchange(p, **kw)
+    )
+    with pytest.raises(ProtocolError, match="incomplete custom RGB"):
+        keyboard.read_picture()

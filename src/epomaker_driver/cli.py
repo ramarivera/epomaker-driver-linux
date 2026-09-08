@@ -67,11 +67,20 @@ def parser():
     screen = commands.add_parser("screen", help="upload a still image to the Glyph display")
     screen.add_argument("path", type=Path)
     screen.add_argument("--fit", action="store_true")
+    commands.add_parser("get-picture").add_argument("index", type=int)
+    picture = commands.add_parser("picture", help="write 126 RGB slot colors from JSON")
+    picture.add_argument("index", type=int)
+    picture.add_argument("path", type=Path)
+    picture.add_argument("--activate", action="store_true")
+    picture_key = commands.add_parser("picture-key", help="change one RGB slot, preserving others")
+    picture_key.add_argument("index", type=int)
+    picture_key.add_argument("slot", type=int)
+    picture_key.add_argument("rgb", type=lambda v: int(v.removeprefix("#"), 16))
     backup = commands.add_parser("backup")
     backup.add_argument("path", type=Path)
     backup.add_argument("--overwrite", action="store_true")
     restore = commands.add_parser(
-        "restore", help="restore a v2 snapshot with a saved recovery copy"
+        "restore", help="restore a v2/v3 snapshot with a saved recovery copy"
     )
     restore.add_argument("path", type=Path)
     restore.add_argument(
@@ -113,12 +122,36 @@ def execute(args):
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
         snapshot.validate(prepared)
+    elif args.command == "picture":
+        with args.path.open("rb") as stream:
+            value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        colors = value.get("colors")
+        if (
+            not isinstance(colors, list)
+            or len(colors) != 126
+            or any(not isinstance(color, str) or len(color) != 6 for color in colors)
+        ):
+            raise ValueError("colors must contain exactly 126 six-digit RGB hex strings")
+        prepared = b"".join(
+            codec.bounded(int(color, 16), 0xFFFFFF, "rgb").to_bytes(3, "big") for color in colors
+        )
     with Transport.open(select_device(args.device)) as transport:
         keyboard = Keyboard(transport)
         if args.command == "identify":
             return keyboard.identify()
         if args.command == "status":
             return keyboard.status()
+        if args.command == "get-picture":
+            colors = keyboard.read_picture(args.index)
+            return {"colors": [colors[i : i + 3].hex() for i in range(0, 378, 3)]}
+        if args.command == "picture":
+            keyboard.write_picture(prepared, args.index)
+            if args.activate:
+                keyboard.set_light("picture", option=args.index)
+            return {"ok": True}
+        if args.command == "picture-key":
+            keyboard.set_picture_key(args.index, args.slot, args.rgb)
+            return {"ok": True}
         if args.command == "get-light":
             return keyboard.get_light(side=args.side)
         if args.command == "light":

@@ -44,6 +44,11 @@ Device access may require [permissions](docs/hardware.md).
 # Write a keyboard macro, then verify all 256 bytes by reading it back.
 .venv/bin/epomaker --device /dev/hidrawN macro 0 macro.json
 .venv/bin/epomaker --device /dev/hidrawN get-macro 0
+# Export a custom RGB picture as 126 six-digit color strings.
+.venv/bin/epomaker --device /dev/hidrawN get-picture 0 > colors.json
+# Import and activate that picture, or change one physical RGB slot.
+.venv/bin/epomaker --device /dev/hidrawN picture 0 colors.json --activate
+.venv/bin/epomaker --device /dev/hidrawN picture-key 0 10 ff8040
 ```
 
 Macro JSON contains `repeat` and `events`. Each event has `hid_usage`, boolean `down`,

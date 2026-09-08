@@ -1,15 +1,16 @@
 # Configuration snapshots and recovery
 
-`backup` writes a version 2 JSON snapshot. It captures all three normal matrices,
+`backup` writes a version 3 JSON snapshot. It captures all three normal matrices,
 Windows/Mac Fn matrices, every macro referenced by those matrices, main/side lighting
 configuration, sleep timers, active profile, debounce, keyboard options and automatic
-OS selection. Unknown four-byte key actions and unrelated keyboard-option bytes are
+OS selection, plus all five custom RGB pictures. Unknown four-byte key actions and unrelated keyboard-option bytes are
 preserved. Files are atomically created with user-only permissions.
 
-Screen pixels, custom RGB picture contents and unreferenced macro slots are not captured
+Screen pixels and unreferenced macro slots are not captured
 by an ordinary backup. These omissions are recorded in the file. A snapshot is not a
 firmware image or a complete device-memory dump. The current importer can inspect vendor
-JSON/raw-DEFLATE files but restoration accepts this project's version 2 schema only.
+JSON/raw-DEFLATE files but restoration accepts this project's version 2 and 3 schemas.
+Restoring version 2 leaves custom RGB pictures unchanged and reports that limitation.
 Earlier version 1 snapshots can still be inspected; create a new backup before restoring.
 
 ```sh
@@ -25,7 +26,9 @@ existing recovery file is overwritten.
 
 Macro storage is restored before key bindings. Normal matrices, Fn matrices, lighting,
 options and timers follow; active profile selection is last. Every section is read back.
-Fn restoration changes only slots that differ. Macro writes include trailing zeroes to
+Fn restoration changes only slots that differ. Custom RGB pictures include 126 writable
+color slots; six additional bytes returned by the read protocol are excluded because
+the vendor's writer does not address them. Macro writes include trailing zeroes to
 clear data left by a longer previous macro.
 
 Firmware changes are not atomic. A failed readback or disconnect stops restoration and

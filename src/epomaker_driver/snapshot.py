@@ -3,7 +3,7 @@
 from . import codec, profiles
 from .errors import ProtocolError
 
-LIMITATIONS = ["screen pixels, custom RGB pictures, and unreferenced macro slots are not included"]
+LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
 
 
 def macro_slots(matrices):
@@ -22,11 +22,12 @@ def capture(keyboard, *, extra_macro_slots=()):
         macros = {str(slot): keyboard.read_macro(slot).hex() for slot in slots}
         status = keyboard.status()
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "identity": identity,
             "matrices": [m.hex() for m in matrices],
             "fn": {k: v.hex() for k, v in fn.items()},
             "macros": macros,
+            "pictures": [keyboard.read_picture(i).hex() for i in range(5)],
             "light": keyboard.get_light(),
             "side_light": keyboard.get_light(side=True),
             "sleep": keyboard.get_sleep(),
@@ -43,8 +44,8 @@ def capture(keyboard, *, extra_macro_slots=()):
 def validate(value):
     """Return decoded bytes and reject incomplete/incompatible snapshots without I/O."""
     try:
-        if type(value["schema_version"]) is not int or value["schema_version"] != 2:
-            raise ValueError("restoration requires a version 2 snapshot")
+        if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3):
+            raise ValueError("restoration requires a version 2 or 3 snapshot")
         if value["identity"]["device_id"] != 3059:
             raise ValueError("snapshot is not for Glyph ID 3059")
         matrices = [bytes.fromhex(m) for m in value["matrices"]]
@@ -62,6 +63,11 @@ def validate(value):
             macros[slot] = data
         if not set(macro_slots(matrices + list(fn.values()))) <= set(macros):
             raise ValueError("snapshot omits a referenced macro")
+        pictures = []
+        if value["schema_version"] == 3:
+            pictures = [bytes.fromhex(raw) for raw in value["pictures"]]
+            if len(pictures) != 5 or any(len(p) != 378 for p in pictures):
+                raise ValueError("snapshot requires five 378-byte RGB pictures")
         settings = []
         for key, opcode in (("light", 7), ("side_light", 8), ("options", 9)):
             raw = bytes(value[key]["raw"])
@@ -78,13 +84,13 @@ def validate(value):
         codec.bounded(value["debounce"], 255, "debounce")
         if type(value["auto_os"]) is not bool:
             raise ValueError("auto_os must be boolean")
-        return matrices, fn, macros, settings, sleep_command
+        return matrices, fn, macros, settings, sleep_command, pictures
     except (KeyError, TypeError, AttributeError) as error:
         raise ValueError("snapshot has missing or malformed fields") from error
 
 
 def restore(keyboard, value, backup_path):
-    matrices, fn, macros, settings, sleep_command = validate(value)
+    matrices, fn, macros, settings, sleep_command, pictures = validate(value)
 
     def operation():
         # Save current configuration before the first write; no-clobber is intentional.
@@ -97,6 +103,8 @@ def restore(keyboard, value, backup_path):
                 keyboard.write_matrix(matrix, index)
             for mode, name in enumerate(("win", "mac")):
                 keyboard.write_fn_matrix(fn[name], mode)
+            for index, colors in enumerate(pictures):
+                keyboard.write_picture(colors, index)
             keyboard._write(settings + [sleep_command])
             for key, command in zip(("light", "side_light", "options"), settings, strict=True):
                 read = (
@@ -120,7 +128,8 @@ def restore(keyboard, value, backup_path):
         return {
             "restored": True,
             "previous_configuration": str(backup_path),
-            "limitations": LIMITATIONS.copy(),
+            "limitations": LIMITATIONS.copy()
+            + ([] if pictures else ["version 2 snapshot leaves custom RGB pictures unchanged"]),
         }
 
     return keyboard.transport.transaction(operation)
