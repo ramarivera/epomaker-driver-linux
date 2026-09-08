@@ -1,10 +1,21 @@
 """Versioned keyboard configuration snapshots; validate all fields before restoration."""
 
 from . import codec, profiles
-from .errors import ProtocolError, UnsupportedDevice
-from .models import model_by_id, validate_sleep_times
+from .errors import ProtocolError
+from .models import RY6602_IDS, RY6602_SIDE_IDS, model_by_id, validate_sleep_times
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
+
+
+def _has_side(model_id):
+    return model_id in (2895, 3059, *RY6602_SIDE_IDS)
+
+
+def _limitations(model_id, *, all_macros=False):
+    result = ["screen pixels are not included"] if all_macros else LIMITATIONS.copy()
+    if model_id in RY6602_IDS:
+        result.append("unexposed receiver timer field is not restored")
+    return result
 
 
 def macro_slots(matrices):
@@ -15,8 +26,6 @@ def capture(keyboard, *, extra_macro_slots=()):
     def operation():
         identity = keyboard.identify()
         keyboard._supported()
-        if identity["device_id"] not in (2895, 3059, 3223):
-            raise UnsupportedDevice("Snapshots currently support Glyph, RT85 and RT75")
         rt85 = identity["device_id"] == 2895
         matrices = [keyboard.read_matrix(p) for p in range(keyboard.model["layer"])]
         fn = {
@@ -27,20 +36,24 @@ def capture(keyboard, *, extra_macro_slots=()):
         macros = {str(slot): keyboard.read_macro(slot).hex() for slot in slots}
         status = keyboard.status()
         return {
-            "schema_version": 3 if identity["device_id"] == 3059 else 4,
+            "schema_version": 5
+            if identity["device_id"] in RY6602_IDS
+            else (3 if identity["device_id"] == 3059 else 4),
             "identity": identity,
             "matrices": [m.hex() for m in matrices],
             "fn": {k: v.hex() for k, v in fn.items()},
             "macros": macros,
             "pictures": [keyboard.read_picture(i).hex() for i in range(5)],
             "light": keyboard.get_light(),
-            "side_light": None if identity["device_id"] == 3223 else keyboard.get_light(side=True),
+            "side_light": keyboard.get_light(side=True)
+            if _has_side(identity["device_id"])
+            else None,
             "sleep": keyboard.get_sleep(),
             "profile": status["profile"],
             "debounce": None if rt85 else status["debounce"],
             "options": keyboard.get_options(),
             "auto_os": keyboard.get_auto_os(),
-            "limitations": LIMITATIONS.copy(),
+            "limitations": _limitations(identity["device_id"]),
         }
 
     return keyboard.transport.transaction(operation)
@@ -49,13 +62,17 @@ def capture(keyboard, *, extra_macro_slots=()):
 def validate(value):
     """Return decoded bytes and reject incomplete/incompatible snapshots without I/O."""
     try:
-        if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3, 4):
-            raise ValueError("restoration requires a version 2, 3 or 4 snapshot")
+        if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3, 4, 5):
+            raise ValueError("restoration requires a version 2, 3, 4 or 5 snapshot")
         model_id = value["identity"]["device_id"]
-        if type(model_id) is not int or model_id not in (2895, 3059, 3223):
-            raise ValueError("snapshot model must be Glyph ID 3059, RT85 ID 2895 or RT75 ID 3223")
+        if type(model_id) is not int or model_id not in (2895, 3059, 3223, *RY6602_IDS):
+            raise ValueError(
+                "snapshot model must be a migrated Glyph, RT85, RT75 or RY6602 keyboard"
+            )
         if value["schema_version"] < 4 and model_id != 3059:
             raise ValueError("version 2 and 3 snapshots are only for Glyph ID 3059")
+        if model_id in RY6602_IDS and value["schema_version"] != 5:
+            raise ValueError("RY6602 requires snapshot version 5")
         count = model_by_id(model_id)["layer"]
         matrices = [bytes.fromhex(m) for m in value["matrices"]]
         fn = {name: bytes.fromhex(value["fn"][name]) for name in ("win", "mac")}
@@ -79,9 +96,9 @@ def validate(value):
                 raise ValueError("snapshot requires five 378-byte RGB pictures")
         settings = []
         for key, opcode in (("light", 7), ("side_light", 8), ("options", 9)):
-            if model_id == 3223 and key == "side_light":
+            if not _has_side(model_id) and key == "side_light":
                 if value[key] is not None:
-                    raise ValueError("RT75 snapshots must leave side_light null")
+                    raise ValueError("This model must leave side_light null")
                 continue
             raw = bytes(value[key]["raw"])
             if len(raw) != 64 or raw[0] != opcode + 128:
@@ -89,11 +106,21 @@ def validate(value):
             if model_id == 2895 and key == "side_light":
                 if raw[1] not in range(5) or raw[2] > (4 if raw[1] == 4 else 3):
                     raise ValueError("RT85 side lighting mode or speed is unsupported")
+            if model_id in RY6602_SIDE_IDS and key == "side_light":
+                if raw[1] not in (0, 2, 4, 5) or raw[2] > 3:
+                    raise ValueError("RY6602 side lighting mode or speed is unsupported")
             payload = bytes([opcode]) + raw[1 : 8 if opcode != 9 else 7]
             settings.append(codec.packet(payload, 7 if opcode == 9 else 8))
         sleep = value["sleep"]
-        times = [sleep[k] for k in ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle")]
-        sleep_command = codec.sleep_times(*times)
+        names = ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle")
+        if model_id in RY6602_IDS:
+            if set(sleep) != set(names[:3]):
+                raise ValueError("RY6602 snapshots must contain exactly three exposed sleep timers")
+            times = [sleep[k] for k in names[:3]] + [None]
+            sleep_command = None
+        else:
+            times = [sleep[k] for k in names]
+            sleep_command = codec.sleep_times(*times)
         validate_sleep_times(model_id, times)
         codec.bounded(value["profile"], count - 1, "profile")
         if model_id == 2895:
@@ -128,10 +155,13 @@ def restore(keyboard, value, backup_path):
                 keyboard.write_fn_matrix(fn[name], mode)
             for index, colors in enumerate(pictures):
                 keyboard.write_picture(colors, index)
-            keyboard._write(settings + [sleep_command])
+            keyboard._write(settings + ([] if sleep_command is None else [sleep_command]))
+            if sleep_command is None:
+                timers = value["sleep"]
+                keyboard.set_sleep(timers["bluetooth"], timers["dongle"], timers["deep_bluetooth"])
             keys = (
                 ("light", "options")
-                if value["identity"]["device_id"] == 3223
+                if not _has_side(value["identity"]["device_id"])
                 else ("light", "side_light", "options")
             )
             for key, command in zip(keys, settings, strict=True):
@@ -157,7 +187,7 @@ def restore(keyboard, value, backup_path):
         return {
             "restored": True,
             "previous_configuration": str(backup_path),
-            "limitations": LIMITATIONS.copy()
+            "limitations": _limitations(value["identity"]["device_id"])
             + ([] if pictures else ["version 2 snapshot leaves custom RGB pictures unchanged"]),
         }
 
@@ -170,7 +200,7 @@ def factory_reset(keyboard, backup_path):
     def operation():
         keyboard._check_commands([codec.packet([1])])
         current = capture(keyboard, extra_macro_slots=range(256))
-        current["limitations"] = ["screen pixels are not included"]
+        current["limitations"] = _limitations(current["identity"]["device_id"], all_macros=True)
         validate(current)
         profiles.save(backup_path, current)
         try:

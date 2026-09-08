@@ -21,7 +21,8 @@ reset with recovery through the CLI.
 [RY6602 core support](docs/ry6602.md) covers SN020, EK75, TH80 V3 MAX, TH80 V2
 and TH65 Max: keymaps, Fn layers, macros, profiles, three sleep timers, debounce
 and OS controls, lighting and custom RGB pictures. SN020, TH80 V3 MAX and TH65
-Max also support RGB24 still images and animations.
+Max also support RGB24 still images and animations. All five have configuration
+backup, restore and reset with recovery copies.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.

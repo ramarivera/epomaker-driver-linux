@@ -110,6 +110,7 @@ class Keyboard:
 
         if self.identity["device_id"] in RY6602_IDS:
             allowed = (
+                1,
                 7,
                 12,
                 0x87,

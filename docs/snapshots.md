@@ -1,6 +1,6 @@
 # Configuration snapshots and recovery
 
-`backup` writes a version 3 JSON snapshot for Glyph or version 4 for RT85/RT75. It captures
+`backup` writes a version 3 JSON snapshot for Glyph or version 4 for RT85/RT75 and version 5 for RY6602. It captures
 all three Glyph/RT75 or four RT85 normal matrices,
 Windows/Mac Fn matrices, every macro referenced by those matrices, main/side lighting
 configuration, sleep timers, active profile, debounce, keyboard options and automatic
@@ -10,7 +10,7 @@ preserved. Files are atomically created with user-only permissions.
 Screen pixels and unreferenced macro slots are not captured
 by an ordinary backup. These omissions are recorded in the file. A snapshot is not a
 firmware image or a complete device-memory dump. The current importer can inspect vendor
-JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3 and 4 schemas.
+JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3, 4 and 5 schemas.
 Restoring version 2 leaves custom RGB pictures unchanged and reports that limitation.
 Earlier version 1 snapshots can still be inspected; create a new backup before restoring.
 
@@ -107,3 +107,18 @@ RT75 reset uses the inherited YC3123 `01` command after saving and validating al
 three profiles, both Fn maps, five RGB pictures, settings and all 256 macro slots.
 The reset result continues to distinguish a sent command from verified factory
 state. Cross-model restores between any pair of Glyph, RT85 and RT75 are rejected.
+
+
+## RY6602 schema version 5
+
+SN020, EK75, TH80 V3 MAX, TH80 V2 and TH65 Max require version 5. Profile counts
+come from each model: four for SN020 and three for the others. Side lighting is
+null for SN020/EK75; other RY6602 models accept their wave/snake/breathing/off
+layout with speed at most 3. Raw model-specific color flags are preserved.
+
+Sleep data contains exactly `bluetooth`, `dongle` and `deep_bluetooth`. Restoration
+uses the preserving three-timer setter, leaving the device's current unexposed
+receiver field intact. That field and screen pixels are not recoverable from
+these snapshots. The limitation is present in the returned metadata. Reset saves
+all 256 macros, validates the snapshot, and sends the shared reset opcode only
+after the private recovery file exists. See [ry6602.md](ry6602.md) for commands.

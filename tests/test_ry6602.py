@@ -2,7 +2,7 @@
 
 import pytest
 
-from epomaker_driver import codec, snapshot
+from epomaker_driver import codec
 from epomaker_driver.device import Keyboard
 from epomaker_driver.discovery import classify, parse_descriptor
 from epomaker_driver.errors import UnsupportedDevice
@@ -18,6 +18,9 @@ def ry(request, firmware):
     firmware.fn = [
         bytearray(default_matrix(mid, name)) for name in ("defaultFnMatrix", "defaultFnMacMatrix")
     ]
+
+    firmware.sleep_data = bytearray(codec.sleep_times(600, 1200, 1800, 3600))
+    firmware.side_light = bytearray(codec.light("breathing", side=True))
 
     class USB:
         response = b""
@@ -92,8 +95,7 @@ def test_fn_and_os_controls(ry, firmware, os_mode):
     [
         lambda k: k.set_light("solid", side=True),
         lambda k: k.sync_clock(),
-        lambda k: snapshot.capture(k),
-        lambda k: k._write([codec.packet([4]), codec.packet([1])]),
+        lambda k: k._write([codec.packet([4]), codec.packet([0x27])]),
     ],
 )
 def test_unmigrated_operations_cannot_write(ry, firmware, operation):
@@ -272,3 +274,92 @@ def test_rgb24_still_and_animation(ry, firmware):
     with pytest.raises(ValueError):
         ry.upload_screen(bytes(width * height * 2), (0, 0, width, height))
     assert len(firmware.sent) == before
+
+
+def test_recovery_snapshot_preserves_current_hidden_timer(ry, firmware, tmp_path):
+    import json
+
+    from epomaker_driver import snapshot
+
+    mid = firmware.model_id
+    firmware.sleep_data[14:16] = bytes.fromhex("ffff")
+    original = snapshot.capture(ry)
+    assert original["schema_version"] == 5
+    assert "deep_dongle" not in original["sleep"]
+    assert (original["side_light"] is None) == (mid in (3858, 3633))
+    ry.set_sleep(1200, 1200, 1200)
+    ry.set_key(9, [0, 0, 5, 0], profile=len(firmware.matrices) - 1)
+    firmware.sleep_data[14:16] = bytes.fromhex("1234")
+    path = tmp_path / "before.json"
+    result = snapshot.restore(ry, original, path)
+    assert result["restored"]
+    assert "unexposed receiver timer field is not restored" in result["limitations"]
+    assert firmware.sleep_data[14:16] == bytes.fromhex("1234")
+    assert snapshot.capture(ry) == original
+    assert json.loads(path.read_text())["sleep"]["bluetooth"] == 1200
+    assert all(p[0] != 8 for p in firmware.sent) if mid in (3858, 3633) else True
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        lambda v: v.update(schema_version=4),
+        lambda v: v["sleep"].update(deep_dongle=600),
+        lambda v: v["sleep"].update(bluetooth=-1),
+        lambda v: v["matrices"].pop(),
+    ],
+)
+def test_invalid_family_snapshots_fail_before_writes(ry, firmware, tmp_path, damage):
+    from epomaker_driver import snapshot
+
+    value = snapshot.capture(ry)
+    damage(value)
+    with pytest.raises(ValueError):
+        snapshot.restore(ry, value, tmp_path / "recovery.json")
+    assert not firmware.sent and not (tmp_path / "recovery.json").exists()
+
+
+def test_snapshot_side_capability_validation(ry, firmware):
+    from epomaker_driver import snapshot
+
+    value = snapshot.capture(ry)
+    if value["side_light"] is None:
+        value["side_light"] = {"raw": list(codec.packet([0x88]))}
+    else:
+        value["side_light"]["raw"][1] = 1  # solid is absent from this side layout
+    with pytest.raises(ValueError, match="side"):
+        snapshot.validate(value)
+    assert not firmware.sent
+
+
+def test_reset_recovery_exists_before_command(ry, firmware, tmp_path):
+    import json
+
+    from epomaker_driver import snapshot
+
+    firmware.macros[255] = bytearray([123] * 256)
+    destination = tmp_path / "reset.json"
+    send = firmware.send
+
+    def checked(command, **kwargs):
+        saved = json.loads(destination.read_text())
+        assert saved["schema_version"] == 5 and len(saved["macros"]) == 256
+        assert saved["macros"]["255"] == bytes([123] * 256).hex()
+        assert len(saved["matrices"]) == len(firmware.matrices)
+        send(command, **kwargs)
+
+    firmware.send = checked
+    result = snapshot.factory_reset(ry, destination)
+    assert result["reset_sent"] and not result["factory_defaults_verified"]
+    assert firmware.sent == [codec.packet([1])]
+    assert ry.identity is None
+
+
+def test_cross_model_recovery_is_rejected(ry, firmware, tmp_path):
+    from epomaker_driver import snapshot
+
+    value = snapshot.capture(ry)
+    firmware.model_id = 3059
+    with pytest.raises(ValueError, match="does not match"):
+        snapshot.restore(ry, value, tmp_path / "bad.json")
+    assert not firmware.sent and not (tmp_path / "bad.json").exists()

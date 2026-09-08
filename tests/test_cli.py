@@ -441,3 +441,25 @@ def test_rgb24_screen_cli(cli_device, firmware, tmp_path, model_id, width):
     assert cli.main(["--device", cli_device.path, "screen", str(path), "--bank", "5"]) == 0
     assert firmware.sent[0][0:4] == bytes([0x29, 4, 1, 0])
     assert b"".join(p[8 : 8 + p[6]] for p in firmware.sent) == bytes.fromhex("123456") * (width * 7)
+
+
+@pytest.mark.parametrize("model_id", [3858, 3633, 3673, 3573, 3674])
+def test_ry6602_recovery_cli(cli_device, firmware, tmp_path, model_id):
+    from epomaker_driver import codec
+    from epomaker_driver.models import default_matrix, model_by_id
+
+    firmware.model_id = model_id
+    firmware.matrices = [
+        bytearray(default_matrix(model_id)) for _ in range(model_by_id(model_id)["layer"])
+    ]
+    firmware.sleep_data = bytearray(codec.sleep_times(600, 1200, 1800, 3600))
+    firmware.side_light = bytearray(codec.light("breathing", side=True))
+    prefix = ["--device", cli_device.path]
+    path = tmp_path / "saved.json"
+    assert cli.main([*prefix, "backup", str(path)]) == 0
+    assert json.loads(path.read_text())["schema_version"] == 5
+    assert (
+        cli.main([*prefix, "restore", str(path), "--backup", str(tmp_path / "recovery.json")]) == 0
+    )
+    assert cli.main([*prefix, "factory-reset", "--backup", str(tmp_path / "reset.json")]) == 0
+    assert firmware.sent[-1][0] == 1
