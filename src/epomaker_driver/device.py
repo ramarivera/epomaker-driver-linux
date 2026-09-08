@@ -247,6 +247,11 @@ class Keyboard:
     def sync_system_info(self, values):
         self._write([codec.system_info(values)])
 
+    def toggle_display_language(self):
+        # Vendor UI always sends 1; no current-language query or named setter was found.
+        # Protocol provenance and exact command are documented in docs/display.md.
+        self._write([codec.packet([0x27, 1])])
+
     def upload_screen(self, pixels, bounds, *, frame=0, frames=1, delay=0, progress=None):
         # Prepare all data/metadata before the first device mutation.
         prepare = codec.screen_prepare(len(pixels), bounds, frame, frames, delay)

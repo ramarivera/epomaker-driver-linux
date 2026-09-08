@@ -157,6 +157,7 @@ test("display image upload, clock, backup download and verified restore", async 
 }) => {
   await connect(page);
   await nav(page, "Display");
+  await page.getByLabel("Still image bank", { exact: true }).selectOption("4");
   await page.getByLabel("Image file", { exact: true }).setInputFiles({
     name: "pixel.png",
     mimeType: "image/png",
@@ -175,6 +176,14 @@ test("display image upload, clock, backup download and verified restore", async 
   ).toBeVisible();
   await page.getByRole("button", { name: "Sync clock", exact: true }).click();
   await expect(page.getByText("Clock sent.", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Toggle display language", exact: true })
+    .click();
+  await expect(
+    page.getByText("Language toggle sent. Check the keyboard display.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await nav(page, "Backups");
   const pending = page.waitForEvent("download");
   await page

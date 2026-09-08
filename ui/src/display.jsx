@@ -5,6 +5,7 @@ export default function Display({ connected, busy, run }) {
   const [file, setFile] = useState(null),
     [preview, setPreview] = useState(""),
     [kind, setKind] = useState("screen"),
+    [bank, setBank] = useState(0),
     [delay, setDelay] = useState("");
   useEffect(() => {
     if (!file) {
@@ -41,6 +42,15 @@ export default function Display({ connected, busy, run }) {
               onChange={(e) => setKind(e.target.value)}
             />
           </Field>
+          {kind === "screen" && (
+            <Field label="Still image bank">
+              <Select
+                value={bank}
+                options={[0, 1, 2, 3, 4].map((i) => [i, `Bank ${i + 1}`])}
+                onChange={(e) => setBank(Number(e.target.value))}
+              />
+            </Field>
+          )}
           {kind === "animation" && (
             <Field label="Frame delay (ms, optional)">
               <input
@@ -74,6 +84,7 @@ export default function Display({ connected, busy, run }) {
                 throw new Error("Choose an image smaller than 14 MiB");
               await api("write", {
                 kind,
+                bank,
                 content: await base64File(file),
                 delay_ms: delay === "" ? null : Number(delay),
               });
@@ -108,6 +119,23 @@ export default function Display({ connected, busy, run }) {
             Send system information
           </Button>
         </div>
+      </Panel>
+      <Panel title="Display language">
+        <p className="muted">
+          Switch between the keyboard’s English and Chinese display text. The
+          current language cannot be read back.
+        </p>
+        <Button
+          disabled={!connected || busy}
+          onClick={() =>
+            run(
+              () => api("write", { kind: "display_language_toggle" }),
+              "Language toggle sent. Check the keyboard display.",
+            )
+          }
+        >
+          Toggle display language
+        </Button>
       </Panel>
     </>
   );

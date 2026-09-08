@@ -211,3 +211,18 @@ def test_offline_macro_validation(controller):
     assert controller.call("validate_macro", {"value": value}) == value
     with pytest.raises(ValueError, match="each event"):
         controller.call("validate_macro", {"value": {"repeat": 1, "events": [None]}})
+
+
+def test_display_bank_api(controller, firmware):
+    connect(controller)
+    output = io.BytesIO()
+    Image.new("RGB", (1, 1), "blue").save(output, format="PNG")
+    data = {"kind": "screen", "bank": 4, "content": base64.b64encode(output.getvalue()).decode()}
+    controller.call("write", data)
+    assert all(p[1:3] == bytes([4, 1]) for p in firmware.sent if p[0] == 0x25)
+    before = list(firmware.sent)
+    with pytest.raises(ValueError, match="still bank"):
+        controller.call("write", {**data, "bank": 5})
+    assert firmware.sent == before
+    controller.call("write", {"kind": "display_language_toggle"})
+    assert firmware.sent[-1][:2] == bytes([0x27, 1])

@@ -110,6 +110,8 @@ def parser():
     screen = commands.add_parser("screen", help="upload a still image to the Glyph display")
     screen.add_argument("path", type=Path)
     screen.add_argument("--fit", action="store_true")
+    screen.add_argument("--bank", type=int, choices=range(1, 6), default=1)
+    commands.add_parser("display-language-toggle", help="toggle the display language")
     animation = commands.add_parser("animation", help="upload composed animation frames")
     animation.add_argument("path", type=Path)
     animation.add_argument("--fit", action="store_true")
@@ -295,7 +297,9 @@ def execute(args):
         elif args.command == "macro":
             keyboard.write_macro(args.slot, prepared)
         elif args.command == "screen":
-            keyboard.upload_screen(prepared, (0, 0, 428, 142))
+            keyboard.upload_screen(prepared, (0, 0, 428, 142), frame=args.bank - 1)
+        elif args.command == "display-language-toggle":
+            keyboard.toggle_display_language()
         elif args.command == "animation":
             frames, delay = prepared
             keyboard.upload_animation(frames, delay)

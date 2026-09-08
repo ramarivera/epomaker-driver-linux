@@ -174,8 +174,8 @@ def screen_prepare(data_length, bounds, frame=0, frames=1, delay=0, extra=0):
         raise ValueError("bounds must fit the Glyph 428x142 display")
     for v in (frame, frames, delay, extra):
         bounded(v, 255, "frame metadata")
-    if frames == 0 or frame >= frames:
-        raise ValueError("frame must be less than a positive frame count")
+    if frames == 0 or frame >= (5 if frames == 1 else frames):
+        raise ValueError("choose still bank 0..4 or an index below the animation frame count")
     p = bytearray(64)
     p[:7] = bytes([0xA5, frame, frames, delay, data_length & 255, (data_length >> 8) & 255, 0])
     p[8:12] = bytes(v & 255 for v in bounds)
@@ -188,7 +188,7 @@ def screen_chunks(data, frame=0, frames=1, delay=0):
     data = bytes(data)
     for v in (frame, frames, delay):
         bounded(v, 255, "frame metadata")
-    if frames == 0 or frame >= frames or not data or len(data) > 56 * 65536:
+    if frames == 0 or frame >= (5 if frames == 1 else frames) or not data or len(data) > 56 * 65536:
         raise ValueError("invalid frame metadata or screen payload length")
     for index, start in enumerate(range(0, len(data), 56)):
         chunk = data[start : start + 56]

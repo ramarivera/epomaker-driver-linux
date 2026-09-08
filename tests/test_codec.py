@@ -96,3 +96,21 @@ def test_picture_shape():
     assert len(chunks) == 7
     assert chunks[-1][4:6] == bytes([42, 1])
     assert chunks[-1][50:] == bytes(14)
+
+
+@pytest.mark.parametrize("bank", range(5))
+def test_still_bank_wire_header(bank):
+    # Vendor ___pngToDevice sends frameNum=1 and currentFrame=selected bank.
+    prepare = codec.screen_prepare(2, (0, 0, 1, 1), frame=bank)
+    chunk = next(codec.screen_chunks(bytes.fromhex("f800"), frame=bank))
+    assert prepare[:8] == bytes([0xA5, bank, 1, 0, 2, 0, 0, 0x57 - bank])
+    assert chunk[:8] == bytes([0x25, bank, 1, 0, 0, 0, 2, 0xD7 - bank])
+    assert chunk[8:10] == bytes.fromhex("f800")
+
+
+@pytest.mark.parametrize("frame,frames", [(5, 1), (2, 2), (0, 0), (-1, 1), (True, 1)])
+def test_display_bank_and_animation_limits(frame, frames):
+    with pytest.raises(ValueError):
+        codec.screen_prepare(2, (0, 0, 1, 1), frame=frame, frames=frames)
+    with pytest.raises(ValueError):
+        list(codec.screen_chunks(b"xx", frame=frame, frames=frames))

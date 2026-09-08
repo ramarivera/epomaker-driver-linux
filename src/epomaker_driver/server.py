@@ -150,7 +150,10 @@ class Controller:
             content = base64.b64decode(data["content"], validate=True)
             source = io.BytesIO(content)
             if kind == "screen":
-                keyboard.upload_screen(media.screen_image(source, fit=True), (0, 0, 428, 142))
+                bank = codec.bounded(data.get("bank", 0), 4, "still bank")
+                keyboard.upload_screen(
+                    media.screen_image(source, fit=True), (0, 0, 428, 142), frame=bank
+                )
             else:
                 frames, delay = media.screen_animation(
                     source, fit=True, delay_ms=data.get("delay_ms")
@@ -158,6 +161,8 @@ class Controller:
                 keyboard.upload_animation(frames, delay)
         elif kind == "clock":
             keyboard.sync_clock()
+        elif kind == "display_language_toggle":
+            keyboard.toggle_display_language()
         elif kind == "system_info":
             value = system_info.Collector().collect()
             keyboard.sync_system_info(value)

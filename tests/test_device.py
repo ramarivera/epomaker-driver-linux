@@ -217,3 +217,15 @@ def test_screen_prepare_timeout_retry(firmware):
     firmware.exchange = retry
     keyboard.upload_screen(bytes(2), (0, 0, 1, 1))
     assert len(tries) == 2
+
+
+def test_display_language_toggle_and_still_bank(firmware):
+    keyboard = Keyboard(firmware)
+    keyboard.toggle_display_language()
+    assert firmware.sent[-1] == bytes.fromhex("27010000000000d7") + bytes(56)
+    keyboard.upload_screen(b"\xf8\0", (0, 0, 1, 1), frame=4)
+    assert firmware.sent[-1][0:4] == bytes([0x25, 4, 1, 0])
+    before = list(firmware.sent)
+    with pytest.raises(ValueError):
+        keyboard.upload_screen(b"\xf8\0", (0, 0, 1, 1), frame=5)
+    assert firmware.sent == before

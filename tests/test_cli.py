@@ -254,3 +254,14 @@ def test_host_info_and_bounded_display_refresh(cli_device, firmware, monkeypatch
     monkeypatch.setattr(cli, "execute", interrupt)
     assert cli.main(["host-info"]) == 130
     assert json.loads(capsys.readouterr().err)["interrupted"]
+
+
+def test_display_bank_cli(cli_device, firmware, tmp_path):
+    from PIL import Image
+
+    path = tmp_path / "bank.png"
+    Image.new("RGB", (428, 142), "blue").save(path)
+    assert cli.main(["--device", cli_device.path, "screen", str(path), "--bank", "5"]) == 0
+    assert all(p[1:3] == bytes([4, 1]) for p in firmware.sent if p[0] == 0x25)
+    assert cli.main(["--device", cli_device.path, "display-language-toggle"]) == 0
+    assert firmware.sent[-1][:2] == bytes([0x27, 1])
