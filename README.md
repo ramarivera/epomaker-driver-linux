@@ -49,7 +49,7 @@ pairing and removal. Calibration and complete HE60 recovery are still being migr
 four profiles with four normal submodes each, Windows/Mac Fn maps, macros,
 OS controls, main lighting and five custom pictures. Magnetic controls use
 firmware-dependent 0.1, 0.01 or 0.005 mm steps. [HE68 Lite variants](docs/ry5088-he68.md) additionally enable IDs 2762, 2883
-and 3664, including lossless switch-type reads. Other same-PID siblings remain gated.
+and 3664, including lossless switch-type reads and selection. Other same-PID siblings remain gated.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.

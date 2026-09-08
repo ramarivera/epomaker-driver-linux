@@ -1467,7 +1467,8 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
-        "status"
+        "status",
+        "switch-type"
       ],
       "backend_limits": {
         "normal_profiles": 4,
@@ -1485,7 +1486,7 @@
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": false
+        "axis_write": true
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -1494,8 +1495,7 @@
         "vendor-online-services",
         "graphical-interface",
         "magnetic-calibration",
-        "configuration-recovery",
-        "switch-replacement"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2431,7 +2431,8 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
-        "status"
+        "status",
+        "switch-type"
       ],
       "backend_limits": {
         "normal_profiles": 4,
@@ -2449,7 +2450,7 @@
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": false
+        "axis_write": true
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -2458,8 +2459,7 @@
         "vendor-online-services",
         "graphical-interface",
         "magnetic-calibration",
-        "configuration-recovery",
-        "switch-replacement"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2920,7 +2920,8 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
-        "status"
+        "status",
+        "switch-type"
       ],
       "backend_limits": {
         "normal_profiles": 4,
@@ -2938,7 +2939,7 @@
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": false
+        "axis_write": true
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -2947,8 +2948,7 @@
         "vendor-online-services",
         "graphical-interface",
         "magnetic-calibration",
-        "configuration-recovery",
-        "switch-replacement"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {

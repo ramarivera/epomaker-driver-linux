@@ -38,8 +38,10 @@ instead of reproducing the vendor's integer wraparound.
 
 Read field 10 at stage `g`, slot `p`, is byte `g * 128 + p`.
 The byte-level codec preserves unknown mode/axis values. HE60 integrates the
-known magnetic modes; axis replacement and calibration remain unimplemented,
-and hardware validation is outstanding. The
+known magnetic modes. [HE68 Lite](ry5088-he68.md) supports model-gated
+switch-type selection through separate committed field-252 writes, preserving
+other magnetic state and keymaps. Calibration and hardware validation remain
+outstanding. The
 `write_commands` helper accepts an already-selected set of changed simple
 fields and emits the vendor order with only the final command committed; it
 does not infer diffs from prior state. Snap pairing and axis-type (252) writes

@@ -131,7 +131,7 @@ class Firmware:
             assert command[2] == 0 and command[5:7] == bytes(2)
             assert (sum(command[:8]) & 255) == 255
             field, slot = command[1], command[3]
-            width = 4 if field == 8 else 1 if field in (5, 7, 9, 251) else 2
+            width = 4 if field == 8 else 1 if field in (5, 7, 9, 251, 252) else 2
             if field == 8:
                 if not self.drop_mode_write:
                     trigger = bytearray(self.fields[10])

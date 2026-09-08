@@ -9,6 +9,7 @@ from .he_lighting import HELightingMixin
 from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
 from .he_snap import HESnapMixin
+from .he_switches import SWITCH_TYPES, HESwitchMixin
 from .magnetic import (
     assemble_pages,
     decode_field,
@@ -42,6 +43,7 @@ COMMANDS = frozenset(
         "magnetic-mode",
         "snap",
         "snap-clear",
+        "switch-type",
         "get-options",
         "options",
         "get-auto-os",
@@ -86,7 +88,7 @@ OPCODES = frozenset(
 )
 
 
-class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
+class HEKeyboard(HESwitchMixin, HESnapMixin, HELightingMixin, Keyboard):
     def __init__(self, transport, *, product_id):
         super().__init__(transport)
         if product_id not in HE_PRODUCTS:
@@ -224,7 +226,8 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
             }
             result["capabilities"].extend(("lighting", "picture"))
             if self.expected_id in RY5088_SWITCH_IDS:
-                result["capabilities"].append("magnetic-axis-read")
+                result["capabilities"].extend(("magnetic-axis-read", "switch-type"))
+                result["switch_types"] = SWITCH_TYPES.copy()
             if self.expected_id == 3727:
                 result["capabilities"].append("debounce")
                 result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
