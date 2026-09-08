@@ -31,6 +31,7 @@ class Firmware:
         self.change_profile_on_mode_read = False
         self.corrupt_action_after_write = False
         self._action_write_seen = False
+        self.fail_on_send_index = None
         self.options = bytearray(64)
         self.options[0] = 0x89
         self.auto_os = False
@@ -51,6 +52,7 @@ class Firmware:
         self.fields = {
             field: bytes([field]) * 256 for field in (0, 1, 2, 3, 4, 5, 6, 7, 9, 251, 252)
         }
+        self.fields[9] = bytes(256)
         self.fields[7] = bytes([0x80, 0x00] * 64)
         self.fields[10] = (
             bytes(range(128))
@@ -121,12 +123,14 @@ class Firmware:
         raise AssertionError(f"unexpected query {op:#x}")
 
     def send(self, command):
+        if self.fail_on_send_index is not None and len(self.sent) == self.fail_on_send_index:
+            raise RuntimeError("injected USB send failure")
         self.sent.append(command)
         if command[0] == 0x65:
             assert command[2] == 0 and command[5:7] == bytes(2)
             assert (sum(command[:8]) & 255) == 255
             field, slot = command[1], command[3]
-            width = 4 if field == 8 else 1 if field in (5, 7, 251) else 2
+            width = 4 if field == 8 else 1 if field in (5, 7, 9, 251) else 2
             if field == 8:
                 if not self.drop_mode_write:
                     trigger = bytearray(self.fields[10])

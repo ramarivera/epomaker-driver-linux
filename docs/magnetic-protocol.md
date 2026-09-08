@@ -5,8 +5,7 @@ macOS `623d2d52.js` and Windows `17dc9c62.js` bundles. Their entire contents
 match after imported chunk filenames are normalized. This codec performs no
 device access. The [HE60 backend](he60-lite-research.md) now uses its bulk
 read, decoding and ordered-write functions for actuation and rapid-trigger
-updates and normal/DKS/MT/toggle mode definitions with action bindings. Snap
-pairing remains unintegrated.
+updates and normal/DKS/MT/toggle mode definitions with action bindings. Reciprocal snap pairing and pair removal are integrated by `he_snap.py`.
 
 The multi-key read command is packetized as `e5 field 01 page` and the
 corresponding write command as `65 field 00 key-index commit 00 00 00`, with

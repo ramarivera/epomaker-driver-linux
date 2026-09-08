@@ -8,6 +8,7 @@ from .errors import ProtocolError, UnsupportedDevice
 from .he_lighting import HELightingMixin
 from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
+from .he_snap import HESnapMixin
 from .magnetic import (
     assemble_pages,
     decode_field,
@@ -37,6 +38,8 @@ COMMANDS = frozenset(
         "get-magnetic",
         "magnetic-key",
         "magnetic-mode",
+        "snap",
+        "snap-clear",
         "get-options",
         "options",
         "get-auto-os",
@@ -81,7 +84,7 @@ OPCODES = frozenset(
 )
 
 
-class HEKeyboard(HELightingMixin, Keyboard):
+class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
     def __init__(self, transport, *, product_id):
         super().__init__(transport)
         if product_id not in HE_PRODUCTS:
@@ -189,6 +192,7 @@ class HEKeyboard(HELightingMixin, Keyboard):
                 "magnetic-read",
                 "magnetic-actuation",
                 "magnetic-modes",
+                "snap",
             ]
             result = {
                 "identity": self.identity,

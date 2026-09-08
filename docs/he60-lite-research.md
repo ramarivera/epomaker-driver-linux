@@ -23,8 +23,7 @@ epomaker --device /dev/hidrawN get-magnetic
 
 Magnetic reads describe the current profile and retain raw field bytes and
 unknown mode values. These reads are not a complete restorable backup.
-Snap pairing, calibration,
-recovery and firmware upgrades remain outside this backend's
+Calibration, recovery and firmware upgrades remain outside this backend's
 current operation gate.
 
 ## Actuation and rapid-trigger updates
@@ -150,8 +149,7 @@ device's currently readable magnetic state from application-managed profiles;
 it must not invent per-profile wire storage from the catalog layer count.
 
 Remaining evidence work includes physical USB command descriptors, magnetic
-snap pairing, calibration, recovery and
-hardware comparisons.
+calibration, recovery and hardware comparisons.
 
 
 ## Everyday controls and lighting
@@ -225,8 +223,7 @@ rules. Omitted rapid-trigger state is preserved; enabled thresholds must be
 valid or explicitly replaced. Normal mode also accepts `top_deadzone` on
 supported firmware. Definitions reject unknown fields, invalid actions, and
 unsupported parameter combinations before writes. Existing snap and unknown
-modes cannot be replaced by this command, because pairing cleanup needs its
-own operation.
+modes cannot be replaced by this command, because pairing cleanup uses the dedicated `snap-clear` operation.
 
 For example, save this as `tap-hold.json`, then run
 `epomaker --device /dev/hidrawN magnetic-mode 5 tap-hold.json`:
@@ -264,3 +261,58 @@ Evidence: main pretty lines 108836–108846 define DKS bounds; macOS UI chunk
 field-5 writer divides by 10. The implementation is
 `src/epomaker_driver/he_modes.py` plus `HEKeyboard.set_magnetic_mode` in
 `src/epomaker_driver/he.py`. Tests exercise simulated USB reports, not hardware.
+
+
+## Snap pairing and removal
+
+```sh
+epomaker --device /dev/hidrawN snap 9 21
+epomaker --device /dev/hidrawN snap-clear 9
+```
+
+These are physical matrix slots: 9 is A and 21 is D on both HE60 layouts.
+Only nonempty physical slots are accepted. Padding and the Fn slot (77) are
+rejected, as are equal slots, unknown modes, keys already bound to a different
+partner, and inconsistent references from another snap key.
+
+Pairing writes mode field 7 for the first and second key, then reciprocal
+field-9 links. Only the fourth magnetic command commits. Each mode byte retains
+its key's rapid-trigger bit. Normal keys retain their current mappings. DKS,
+MT and toggle keys first regain their default ordinary action at submode 0;
+submodes 1–3 are cleared. Other keys, the other normal profile and Fn layers
+are unchanged. Pairing an already reciprocal pair is a no-op.
+
+`snap-clear` checks both sides of the relationship before changing anything.
+It restores both ordinary action bindings, clears both keys' extra submodes,
+and switches both mode bytes to normal while retaining each rapid-trigger bit.
+Travel and other magnetic parameters are preserved, as are inactive field-9
+bytes. A clear on an unpaired physical key is a no-op. This operation removes
+the pair; it is not a factory reset or a repair tool for inconsistent firmware
+state. `magnetic-key` can change the retained actuation parameters afterwards.
+
+Both operations read all four normal matrices and the involved complete
+magnetic fields, compare readback including neighboring keys, and check the
+active profile before writes and after readback. A failed transfer can leave
+partial state; subsequent operations reject a broken reciprocal relationship.
+No hardware writes have been performed during development.
+
+Packet evidence is the modern base's `setSnapKeySimple`, macOS
+`623d2d52.js` pretty lines 1466–1482, matching Windows `17dc9c62.js`.
+The main bundle's lines 113632–113682 restore advanced-key mappings before
+pairing. `resetSnapKey` at 105706–105714 selects both keys for restoration;
+113837–113862 restore the ordinary mapping and clear all extra submodes.
+The Linux clear uses the existing simple mode writer instead of overwriting
+unrelated slots through the vendor's bulk write path.
+
+`src/epomaker_driver/he_snap.py` implements these operations. Default bindings
+are functional data in `src/epomaker_driver/data/he60-matrices.json`, extracted
+from and compared across both installers. Each normal/Fn matrix is 512 bytes;
+the normal matrix has 61 nonempty slots including Fn. Both models share the
+normal matrix but differ in Fn matrices.
+
+The wireless model declares `defaultFnMACMatrix` with uppercase `MAC`, while
+the runtime reads `defaultFnMacMatrix`. Its effective Mac Fn default therefore
+comes from the modern base's inherited `Z` array. The data preserves both the
+declared uppercase matrix and the effective lowercase matrix. Wired 3727
+declares the correctly cased property. This is an installer discrepancy, not
+a Linux decision to substitute one layout for another.

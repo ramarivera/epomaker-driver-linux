@@ -67,6 +67,12 @@ def parser():
     )
     magnetic_mode.add_argument("slot", type=int)
     magnetic_mode.add_argument("path", type=Path)
+    snap = commands.add_parser("snap", help="pair two HE60 physical key slots")
+    snap.add_argument("first", type=int)
+    snap.add_argument("second", type=int)
+    commands.add_parser("snap-clear", help="remove both sides of an HE60 snap pair").add_argument(
+        "slot", type=int
+    )
     commands.add_parser(
         "factory-reset", help="save recovery snapshot, then reset keyboard configuration"
     ).add_argument("--backup", type=Path, required=True)
@@ -269,7 +275,7 @@ def execute(args):
     if is_he and args.command not in HE_COMMANDS:
         raise UnsupportedDevice("This HE60 Lite command has not been migrated yet")
     if not is_he and (
-        args.command in ("get-magnetic", "magnetic-key", "magnetic-mode")
+        args.command in ("get-magnetic", "magnetic-key", "magnetic-mode", "snap", "snap-clear")
         or getattr(args, "submode", 0)
     ):
         raise UnsupportedDevice("Magnetic controls and keymap submodes require HE60 Lite")
@@ -314,6 +320,10 @@ def execute(args):
             return keyboard.identify()
         if args.command == "status":
             return keyboard.status()
+        if args.command == "snap":
+            return keyboard.set_snap(args.first, args.second)
+        if args.command == "snap-clear":
+            return keyboard.clear_snap(args.slot)
         if args.command == "magnetic-mode":
             return keyboard.set_magnetic_mode(args.slot, prepared)
         if args.command == "get-magnetic":
