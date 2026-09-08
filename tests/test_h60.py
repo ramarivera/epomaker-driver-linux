@@ -48,10 +48,11 @@ def test_h60_status_capabilities_have_no_sleep_or_debounce():
         status["capabilities"]
     )
     assert "sleep" not in status and "debounce" not in status
+    assert "magnetic-axis-read" not in status["capabilities"]
 
 
 def test_h60_same_pid_sibling_rejected_before_io():
-    fw = Firmware(model_id=3664)
+    fw = Firmware(model_id=2465)
     kb = keyboard(fw, product=0x5029)
     with pytest.raises(UnsupportedDevice):
         kb.status()

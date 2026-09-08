@@ -9,6 +9,7 @@ from .models import data_file
 class HESnapMixin:
     def _snap_slot(self, slot):
         codec.bounded(slot, 127, "slot")
+        self._supported()
         default = bytes(data_file("he60-matrices.json")[str(self.expected_id)]["defaultMatrix"])
         action = default[slot * 4 : slot * 4 + 4]
         if not any(action) or action[:2] == bytes([10, 1]):

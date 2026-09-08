@@ -7,6 +7,10 @@ from importlib.resources import files
 
 from .errors import UnsupportedDevice
 
+# Shared modern magnetic protocol; model gates documented in docs/ry5088-he68.md.
+RY5088_IDS = (3662, 3664, 2762, 2883)
+RY5088_SWITCH_IDS = (3664, 2762, 2883)
+
 # Explicitly migrated RY6602 models; see docs/ry6602.md.
 RY6602_IDS = (3858, 3633, 3673, 3573, 3674)
 RY6602_SIDE_IDS = (3673, 3573, 3674)

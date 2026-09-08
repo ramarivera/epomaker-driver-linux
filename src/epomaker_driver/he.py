@@ -17,12 +17,12 @@ from .magnetic import (
     top_dead_zone_supported,
     travel_multiplier,
 )
-from .models import model_by_id
+from .models import RY5088_IDS, RY5088_SWITCH_IDS, model_by_id
 from .versions import parse_version, version_request
 
 # The RY5088 H60 uses the same USB PID as several catalog siblings.  The
 # internal identity check below is therefore mandatory before any operation.
-HE_PRODUCTS = {0x5029: 3662, 0x502C: 3727, 0x502E: 3759}
+HE_PRODUCTS = {0x5029: RY5088_IDS, 0x502C: (3727,), 0x502E: (3759,)}
 COMMANDS = frozenset(
     (
         "identify",
@@ -92,7 +92,8 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
         if product_id not in HE_PRODUCTS:
             raise UnsupportedDevice("unsupported HE60 Lite USB product")
         self.product_id = product_id
-        self.expected_id = HE_PRODUCTS[product_id]
+        self.allowed_ids = HE_PRODUCTS[product_id]
+        self.expected_id = self.allowed_ids[0] if len(self.allowed_ids) == 1 else None
 
     def identify(self):
         self.identity = None
@@ -100,10 +101,11 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
         identity = codec.parse_identity(
             self.transport.exchange(codec.identify_request(), expected=0x8F)
         )
-        if identity["device_id"] != self.expected_id:
+        if identity["device_id"] not in self.allowed_ids:
             raise UnsupportedDevice("HE60 Lite internal ID does not match USB product")
         if identity["is_boot"]:
             raise UnsupportedDevice("HE60 Lite is in bootloader mode")
+        self.expected_id = identity["device_id"]
         self.identity = identity
         self.model = model_by_id(identity["device_id"])
         return {**identity, "model": self.model["displayName"]}
@@ -111,13 +113,17 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
     def _supported(self):
         if self.identity is None:
             self.identify()
-        if self.identity["device_id"] != self.expected_id or self.identity["is_boot"]:
+        if (
+            self.identity["device_id"] not in self.allowed_ids
+            or self.identity["device_id"] != self.expected_id
+            or self.identity["is_boot"]
+        ):
             raise UnsupportedDevice("HE60 Lite identity is not supported")
 
     def _profile_max(self):
-        # RY5088 H60 advertises four ordinary profiles; HE60 Lite has two.
+        # Migrated RY5088 models have four ordinary profiles; HE60 Lite has two.
         self._supported()
-        return 3 if self.expected_id == 3662 else 1
+        return 3 if self.expected_id in RY5088_IDS else 1
 
     def _check_commands(self, commands):
         self._supported()
@@ -217,6 +223,8 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                 "picture_banks": 3 if self.expected_id == 3727 else 5,
             }
             result["capabilities"].extend(("lighting", "picture"))
+            if self.expected_id in RY5088_SWITCH_IDS:
+                result["capabilities"].append("magnetic-axis-read")
             if self.expected_id == 3727:
                 result["capabilities"].append("debounce")
                 result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
@@ -293,6 +301,8 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                 fields["5"] = self._read_field(5, 128).hex()
             if any(value & 0x7F == 7 for value in modes):
                 fields["9"] = self._read_field(9, 128).hex()
+            if self.expected_id in RY5088_SWITCH_IDS:
+                fields["252"] = self._read_field(252, 128).hex()
             if top_dead_zone_supported(usb=usb, rf=rf):
                 fields["251"] = self._read_field(251, 128).hex()
             after = self._query(codec.packet([0x84]), expected=0x84)[1]
@@ -332,6 +342,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                 (251, "top_deadzone"),
                 (5, "mt_time"),
                 (9, "bind_slot"),
+                (252, "axis_type"),
             ):
                 if str(field) in fields:
                     item[name] = decode_field(

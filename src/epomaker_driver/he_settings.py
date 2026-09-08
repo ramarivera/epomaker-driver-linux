@@ -17,6 +17,7 @@ from .magnetic import (
     travel_multiplier,
     write_commands,
 )
+from .models import RY5088_IDS
 
 _MODE_NAMES = {0: "normal", 2: "dks", 3: "mt", 4: "tgl_hold", 5: "tgl_dots", 7: "snap"}
 _PATCH_FIELDS = {
@@ -97,7 +98,7 @@ def _state_versions(state):
 
 
 def plan_update(model_id, slot, patch, state):
-    if type(model_id) is not int or model_id not in (3662, 3727, 3759):
+    if type(model_id) is not int or model_id not in (*RY5088_IDS, 3727, 3759):
         raise ValueError("unsupported HE model")
     if type(slot) is not int or not 0 <= slot <= 127:
         raise ValueError("slot must be 0..127")
@@ -111,12 +112,12 @@ def plan_update(model_id, slot, patch, state):
     usb, rf, multiplier = _state_versions(state)
     effective_version = rf if rf is not None else usb if usb is not None else 0
     max_travel = 4 if 0 < effective_version < 0x300 else 3.3
-    if model_id == 3662:
+    if model_id in RY5088_IDS:
         step = 0.1 if effective_version < 0x300 else 0.01 if effective_version < 0x500 else 0.005
     else:
         step = 0.1
     rapid_min = step
-    rapid_max = 2.5 if model_id == 3662 and effective_version < 0x300 else 2
+    rapid_max = 2.5 if model_id in RY5088_IDS and effective_version < 0x300 else 2
     modes = state.get("modes")
     if (
         not isinstance(modes, list)
