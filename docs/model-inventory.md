@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
 cross-references all 46 catalog rows with the Linux backend gates and the
 installer modules that load each model.
 
-There are **17 partial backends, 29 catalog-only entries and zero models verified
+There are **21 partial backends, 25 catalog-only entries and zero models verified
 on physical hardware**. These counts are not a feature-parity percentage. A
 weighted feature inventory, hardware comparisons and application-wide workflows
 remain necessary for the greater-than-95% target in [migration status](parity.md).
@@ -23,7 +23,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
   `backend_limits` records important restrictions. Neither means hardware-tested.
 - `protocol_family` on catalog-only rows is a name-prefix grouping, explicitly
   marked `family_evidence: name-prefix-only`. See the research candidates below
-  for additional source evidence; H60 and the three HE68 Lite IDs have been enabled.
+  for additional source evidence; H60, the HE68 variants and [four additional wired models](ry5088-wired.md) have been enabled.
 - `remaining_domains` is a migration checklist, not an exhaustive or weighted
   denominator. Shared application features must also be counted.
 
@@ -31,7 +31,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 | --- | --- | --- |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
-| RY5088 | 3662, 3664, 2762, 2883 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; recovery and hardware verification outstanding |
+| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; recovery and hardware verification outstanding |
 | HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; recovery and hardware verification outstanding |
 | RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
 
@@ -49,7 +49,7 @@ resolved names. The unresolved entry is **Epomaker M65, ID 2550**,
 loader match is a source ambiguity, not a reason to discard it or a claim that
 the physical keyboard is unsupported by the vendor.
 
-The 22 RY5088-named rows include four partial backends and 18 catalog-only
+The 22 RY5088-named rows include eight partial backends and 14 catalog-only
 entries. Direct inspection of the following model modules confirms that they import the same
 modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows, and declare
 512-byte default normal, Fn and Fn-Mac matrices without child method overrides.

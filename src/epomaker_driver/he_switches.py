@@ -29,6 +29,13 @@ def resolve_switch(value):
     raise ValueError("switch must be a supported vendor name or numeric code")
 
 
+def model_switch_types(model_id):
+    # Vendor UI fallback, overridden by a model's explicit catalog list.
+    fallback = [name for name, code in SWITCH_TYPES.items() if code < 6]
+    supported = model_by_id(model_id).get("other", {}).get("supportedSwitchTypes", fallback)
+    return {name: SWITCH_TYPES[name] for name in supported if name in SWITCH_TYPES}
+
+
 class HESwitchMixin:
     def set_switch_type(self, slots, switch):
         code = resolve_switch(switch)
@@ -41,8 +48,7 @@ class HESwitchMixin:
         self._supported()
         if self.expected_id not in RY5088_SWITCH_IDS:
             raise UnsupportedDevice("this model does not support switch-type selection")
-        supported = model_by_id(self.expected_id).get("other", {}).get("supportedSwitchTypes", [])
-        if code not in {SWITCH_TYPES[name] for name in supported if name in SWITCH_TYPES}:
+        if code not in model_switch_types(self.expected_id).values():
             raise ValueError("switch is not listed for this model")
 
         def operation():

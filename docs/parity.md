@@ -18,7 +18,9 @@ main lighting and custom pictures, plus model-gated debounce/sleep.
 [H60](ry5088-h60.md) additionally migrates the first RY5088 model with four
 profiles and firmware-dependent magnetic precision.
 [Three HE68 Lite IDs](ry5088-he68.md) add their own matrices and lossless
-switch-type reads and selection to the same backend. Seventeen
+switch-type reads and selection to the same backend.
+[Four additional wired RY5088 models](ry5088-wired.md) add model-specific Fn and
+side-lighting gates. Twenty-one
 models have some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.

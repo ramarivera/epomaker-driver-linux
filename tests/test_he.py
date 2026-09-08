@@ -43,7 +43,7 @@ class Firmware:
         self.light[0] = 0x87
         self.pictures = {index: bytes([index]) * 378 for index in range(5)}
         self.macros = {slot: bytes(256) for slot in range(256)}
-        profile_count = 4 if model_id in (3662, 3664, 2762, 2883) else 2
+        profile_count = 4 if model_id in (3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691) else 2
         self.matrices = {
             (profile, mode): bytes([profile, mode]) * 256
             for profile in range(profile_count)
@@ -240,7 +240,7 @@ def test_h60_uses_four_profiles_and_five_picture_banks():
 
 
 def test_h60_same_pid_sibling_is_rejected_before_writes():
-    fw = Firmware(model_id=2465)
+    fw = Firmware(model_id=3746)
     kb = keyboard(fw, product=0x5029)
     with pytest.raises(UnsupportedDevice, match="internal ID"):
         kb.identify()

@@ -21,7 +21,9 @@ class CalibrationFirmware(Firmware):
 
 def install(monkeypatch, model, *, cancel=False):
     fw = CalibrationFirmware(model)
-    product = 0x502C if model == 3727 else 0x502E if model == 3759 else 0x5029
+    product = {3727: 0x502C, 3759: 0x502E, 2586: 0x502D, 2870: 0x502D, 3691: 0x5030}.get(
+        model, 0x5029
+    )
     info = DeviceInfo("/dev/calibration", "Keyboard", 3, 0x3151, product, b"", "usb", 0)
     now = [0.0]
 
@@ -45,7 +47,7 @@ def install(monkeypatch, model, *, cancel=False):
     return fw, info.path
 
 
-@pytest.mark.parametrize("model", (3662, 3664, 2762, 2883, 3727, 3759))
+@pytest.mark.parametrize("model", (3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691))
 def test_calibration_cli_orders_start_stop_and_reports_raw_readings(model, monkeypatch, capsys):
     fw, path = install(monkeypatch, model)
     assert cli.main(["--device", path, "calibrate", "--seconds", "1"]) == 0

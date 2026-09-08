@@ -43,7 +43,7 @@ def test_switch_type_noop_and_invalid_slots_do_not_write():
 
 
 def test_h60_and_unknown_catalog_switch_are_rejected_before_writes():
-    for model in (3662, 2465):
+    for model in (3662, 3746):
         fw = Firmware(model_id=model)
         kb = HEKeyboard(keyboard(fw, product=0x5029).transport, product_id=0x5029)
         with pytest.raises(UnsupportedDevice):

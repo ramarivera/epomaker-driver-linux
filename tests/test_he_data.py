@@ -8,6 +8,30 @@ DATA = json.loads(
 NAMES = ("defaultMatrix", "defaultFnMatrix", "defaultFnMacMatrix")
 DECLARED_NAMES = NAMES + ("defaultFnMACMatrix",)
 HASHES = {
+    ("2465", "defaultMatrix"): "927321320e81f3e78714030fffe2e5dbea90b520e0eceb8e77948cf64560f0c1",
+    ("2465", "defaultFnMatrix"): "4088d7fe10950a6e812be52a7e1ac857cf6e999f1bbb74024ba0fd2f59f80cf1",
+    (
+        "2465",
+        "defaultFnMacMatrix",
+    ): "4088d7fe10950a6e812be52a7e1ac857cf6e999f1bbb74024ba0fd2f59f80cf1",
+    ("2586", "defaultMatrix"): "8d741fd99f8523838645aafc0f7f4a30950a7f2cec322defc49855c3ac7e9a32",
+    ("2586", "defaultFnMatrix"): "5850ef307f7981697fce4429508e5823e92e6611a25bcf64c6898b4ac060376a",
+    (
+        "2586",
+        "defaultFnMacMatrix",
+    ): "09cca991f097feb064c89852791b677860951a8132dd3d4e1f0505c5dbcc27c9",
+    ("2870", "defaultMatrix"): "4ccae2e374ff5646ffb9afd404a6c4bd39e2f9c5dc3d2d8c3316959da92a56b5",
+    ("2870", "defaultFnMatrix"): "858d79c1ad51b7e267617a48740a5675008553f01c9b87f95f349b9f00f1953e",
+    (
+        "2870",
+        "defaultFnMacMatrix",
+    ): "03133080055178aa8a70bd00174235631a5dd7b758b7f0dbc9d77551fef5fd0d",
+    ("3691", "defaultMatrix"): "2344387f62b34cc036750937fff4cd3ee93b0cb74dd50db4e74f95cb815d8c0b",
+    ("3691", "defaultFnMatrix"): "cb0466d547051f86f71997521b4e65b8324886d26b8a8e7c798ab43499dabaa4",
+    (
+        "3691",
+        "defaultFnMacMatrix",
+    ): "4e506e52e05b4b8e45437b1a4b0ba5883bd0502188143599f35c4532be83f349",
     ("2762", "defaultMatrix"): "a5c213ee34e353509ca786d62ad32254b0e444fc97ba0478953905995f00e19d",
     ("2762", "defaultFnMatrix"): "0fc4599696a697483b685d03aae9186216be1d39b16fb6a690e449c221285048",
     (
@@ -56,7 +80,18 @@ def _slots(matrix):
 
 
 def test_matrix_schema_lengths_and_byte_values():
-    assert set(DATA) == {"3662", "3664", "2762", "2883", "3727", "3759"}
+    assert set(DATA) == {
+        "3662",
+        "3664",
+        "2762",
+        "2883",
+        "3727",
+        "3759",
+        "2465",
+        "2586",
+        "2870",
+        "3691",
+    }
     for model in DATA.values():
         assert set(model) == set(NAMES) | (
             {"defaultFnMACMatrix"} if model is DATA["3759"] else set()

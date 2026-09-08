@@ -52,7 +52,7 @@ def test_h60_status_capabilities_have_no_sleep_or_debounce():
 
 
 def test_h60_same_pid_sibling_rejected_before_io():
-    fw = Firmware(model_id=2465)
+    fw = Firmware(model_id=3746)
     kb = keyboard(fw, product=0x5029)
     with pytest.raises(UnsupportedDevice):
         kb.status()

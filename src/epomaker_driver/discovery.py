@@ -127,7 +127,7 @@ def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
             if r.payload_bytes("input") == r.payload_bytes("output") == 65:
                 return "bluetooth", 6
     # HE60 Lite's two USB filters: docs/he60-lite-research.md.
-    if bus == 3 and pid in (0x4015, 0x5002, 0x5029, 0x502C, 0x502E, 0x5056):
+    if bus == 3 and pid in (0x4015, 0x5002, 0x5029, 0x502C, 0x502D, 0x502E, 0x5030, 0x5056):
         r = reports.get(0)
         if r and Collection(0xFFFF, 2) in r.collections and r.payload_bytes("feature") == 64:
             return "usb", 0

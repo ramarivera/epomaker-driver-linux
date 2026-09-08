@@ -15,8 +15,8 @@
   ],
   "counts": {
     "catalog_rows": 46,
-    "partial_backends": 17,
-    "catalog_only": 29,
+    "partial_backends": 21,
+    "catalog_only": 25,
     "hardware_verified": 0,
     "rows_with_loaders_in_both_installers": 45,
     "catalog_name_prefixes": {
@@ -876,9 +876,9 @@
       "catalog_name": "ry5088_fq_x80_1m_8k",
       "vid": "0x3151",
       "pid": "0x5030",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -953,15 +953,54 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "status",
+        "switch-type"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "side_lighting": false,
+        "backup": false,
+        "restore": false,
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": false,
+        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
+        "axis_write": true
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2005,9 +2044,9 @@
       "catalog_name": "ry5088_kiiboom68c_dm_8k",
       "vid": "0x3151",
       "pid": "0x502d",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -2075,15 +2114,55 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "side-lighting",
+        "status",
+        "switch-type"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows layer 0 only; Mac Fn bank absent in catalog",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "side_lighting": "Q: six effects; mode-specific controls",
+        "backup": false,
+        "restore": false,
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": false,
+        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
+        "axis_write": true
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2228,9 +2307,9 @@
       "catalog_name": "ry5088_x82he68_dm_8k",
       "vid": "0x3151",
       "pid": "0x5029",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -2306,15 +2385,54 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "status",
+        "switch-type"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "side_lighting": false,
+        "backup": false,
+        "restore": false,
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": false,
+        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
+        "axis_write": true
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2485,9 +2603,9 @@
       "catalog_name": "ry5088_epomaker65_dm_8k",
       "vid": "0x3151",
       "pid": "0x502d",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -2556,15 +2674,55 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "side-lighting",
+        "status",
+        "switch-type"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "side_lighting": "Q: six effects; mode-specific controls",
+        "backup": false,
+        "restore": false,
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": false,
+        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
+        "axis_write": true
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "configuration-recovery"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {

@@ -10,7 +10,7 @@ from .he_lighting import HELightingMixin
 from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
 from .he_snap import HESnapMixin
-from .he_switches import SWITCH_TYPES, HESwitchMixin
+from .he_switches import HESwitchMixin, model_switch_types
 from .magnetic import (
     assemble_pages,
     decode_field,
@@ -19,12 +19,12 @@ from .magnetic import (
     top_dead_zone_supported,
     travel_multiplier,
 )
-from .models import RY5088_IDS, RY5088_SWITCH_IDS, model_by_id
+from .models import RY5088_IDS, RY5088_PRODUCTS, RY5088_SIDE_IDS, RY5088_SWITCH_IDS, model_by_id
 from .versions import parse_version, version_request
 
 # The RY5088 H60 uses the same USB PID as several catalog siblings.  The
 # internal identity check below is therefore mandatory before any operation.
-HE_PRODUCTS = {0x5029: RY5088_IDS, 0x502C: (3727,), 0x502E: (3759,)}
+HE_PRODUCTS = {**RY5088_PRODUCTS, 0x502C: (3727,), 0x502E: (3759,)}
 COMMANDS = frozenset(
     (
         "identify",
@@ -66,6 +66,7 @@ OPCODES = frozenset(
         0x04,
         0x06,
         0x07,
+        0x08,
         0x09,
         0x0A,
         0x0B,
@@ -80,6 +81,7 @@ OPCODES = frozenset(
         0x84,
         0x86,
         0x87,
+        0x88,
         0x8C,
         0x89,
         0x8A,
@@ -136,6 +138,10 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         self._supported()
         if any(command[0] not in OPCODES for command in commands):
             raise UnsupportedDevice("operation is not migrated for HE60 Lite")
+        if self.expected_id not in RY5088_SIDE_IDS and any(
+            command[0] in (0x08, 0x88) for command in commands
+        ):
+            raise UnsupportedDevice("side lighting is unavailable on this model")
         if self.expected_id != 3727 and any(command[0] in (0x06, 0x86) for command in commands):
             raise UnsupportedDevice("debounce is unavailable on wireless HE60 Lite")
         if self.expected_id != 3759 and any(command[0] in (0x11, 0x91) for command in commands):
@@ -150,6 +156,8 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             if profile != 0 or mode != 0:
                 raise ValueError("Fn reads use layer 0 and submode 0")
             codec.bounded(os_mode, 1, "OS selector")
+            if not self.model["fnSysLayer"].get("mac" if os_mode else "win", 0):
+                raise UnsupportedDevice("this model has no Fn bank for the selected OS")
         else:
             codec.bounded(mode, 3, "submode")
 
@@ -177,6 +185,8 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
                 if profile != 0 or mode != 0:
                     raise ValueError("Fn writes use layer 0 and submode 0")
                 codec.bounded(os_mode, 1, "OS selector")
+                if not self.model["fnSysLayer"].get("mac" if os_mode else "win", 0):
+                    raise UnsupportedDevice("this model has no Fn bank for the selected OS")
             else:
                 codec.bounded(mode, 3, "submode")
             command = (
@@ -233,7 +243,10 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             result["capabilities"].extend(("lighting", "picture"))
             if self.expected_id in RY5088_SWITCH_IDS:
                 result["capabilities"].extend(("magnetic-axis-read", "switch-type"))
-                result["switch_types"] = SWITCH_TYPES.copy()
+                result["switch_types"] = model_switch_types(self.expected_id)
+            if self.expected_id in RY5088_SIDE_IDS:
+                result["capabilities"].append("side-lighting")
+                result["side_light"] = self.get_light(side=True)
             if self.expected_id == 3727:
                 result["capabilities"].append("debounce")
                 result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
