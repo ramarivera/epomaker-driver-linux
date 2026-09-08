@@ -41,6 +41,7 @@ Device access may require [permissions](docs/hardware.md).
 .venv/bin/epomaker --device /dev/hidrawN matrix --profile 0
 # Upload a still PNG/JPEG; preserve aspect ratio with black borders.
 .venv/bin/epomaker --device /dev/hidrawN screen wallpaper.png --fit
+.venv/bin/epomaker --device /dev/hidrawN animation wallpaper.gif --fit
 # Write a keyboard macro, then verify all 256 bytes by reading it back.
 .venv/bin/epomaker --device /dev/hidrawN macro 0 macro.json
 .venv/bin/epomaker --device /dev/hidrawN get-macro 0
@@ -64,7 +65,8 @@ also support mouse-button and movement events; `get-macro --decoded` exports edi
 JSON. See [macro and binding commands](docs/macros.md).
 
 Still images are converted
-to the display's column-major RGB565 format. Animated images are currently rejected.
+to the display's column-major RGB565 format. The `animation` command accepts 2–46
+frames with the vendor's averaged frame timing. See [display behavior](docs/display.md).
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 
 ## Test

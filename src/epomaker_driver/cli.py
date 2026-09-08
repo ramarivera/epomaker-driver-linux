@@ -90,6 +90,10 @@ def parser():
     screen = commands.add_parser("screen", help="upload a still image to the Glyph display")
     screen.add_argument("path", type=Path)
     screen.add_argument("--fit", action="store_true")
+    animation = commands.add_parser("animation", help="upload composed animation frames")
+    animation.add_argument("path", type=Path)
+    animation.add_argument("--fit", action="store_true")
+    animation.add_argument("--delay-ms", type=int)
     commands.add_parser("get-picture").add_argument("index", type=int)
     picture = commands.add_parser("picture", help="write 126 RGB slot colors from JSON")
     picture.add_argument("index", type=int)
@@ -143,6 +147,8 @@ def execute(args):
     prepared = None
     if args.command == "screen":
         prepared = media.screen_image(args.path, fit=args.fit)
+    elif args.command == "animation":
+        prepared = media.screen_animation(args.path, fit=args.fit, delay_ms=args.delay_ms)
     elif args.command == "macro":
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
@@ -249,6 +255,10 @@ def execute(args):
             keyboard.write_macro(args.slot, prepared)
         elif args.command == "screen":
             keyboard.upload_screen(prepared, (0, 0, 428, 142))
+        elif args.command == "animation":
+            frames, delay = prepared
+            keyboard.upload_animation(frames, delay)
+            return {"ok": True, "frames": len(frames), "frame_delay_ms": delay}
         elif args.command == "debounce":
             keyboard.set_debounce(args.milliseconds)
         elif args.command == "clock":

@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 
 from . import codec
-from .errors import ProtocolError, UnsupportedDevice
+from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from .models import model_by_id
 
 
@@ -250,16 +250,38 @@ class Keyboard:
         if len(pixels) != (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) * 2:
             raise ValueError("RGB565 payload does not match screen bounds")
         chunks = list(codec.screen_chunks(pixels, frame, frames, delay))
+        self._transfer_screen(prepare, chunks, progress)
+
+    def upload_animation(self, frames, delay, *, progress=None):
+        from .media import MAX_ANIMATION_FRAMES
+
+        if not 2 <= len(frames) <= MAX_ANIMATION_FRAMES:
+            raise ValueError(f"animation must contain 2..{MAX_ANIMATION_FRAMES} frames")
+        if any(len(frame) != 428 * 142 * 2 for frame in frames):
+            raise ValueError("animation frames must be complete 428x142 RGB565 images")
+        prepare = codec.screen_prepare(len(frames[0]), (0, 0, 428, 142), 0, len(frames), delay)
+        chunks = [
+            chunk
+            for index, frame in enumerate(frames)
+            for chunk in codec.screen_chunks(frame, index, len(frames), delay)
+        ]
+        self._transfer_screen(prepare, chunks, progress)
+
+    def _transfer_screen(self, prepare, chunks, progress):
         self._supported()
 
         def operation():
             for _ in range(11):
-                response = self.transport.exchange(prepare, read_delay=0.1)
+                try:
+                    response = self.transport.exchange(prepare, read_delay=0.1, expected=0xA5)
+                except ResponseTimeout:
+                    response = b""
                 if len(response) >= 2 and response[1] == 1:
                     break
                 self.transport.sleep(0.1)
             else:
                 raise ProtocolError("screen transfer was not accepted")
+            self.transport.sleep(0.1)
             for i, chunk in enumerate(chunks):
                 self.transport.send(chunk, delay=0.005)
                 if progress:

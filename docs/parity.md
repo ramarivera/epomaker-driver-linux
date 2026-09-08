@@ -19,7 +19,7 @@ IDs do not establish that another model speaks the same protocol.
 | Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and interactive editor |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, visual editor, ambiguous legacy motion timing and hardware comparison |
-| Screen | Still-image CLI, RGB565 conversion, bounded frame transfer, clock sync | Image/GIF UI, playback and display settings, hardware comparison |
+| Screen | Still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer and clock sync | Image/GIF UI, still-bank selection, remaining display settings, hardware comparison |
 | Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Research only | F6/F7/FC/FE transport and paired-device handling |

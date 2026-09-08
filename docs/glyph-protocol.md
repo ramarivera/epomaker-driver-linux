@@ -18,7 +18,7 @@ Private analysis references (vendor code is not redistributed): `623d2d52.js`, `
 | Key/profile layers | `3` in model metadata; Fn system layers `{win:1, mac:1}` |
 | Matrix storage | 512 bytes = 128 four-byte slots, with unused entries and duplicate key identities |
 | Knob identities | Volume Down, Play/Pause, Volume Up |
-| Screen | 428×142, mode `16`, layer labels `1`–`5`; memorySize `6` as stored, unit not established here |
+| Screen | 428×142, mode `16`, layer labels `1`–`5`; memorySize `6` means 6 MiB in the drawing-board calculation |
 | Magnetic switches | Model explicitly sets `noMagneticSwitch: true`; do not expose Hall/RT controls merely because the base class has them |
 | Main lighting | 22 catalog choices, usually brightness/speed 0–4; mode-specific options |
 | Side lighting | Six choices; brightness up to 4, speed up to 3 |
@@ -188,7 +188,7 @@ Host-generated live colors have a `0F` path with 56-byte chunks. The app's `supp
 
 Glyph uses 16-bit **RGB565 big-endian pixels**, traversed **column first** (`x` outer, `y` inner). It crops to left/top inclusive, right/bottom exclusive. For a 2×2 image `red green / blue white`, expected bytes are `F8 00 00 1F 07 E0 FF FF`.
 
-The default whole-screen payload is `428 * 142 * 2 = 121,552` bytes, or 2,171 packets carrying at most 56 bytes each. UI converts PNG/GIF into pixel data; it does not send a PNG/GIF file directly. The raw frame-delay field is one byte; its time unit was not established here.
+The default whole-screen payload is `428 * 142 * 2 = 121,552` bytes, or 2,171 packets carrying at most 56 bytes each. UI converts PNG/GIF into pixel data; it does not send a PNG/GIF file directly. Later tracing established that the UI converts GIF delays to milliseconds, caps each at 255 and rounds their average before passing that one-byte value to the uploader. See [display timing and memory evidence](display.md); actual hardware playback remains unverified.
 
 **Prepare transfer** (`getTFTLCDDataRGBImg`, despite the name):
 

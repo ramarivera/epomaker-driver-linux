@@ -198,3 +198,15 @@ def test_decoded_macro_cli_and_action_catalog(cli_device, firmware, capsys):
     assert json.loads(capsys.readouterr().out) == value
     assert cli.main(["actions"]) == 0
     assert "volume-up" in json.loads(capsys.readouterr().out)["media"]
+
+
+def test_animation_cli(cli_device, firmware, tmp_path, capsys):
+    from PIL import Image
+
+    path = tmp_path / "animation.gif"
+    Image.new("RGB", (2, 2), "red").save(
+        path, save_all=True, append_images=[Image.new("RGB", (2, 2), "green")], duration=80
+    )
+    assert cli.main(["--device", cli_device.path, "animation", str(path), "--fit"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"ok": True, "frames": 2, "frame_delay_ms": 80}
+    assert len(firmware.sent) == 4342

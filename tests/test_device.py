@@ -164,3 +164,56 @@ def test_partial_picture_is_not_zero_filled(firmware):
     )
     with pytest.raises(ProtocolError, match="incomplete custom RGB"):
         keyboard.read_picture()
+
+
+def test_animation_single_handshake_and_progress(firmware):
+    keyboard = Keyboard(firmware)
+    exchange = firmware.exchange
+    prepare = []
+
+    def tracked(command, **kwargs):
+        if command[0] == 0xA5:
+            prepare.append(command)
+        return exchange(command, **kwargs)
+
+    firmware.exchange = tracked
+    progress = []
+    frames = [bytes.fromhex("f800") * 60776, bytes.fromhex("07e0") * 60776]
+    keyboard.upload_animation(frames, 50, progress=progress.append)
+    assert len(prepare) == 1
+    assert prepare[0][1:4] == bytes([0, 2, 50])
+    assert len(firmware.sent) == 4342
+    assert firmware.sent[0][1:4] == bytes([0, 2, 50])
+    assert firmware.sent[2171][1:6] == bytes([1, 2, 50, 0, 0])
+    for index in range(2):
+        chunks = firmware.sent[index * 2171 : (index + 1) * 2171]
+        assert b"".join(p[8 : 8 + p[6]] for p in chunks) == frames[index]
+    assert progress[-1] == 1 and progress == sorted(progress)
+
+
+@pytest.mark.parametrize(
+    "frames", [[], [bytes(121552)], [bytes(1), bytes(121552)], [bytes(121552)] * 47]
+)
+def test_bad_animation_never_writes(firmware, frames):
+    with pytest.raises(ValueError):
+        Keyboard(firmware).upload_animation(frames, 50)
+    assert firmware.sent == []
+
+
+def test_screen_prepare_timeout_retry(firmware):
+    from epomaker_driver.errors import ResponseTimeout
+
+    keyboard = Keyboard(firmware)
+    keyboard.identify()
+    exchange = firmware.exchange
+    tries = []
+
+    def retry(command, **kwargs):
+        tries.append(command)
+        if len(tries) == 1:
+            raise ResponseTimeout("test missing response")
+        return exchange(command, **kwargs)
+
+    firmware.exchange = retry
+    keyboard.upload_screen(bytes(2), (0, 0, 1, 1))
+    assert len(tries) == 2

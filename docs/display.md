@@ -1,0 +1,49 @@
+# Glyph display images and animation
+
+```sh
+epomaker --device /dev/hidrawN screen still.png --fit
+epomaker --device /dev/hidrawN animation moving.gif --fit
+epomaker --device /dev/hidrawN animation moving.gif --fit --delay-ms 80
+```
+
+Without `--fit`, frames must be exactly 428x142 pixels. With it, the image is scaled
+with preserved aspect ratio and black borders. Transparency is composited onto black.
+All frames are decoded, converted and validated before opening the HID device. GIF
+frames are composed sequentially using Pillow's disposal/transparency handling.
+
+## Timing and memory evidence
+
+The shipped `composeGifFrames` multiplies GIF centiseconds by ten, caps each delay at
+255, and `gif2Canvas` rounds the mean of those delays. The uploader passes this single
+delay value to every frame. The Linux implementation follows that same conversion,
+including rounding .5 upward. It does not preserve different durations per frame,
+because the vendor's upload path uses one averaged delay. `--delay-ms` overrides the
+average with an integer from 0 to 255; zero is preserved as a protocol value, without
+a hardware-verified playback meaning.
+
+The vendor's drawing-board memory calculation resolves Glyph's `memorySize: 6` as
+6 MiB. It reserves a 4 KiB header, rounds each full-size RGB565 image to 30 blocks of
+4 KiB, and reserves five still images. This yields 46 animation frames:
+
+```text
+floor((6*1024*1024 - 4096) / ((floor(428*142*2 / 4096) + 1)*4096)) - 5 = 46
+```
+
+The animation command accepts 2–46 frames and rejects excess frames before device
+writes. It sends complete frames; it does not currently crop to a shared nonblack
+bounding box as the vendor UI can. Each frame contains 121,552 pixel bytes, encoded
+as RGB565 high-byte-first, column-major, in 2,171 packets.
+
+## Transfer sequence
+
+The vendor's `___gifToDevice` prepares the entire animation once using the first
+frame's byte length, total count, delay and common bounds. It then sends each frame,
+starting that frame's chunk index at zero. The Linux driver follows this sequence;
+it does not repeat the preparation handshake between frames. Preparation failures
+or timeouts are retried up to ten times after the initial request. Once accepted,
+the driver waits 100 ms before sending pixels.
+
+There is no implemented screen readback command. Completion confirms that the host
+sent all packets, not that the device displayed or persisted every frame. Hardware
+acceptance, timing, firmware persistence, five-bank still-image selection and visual
+comparison remain outstanding. Screen images are not part of configuration backups.
