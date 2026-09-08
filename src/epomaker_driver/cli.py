@@ -17,6 +17,7 @@ from . import (
     legacy_snapshot,
     macros,
     media,
+    mouse_cli,
     profiles,
     snapshot,
     system_info,
@@ -32,6 +33,9 @@ from .he_switches import resolve_switch
 from .legacy import COMMANDS as LEGACY_COMMANDS
 from .legacy import LegacyKeyboard
 from .models import catalog
+from .mouse import COMMANDS as MOUSE_COMMANDS
+from .mouse import PRODUCTS as MOUSE_PRODUCTS
+from .mouse import Mouse
 from .transport import Transport
 
 
@@ -56,6 +60,7 @@ def parser():
     )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
+    mouse_cli.parsers(commands)
     commands.add_parser(
         "get-magnetic", help="read supported magnetic-keyboard parameters for the current profile"
     )
@@ -284,6 +289,11 @@ def execute(args):
         )
     device = select_device(args.device)
     is_he = device.product_id in HE_PRODUCTS
+    is_mouse = device.product_id in MOUSE_PRODUCTS
+    if is_mouse and args.command not in MOUSE_COMMANDS:
+        raise UnsupportedDevice("this command is not implemented for CH585 mice")
+    if args.command in MOUSE_COMMANDS - {"identify", "status", "profile"} and not is_mouse:
+        raise UnsupportedDevice("mouse commands require a supported CH585 mouse")
     if is_he and args.command not in HE_COMMANDS:
         raise UnsupportedDevice("This magnetic-keyboard command has not been migrated yet")
     if not is_he and (
@@ -314,6 +324,8 @@ def execute(args):
     if args.command == "restore" and (prepared.get("schema_version") == 7) != is_he:
         raise UnsupportedDevice("schema 7 snapshots require a supported magnetic keyboard")
     with Transport.open(device) as transport:
+        if is_mouse:
+            return mouse_cli.run(Mouse(transport, product_id=device.product_id), args)
         if is_he:
             keyboard = HEKeyboard(transport, product_id=device.product_id)
         elif device.product_id == 0x4015:

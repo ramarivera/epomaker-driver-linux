@@ -21,10 +21,12 @@ profiles and firmware-dependent magnetic precision.
 switch-type reads and selection to the same backend.
 [Four additional wired RY5088 models](ry5088-wired.md) add model-specific Fn and
 side-lighting gates. [Four wireless-capable models](ry5088-wireless.md) add USB
-configuration with model-specific sleep timers and RF version handling. Twenty-five
+configuration with model-specific sleep timers and RF version handling. Thirty
 models have some backend support; their feature coverage differs substantially.
 [Magnetic recovery](he-recovery.md) adds backup and restore for all fourteen
 implemented magnetic IDs, including inactive fields and unreferenced macros.
+[Five CH585 mice](ch585-protocol.md) add USB profiles, raw button mappings,
+DPI settings and report-rate writes, with aggregate sensor/settings reads.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
@@ -34,7 +36,7 @@ IDs do not establish that another model speaks the same protocol.
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for all 25 migrated models | Vendor export semantics and application-local magnetic caches, other models |
+| Profiles | Model-specific profile counts and active selection; HE60 has four normal submodes per profile; model-checked configuration restore for 25 migrated keyboards; eight-profile support for five mice | Vendor export semantics and application-local magnetic caches, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0; HE60 21 effects and three/five picture banks, with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; HE60 wired debounce and wireless three-timer sleep; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
@@ -44,7 +46,7 @@ IDs do not establish that another model speaks the same protocol.
 | OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
-| Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
+| Mice | Five CH585 models: USB identity/status, eight profiles, raw button bindings, model-specific DPI changes, report rate and aggregate settings reads | PAN1080 families, semantic actions, macros, lighting and sensor-setting writes, battery, recovery and wireless routing |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |

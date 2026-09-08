@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
 cross-references all 46 catalog rows with the Linux backend gates and the
 installer modules that load each model.
 
-There are **25 partial backends, 21 catalog-only entries and zero models verified
+There are **30 partial backends, 16 catalog-only entries and zero models verified
 on physical hardware**. These counts are not a feature-parity percentage. A
 weighted feature inventory, hardware comparisons and application-wide workflows
 remain necessary for the greater-than-95% target in [migration status](parity.md).
@@ -29,6 +29,7 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 
 | Implemented family | Internal IDs | Current scope |
 | --- | --- | --- |
+| CH585 mice | 3961, 3303, 3304, 3929, 3919 | USB profiles, raw button mapping, DPI levels and report rate; settings reads; [protocol and limitations](ch585-protocol.md) |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
 | RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; schema 7 recovery; hardware verification outstanding |

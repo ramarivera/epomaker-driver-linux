@@ -15,8 +15,8 @@
   ],
   "counts": {
     "catalog_rows": 46,
-    "partial_backends": 25,
-    "catalog_only": 21,
+    "partial_backends": 30,
+    "catalog_only": 16,
     "hardware_verified": 0,
     "rows_with_loaders_in_both_installers": 45,
     "catalog_name_prefixes": {
@@ -221,9 +221,9 @@
       "catalog_name": "mouse_ry6608_qfn48_yj_g91_yj_zg169_3955_8k_8k_3m",
       "vid": "0x3151",
       "pid": "0x503a",
-      "protocol_family": "mouse",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "CH585 mouse",
+      "family_evidence": "model-loader-direct-inheritance-in-both-installers",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -296,15 +296,40 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "identify",
+        "status",
+        "profile-selection",
+        "raw-button-keymap",
+        "dpi-read",
+        "dpi-edit",
+        "report-rate",
+        "aggregate-settings-read"
+      ],
+      "backend_limits": {
+        "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
+        "profiles": 8,
+        "matrix_bytes": 64,
+        "dpi_levels": 6,
+        "dpi_entries_preserved": 8,
+        "usb_report_rate_max": 8000,
+        "backup": false,
+        "restore": false,
+        "boot_status": "not established; bootloader PIDs excluded",
+        "hardware_round_trips_verified": false
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "mouse-semantic-actions",
+        "mouse-macros",
+        "mouse-lighting",
+        "mouse-settings-writes",
+        "configuration-recovery",
+        "wireless-transports"
       ]
     },
     {
@@ -313,9 +338,9 @@
       "catalog_name": "mouse_ry6601_qfn48_xmg_m11_3311_1k_1k_3m",
       "vid": "0x3151",
       "pid": "0x5043",
-      "protocol_family": "mouse",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "CH585 mouse",
+      "family_evidence": "model-loader-direct-inheritance-in-both-installers",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -388,15 +413,40 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "identify",
+        "status",
+        "profile-selection",
+        "raw-button-keymap",
+        "dpi-read",
+        "dpi-edit",
+        "report-rate",
+        "aggregate-settings-read"
+      ],
+      "backend_limits": {
+        "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
+        "profiles": 8,
+        "matrix_bytes": 64,
+        "dpi_levels": 6,
+        "dpi_entries_preserved": 8,
+        "usb_report_rate_max": 1000,
+        "backup": false,
+        "restore": false,
+        "boot_status": "not established; bootloader PIDs excluded",
+        "hardware_round_trips_verified": false
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "mouse-semantic-actions",
+        "mouse-macros",
+        "mouse-lighting",
+        "mouse-settings-writes",
+        "configuration-recovery",
+        "wireless-transports"
       ]
     },
     {
@@ -405,9 +455,9 @@
       "catalog_name": "mouse_ry6608_qfn48_xmg_m11_3950_8k_8k_3m",
       "vid": "0x3151",
       "pid": "0x503a",
-      "protocol_family": "mouse",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "CH585 mouse",
+      "family_evidence": "model-loader-direct-inheritance-in-both-installers",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -480,15 +530,40 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "identify",
+        "status",
+        "profile-selection",
+        "raw-button-keymap",
+        "dpi-read",
+        "dpi-edit",
+        "report-rate",
+        "aggregate-settings-read"
+      ],
+      "backend_limits": {
+        "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
+        "profiles": 8,
+        "matrix_bytes": 64,
+        "dpi_levels": 6,
+        "dpi_entries_preserved": 8,
+        "usb_report_rate_max": 8000,
+        "backup": false,
+        "restore": false,
+        "boot_status": "not established; bootloader PIDs excluded",
+        "hardware_round_trips_verified": false
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "mouse-semantic-actions",
+        "mouse-macros",
+        "mouse-lighting",
+        "mouse-settings-writes",
+        "configuration-recovery",
+        "wireless-transports"
       ]
     },
     {
@@ -497,9 +572,9 @@
       "catalog_name": "mouse_ry6608_g33_yj_zc28_3395_8k_8k",
       "vid": "0x3151",
       "pid": "0x503a",
-      "protocol_family": "mouse",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "CH585 mouse",
+      "family_evidence": "model-loader-direct-inheritance-in-both-installers",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -574,15 +649,40 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "identify",
+        "status",
+        "profile-selection",
+        "raw-button-keymap",
+        "dpi-read",
+        "dpi-edit",
+        "report-rate",
+        "aggregate-settings-read"
+      ],
+      "backend_limits": {
+        "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
+        "profiles": 8,
+        "matrix_bytes": 64,
+        "dpi_levels": 7,
+        "dpi_entries_preserved": 8,
+        "usb_report_rate_max": 8000,
+        "backup": false,
+        "restore": false,
+        "boot_status": "not established; bootloader PIDs excluded",
+        "hardware_round_trips_verified": false
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "mouse-semantic-actions",
+        "mouse-macros",
+        "mouse-lighting",
+        "mouse-settings-writes",
+        "configuration-recovery",
+        "wireless-transports"
       ]
     },
     {
@@ -591,9 +691,9 @@
       "catalog_name": "mouse_ry6601_qfn48_g33_yj_zc5_3315_1k_1k",
       "vid": "0x3151",
       "pid": "0x5043",
-      "protocol_family": "mouse",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "CH585 mouse",
+      "family_evidence": "model-loader-direct-inheritance-in-both-installers",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -685,15 +785,40 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "identify",
+        "status",
+        "profile-selection",
+        "raw-button-keymap",
+        "dpi-read",
+        "dpi-edit",
+        "report-rate",
+        "aggregate-settings-read"
+      ],
+      "backend_limits": {
+        "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
+        "profiles": 8,
+        "matrix_bytes": 64,
+        "dpi_levels": 6,
+        "dpi_entries_preserved": 8,
+        "usb_report_rate_max": 1000,
+        "backup": false,
+        "restore": false,
+        "boot_status": "not established; bootloader PIDs excluded",
+        "hardware_round_trips_verified": false
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "model-backend"
+        "mouse-semantic-actions",
+        "mouse-macros",
+        "mouse-lighting",
+        "mouse-settings-writes",
+        "configuration-recovery",
+        "wireless-transports"
       ]
     },
     {
