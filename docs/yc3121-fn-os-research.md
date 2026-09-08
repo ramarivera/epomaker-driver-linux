@@ -4,7 +4,8 @@ Applies to RT100 (1379) and Dynatab75X-UK (1723), whose model loaders inherit
 CommonKbYc500. Sources are the installer pair in
 [source-releases.json](source-releases.json); module identity comparisons are
 recorded in [yc3121.md](yc3121.md). These are static protocol findings, not
-hardware observations. Fn and manual OS controls remain unimplemented.
+hardware observations. Fn layer 0 reads and writes are now implemented as described
+in [yc3121.md](yc3121.md); manual OS controls remain unimplemented.
 
 ## Fn matrices
 
@@ -32,8 +33,8 @@ The single-slot restore path explicitly uses `defaultFnMatrix`. Case-sensitive
 property names and the ignored OS selector need to remain visible in any
 future default-restoration design.
 
-Next implementation boundary: expose the physical Fn layer addressed by these
-packets, preserve unknown slots, and read back changes. Do not label a second
+The implementation now exposes Fn layer 0 addressed by these packets, preserves
+unknown slots, and reads back changes. Do not label a second
 independent Mac bank without evidence. Verify hardware behavior across manual
 OS changes before claiming an OS-specific mapping.
 

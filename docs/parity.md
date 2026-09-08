@@ -18,7 +18,7 @@ IDs do not establish that another model speaks the same protocol.
 | Linux HID discovery | Sysfs descriptors and command collection classification | More hardware descriptors |
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
-| Key remapping | Glyph, RT85, RT75 and five RY6602 models' key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
+| Key remapping | Glyph, RT85, RT75, five RY6602 models and RT100/Dynatab75X-UK migrated Fn layer 0 slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Per-model three/four matrices; active profile selection; model-checked configuration restore for eight migrated models | Vendor export semantics, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0 with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
@@ -27,7 +27,7 @@ IDs do not establish that another model speaks the same protocol.
 | Backups | Eight migrated models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
-| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows | RT100/Dynatab75X-UK Fn and recovery; other model-specific protocols |
+| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |

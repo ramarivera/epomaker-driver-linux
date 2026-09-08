@@ -19,6 +19,7 @@ class Firmware:
         self.version = 0x213
         self.profile = 0
         self.matrices = [bytearray(bytes(range(256)) * 2) for _ in range(3)]
+        self.fn_matrix = bytearray(bytes(reversed(range(256))) * 2)
         self.macros = [bytearray(256) for _ in range(256)]
         self.macro_pending = bytearray(280)
         self.timers = bytes.fromhex("7800f0000807100e")
@@ -51,6 +52,9 @@ class Firmware:
         elif op == 0x89:
             assert p[3:7] == bytes(4)
             raw[:] = self.matrices[p[1]][p[2] * 64 : (p[2] + 1) * 64]
+        elif op == 0x90:
+            assert p[1] == 0 and p[3:7] == bytes(4)
+            raw[:] = self.fn_matrix[p[2] * 64 : (p[2] + 1) * 64]
         elif op == 0x8B:
             assert p[3:7] == bytes(4)
             raw[:] = self.macros[p[1]][p[2] * 64 : (p[2] + 1) * 64]
@@ -73,6 +77,9 @@ class Firmware:
             elif op == 0x13:
                 assert p[3:7] == bytes(4) and p[12:] == bytes(52)
                 self.matrices[p[1]][p[2] * 4 : p[2] * 4 + 4] = p[8:12]
+            elif op == 0x15:
+                assert p[1] == 0 and p[3:7] == bytes(4) and p[12:] == bytes(52)
+                self.fn_matrix[p[2] * 4 : p[2] * 4 + 4] = p[8:12]
             elif op == 0x16:
                 assert p[3] == 56 and p[5:7] == bytes(2)
                 self.macro_pending[p[2] * 56 : (p[2] + 1) * 56] = p[8:64]
@@ -128,6 +135,7 @@ def test_core_roundtrip(legacy):
         "debounce",
         "auto-os",
         "macro",
+        "fn",
         "lighting",
         "display",
     ]
@@ -158,6 +166,70 @@ def test_core_roundtrip(legacy):
     assert keyboard.get_auto_os()
     keyboard.set_auto_os(False)
     assert not keyboard.get_auto_os()
+
+
+def test_fn_matrix_and_normal_matrix_are_isolated(legacy):
+    keyboard, fw = legacy
+    normal = keyboard.read_matrix()
+    fn = keyboard.read_matrix(fn=True)
+    assert fn == bytes(fw.fn_matrix)
+    assert fn != normal
+    changed = bytearray(fn)
+    changed[0:4] = bytes([9, 8, 7, 6])
+    changed[-4:] = bytes([1, 2, 3, 4])
+    fw.commands.clear()
+    keyboard.write_fn_matrix(changed)
+    assert bytes(fw.fn_matrix) == changed
+    assert keyboard.read_matrix(fn=True) == changed
+    assert keyboard.read_matrix() == normal
+    assert [p[2] for p in fw.commands if p[0] == 0x15] == [0, 127]
+    fw.commands.clear()
+    keyboard.write_fn_matrix(changed)
+    assert not any(p[0] == 0x15 for p in fw.commands)
+    assert keyboard.set_key(1, bytes([4, 3, 2, 1]), fn=True) == [4, 3, 2, 1]
+    assert keyboard.read_matrix(fn=True)[4:8] == bytes([4, 3, 2, 1])
+    assert keyboard.read_matrix()[4:8] == normal[4:8]
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda k: k.read_matrix(profile=1, fn=True),
+        lambda k: k.read_matrix(fn=True, os_mode=1),
+        lambda k: k.set_key(0, bytes(4), profile=1, fn=True),
+        lambda k: k.set_key(0, bytes(4), fn=True, os_mode=1),
+        lambda k: k.write_fn_matrix(bytes(512), os_mode=1),
+    ],
+)
+def test_fn_unsupported_selectors_write_nothing(legacy, operation):
+    keyboard, fw = legacy
+    with pytest.raises(UnsupportedDevice):
+        operation(keyboard)
+    assert not any(p[0] in (0x15, 0x90) for p in fw.commands)
+
+
+def test_fn_readback_failure(legacy):
+    keyboard, fw = legacy
+    fw.ignore_writes = True
+    with pytest.raises(ProtocolError, match="Fn key readback differs"):
+        keyboard.set_key(0, bytes([1, 2, 3, 4]), fn=True)
+
+
+def test_fn_cli_matrix_and_binding(legacy, monkeypatch, capsys):
+    keyboard, fw = legacy
+    info = DeviceInfo("/dev/hidraw99", "YC3121", 3, 0x3151, 0x4015, b"", "usb", 0)
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Transport(fw, "usb", sleep=lambda _: None))
+    prefix = ["--device", info.path]
+    assert cli.main([*prefix, "matrix", "--fn", "--decoded"]) == 0
+    assert json.loads(capsys.readouterr().out)["slots"]
+    assert cli.main([*prefix, "bind-key", "3", "a", "--fn"]) == 0
+    capsys.readouterr()
+    assert fw.fn_matrix[12:16] == bytes([0, 0, 4, 0])
+    assert fw.matrices[0][12:16] != bytes([0, 0, 4, 0])
+    assert cli.main([*prefix, "bind-macro", "4", "9", "--fn"]) == 0
+    capsys.readouterr()
+    assert fw.fn_matrix[16:20] == bytes([9, 0, 9, 0])
 
 
 @pytest.mark.parametrize(
@@ -282,8 +354,8 @@ def test_legacy_display_cli_converts_model_dimensions(legacy, monkeypatch, tmp_p
         lambda k: k.read_matrix(-1),
         lambda k: k.set_key(128, bytes(4)),
         lambda k: k.set_key(0, bytes(3)),
-        lambda k: k.set_key(0, bytes(4), fn=True),
-        lambda k: k.read_matrix(fn=True),
+        lambda k: k.read_matrix(profile=1, fn=True),
+        lambda k: k.set_key(0, bytes(4), fn=True, os_mode=1),
         lambda k: k.read_matrix(os_mode=1),
         lambda k: k.write_matrix(bytes(504)),
         lambda k: k.set_sleep(59, 60, 600, 600),
@@ -339,7 +411,7 @@ def test_invalid_profile_response(legacy):
         keyboard.get_profile()
 
 
-@pytest.mark.parametrize("method", ["identify", "get_sleep", "read_matrix"])
+@pytest.mark.parametrize("method", ["identify", "get_sleep", "read_matrix", "read_fn_matrix"])
 def test_short_responses(legacy, method):
     keyboard, fw = legacy
     keyboard.identify()

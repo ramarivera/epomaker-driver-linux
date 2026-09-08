@@ -112,8 +112,12 @@ class LegacyKeyboard:
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0):
         self._profile(profile)
-        if fn or os_mode != 0:
-            raise UnsupportedDevice("YC3121 Fn and OS matrix selection are not migrated yet")
+        if fn:
+            if profile != 0 or os_mode != 0:
+                raise UnsupportedDevice("YC3121 Fn uses physical layer 0 and OS mode 0")
+            return self.read_fn_matrix()
+        if os_mode != 0:
+            raise UnsupportedDevice("YC3121 OS matrix selection is not migrated")
 
         def operation():
             pages = []
@@ -132,8 +136,12 @@ class LegacyKeyboard:
         action = bytes(action)
         if len(action) != 4:
             raise ValueError("action must contain four bytes")
-        if fn or os_mode != 0:
-            raise UnsupportedDevice("YC3121 Fn and OS matrix selection are not migrated yet")
+        if fn:
+            if profile != 0 or os_mode != 0:
+                raise UnsupportedDevice("YC3121 Fn uses physical layer 0 and OS mode 0")
+            return self.set_fn_key(slot, action)
+        if os_mode != 0:
+            raise UnsupportedDevice("YC3121 OS matrix selection is not migrated")
         command = codec.packet(bytes([0x13, profile, slot]) + bytes(5) + action)
 
         def operation():
@@ -160,6 +168,63 @@ class LegacyKeyboard:
                     self._send(codec.packet(bytes([0x13, profile, slot]) + bytes(5) + action))
             if self.read_matrix(profile) != matrix:
                 raise ProtocolError("matrix readback differs")
+
+        self.transport.transaction(operation)
+
+    def _fn_layer(self, os_mode=0):
+        self._supported()
+        if os_mode != 0:
+            raise UnsupportedDevice(
+                "Only YC3121 Fn layer 0 addressing is migrated; OS selection is unavailable"
+            )
+        return 0
+
+    def read_fn_matrix(self, os_mode=0):
+        layer = self._fn_layer(os_mode)
+
+        def operation():
+            pages = []
+            for page in range(8):
+                raw = self.transport.exchange(codec.packet([0x90, layer, page]))
+                if len(raw) != 64:
+                    raise ProtocolError(f"incomplete YC3121 Fn matrix page {page}")
+                pages.append(raw)
+            return b"".join(pages)
+
+        return self.transport.transaction(operation)
+
+    def set_fn_key(self, slot, action, *, os_mode=0):
+        layer = self._fn_layer(os_mode)
+        codec.bounded(slot, 127, "Fn slot")
+        action = bytes(action)
+        if len(action) != 4:
+            raise ValueError("action must contain four bytes")
+        command = codec.packet(bytes([0x15, layer, slot]) + bytes(5) + action)
+
+        def operation():
+            self._send(command)
+            actual = self.read_fn_matrix()[slot * 4 : slot * 4 + 4]
+            if actual != action:
+                raise ProtocolError("Fn key readback differs")
+            return list(actual)
+
+        return self.transport.transaction(operation)
+
+    def write_fn_matrix(self, matrix, *, os_mode=0):
+        self._fn_layer(os_mode)
+        matrix = bytes(matrix)
+        if len(matrix) != 512:
+            raise ValueError("Fn matrix must have 128 four-byte slots")
+
+        def operation():
+            previous = self.read_fn_matrix()
+            for slot in range(128):
+                start = slot * 4
+                action = matrix[start : start + 4]
+                if action != previous[start : start + 4]:
+                    self._send(codec.packet(bytes([0x15, 0, slot]) + bytes(5) + action))
+            if self.read_fn_matrix() != matrix:
+                raise ProtocolError("Fn matrix readback differs")
 
         self.transport.transaction(operation)
 
@@ -452,6 +517,7 @@ class LegacyKeyboard:
                 "debounce",
                 "auto-os",
                 "macro",
+                "fn",
                 "lighting",
                 "display",
             ],
