@@ -68,7 +68,14 @@ For example, use `epomaker --device /dev/hidrawN light wave --side --speed 3`.
 
 ## Remaining work
 
-Hardware behavior, firmware management, configuration recovery, reconnect and
+Hardware behavior, firmware management, reconnect and
 GUI integration remain unfinished. Source equivalence and simulated tests do
 not establish physical compatibility or overall parity. See the complete
 [model inventory](model-inventory.md) and [migration status](parity.md).
+
+## Schema 7 recovery
+
+[Magnetic backup and restore](he-recovery.md) now covers all migrated
+configuration domains, including inactive magnetic fields and all macro slots.
+It requires USB and exact firmware versions. Physical hardware verification
+and persistent sensor calibration recovery remain outstanding.

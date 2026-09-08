@@ -36,6 +36,8 @@ HE_PRODUCTS = {**RY5088_PRODUCTS, 0x502C: (3727,), 0x502E: (3759,)}
 COMMANDS = frozenset(
     (
         "identify",
+        "backup",
+        "restore",
         "status",
         "matrix",
         "key",

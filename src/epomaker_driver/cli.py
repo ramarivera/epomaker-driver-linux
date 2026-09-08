@@ -12,6 +12,8 @@ from . import (
     __version__,
     actions,
     codec,
+    he_recovery,
+    he_snapshot,
     legacy_snapshot,
     macros,
     media,
@@ -179,7 +181,7 @@ def parser():
     backup.add_argument("path", type=Path)
     backup.add_argument("--overwrite", action="store_true")
     restore = commands.add_parser(
-        "restore", help="restore a v2/v3 snapshot with a saved recovery copy"
+        "restore", help="restore a supported snapshot with a saved recovery copy"
     )
     restore.add_argument("path", type=Path)
     restore.add_argument(
@@ -261,7 +263,9 @@ def execute(args):
     elif args.command == "restore":
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-        if isinstance(prepared, dict) and prepared.get("schema_version") == 6:
+        if isinstance(prepared, dict) and prepared.get("schema_version") == 7:
+            he_snapshot.validate(prepared)
+        elif isinstance(prepared, dict) and prepared.get("schema_version") == 6:
             legacy_snapshot.validate(prepared)
         else:
             snapshot.validate(prepared)
@@ -307,6 +311,8 @@ def execute(args):
         and device.product_id != 0x4015
     ):
         raise UnsupportedDevice("schema 6 snapshots require a YC3121 device")
+    if args.command == "restore" and (prepared.get("schema_version") == 7) != is_he:
+        raise UnsupportedDevice("schema 7 snapshots require a supported magnetic keyboard")
     with Transport.open(device) as transport:
         if is_he:
             keyboard = HEKeyboard(transport, product_id=device.product_id)
@@ -413,6 +419,8 @@ def execute(args):
             keyboard.set_auto_os(args.enabled == "on")
             return {"ok": True}
         if args.command == "restore":
+            if is_he:
+                return he_recovery.restore(keyboard, prepared, args.backup)
             if device.product_id == 0x4015:
                 return legacy_snapshot.restore(keyboard, prepared, args.backup)
             return snapshot.restore(keyboard, prepared, args.backup)
@@ -467,7 +475,9 @@ def execute(args):
             keyboard.sync_clock()
         elif args.command == "backup":
             value = (
-                legacy_snapshot.capture(keyboard)
+                he_snapshot.capture(keyboard)
+                if is_he
+                else legacy_snapshot.capture(keyboard)
                 if device.product_id == 0x4015
                 else snapshot.capture(keyboard)
             )

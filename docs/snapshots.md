@@ -137,3 +137,9 @@ receiver field intact. That field and screen pixels are not recoverable from
 these snapshots. The limitation is present in the returned metadata. Reset saves
 all 256 macros, validates the snapshot, and sends the shared reset opcode only
 after the private recovery file exists. See [ry6602.md](ry6602.md) for commands.
+
+## Magnetic schema 7
+
+All fourteen migrated magnetic models have a separate [schema 7](he-recovery.md)
+with per-profile submodes and full raw magnetic state. It includes every macro
+slot and requires identical model and firmware versions for USB restoration.

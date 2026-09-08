@@ -31,8 +31,8 @@ remain necessary for the greater-than-95% target in [migration status](parity.md
 | --- | --- | --- |
 | Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
 | Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
-| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; recovery and hardware verification outstanding |
-| HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; recovery and hardware verification outstanding |
+| RY5088 | 3662, 3664, 2762, 2883, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959 | H60 and HE68 Lite variants; four profiles and firmware-dependent magnetic precision; timed USB calibration; schema 7 recovery; hardware verification outstanding |
+| HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; timed USB calibration; schema 7 recovery; hardware verification outstanding |
 | RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
 
 The desktop interface currently supports Glyph. Other enabled models have CLI

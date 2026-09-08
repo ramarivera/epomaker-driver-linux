@@ -144,12 +144,12 @@ reads four submodes, numbered 0–3, for every normal profile when the magnetic
 flag exists. For either HE60 Lite that means eight 512-byte normal matrices,
 not two. Magnetic parameter reads have no profile selector in their `e5`
 headers, while the application caches magnetic settings by profile and can
-restore cached values on switching. A future backup must distinguish the
-device's currently readable magnetic state from application-managed profiles;
-it must not invent per-profile wire storage from the catalog layer count.
+restore cached values on switching. [Schema 7 backup](he-recovery.md) records
+the state actually observed after each profile selection; it does not infer
+independent magnetic storage or recover the vendor application’s local caches.
 
 Remaining evidence work includes physical USB command descriptors, magnetic
-calibration results, recovery and hardware comparisons.
+calibration results and hardware comparisons.
 
 
 ## Everyday controls and lighting
@@ -316,3 +316,10 @@ comes from the modern base's inherited `Z` array. The data preserves both the
 declared uppercase matrix and the effective lowercase matrix. Wired 3727
 declares the correctly cased property. This is an installer discrepancy, not
 a Linux decision to substitute one layout for another.
+
+## Schema 7 recovery
+
+[Magnetic backup and restore](he-recovery.md) now covers all migrated
+configuration domains, including inactive magnetic fields and all macro slots.
+It requires USB and exact firmware versions. Physical hardware verification
+and persistent sensor calibration recovery remain outstanding.

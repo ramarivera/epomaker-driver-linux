@@ -43,7 +43,8 @@ profile selection, magnetic-parameter reads and per-key actuation/rapid-trigger
 settings with readback, OS controls, 21 main-light effects and custom RGB pictures.
 Debounce is wired-only; three sleep timers are wireless-only. Magnetic mode
 definitions include DKS, tap/hold and toggle actions, plus reciprocal snap
-pairing and removal. Calibration and complete HE60 recovery are still being migrated.
+pairing and removal. [Schema 7 recovery](docs/he-recovery.md) includes all profiles,
+magnetic fields and all 256 macros, with exact firmware matching.
 
 [RY5088 H60 support](docs/ry5088-h60.md) adds internal ID 3662 over USB:
 four profiles with four normal submodes each, Windows/Mac Fn maps, macros,

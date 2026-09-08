@@ -72,6 +72,13 @@ for `sleep24.deep` explicitly (macOS main lines 111729–111734). G84 HE omits
 Simulated USB tests cover model/PID identity, profile/submode addressing, Fn
 gates, switch choices, RF-dependent precision, sleep limits and readback,
 side-lighting packets, snap default restoration and calibration dispatch.
-No physical device comparison has been completed. Recovery, firmware management,
+No physical device comparison has been completed. Firmware management,
 wireless transports, reconnect and GUI integration remain unfinished. These
 models count as partial backends in the [full inventory](model-inventory.md).
+
+## Schema 7 recovery
+
+[Magnetic backup and restore](he-recovery.md) now covers all migrated
+configuration domains, including inactive magnetic fields and all macro slots.
+It requires USB and exact firmware versions. Physical hardware verification
+and persistent sensor calibration recovery remain outstanding.

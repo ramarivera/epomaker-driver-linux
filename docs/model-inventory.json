@@ -955,6 +955,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -973,6 +974,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status",
         "switch-type"
       ],
@@ -986,21 +988,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -1118,6 +1120,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -1136,6 +1139,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "rf-version",
         "sleep",
         "status",
@@ -1151,8 +1155,8 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": {
@@ -1172,15 +1176,15 @@
         },
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
         "axis_write": true,
-        "transport": "USB only; wireless connections not enabled"
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -1301,6 +1305,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -1319,6 +1324,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "rf-version",
         "side-lighting",
         "sleep",
@@ -1335,8 +1341,8 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": "Q: six effects; speed 0–3; mode-specific controls",
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": {
@@ -1356,15 +1362,15 @@
         },
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
         "axis_write": true,
-        "transport": "USB only; wireless connections not enabled"
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -1458,6 +1464,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -1475,6 +1482,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status"
       ],
       "backend_limits": {
@@ -1487,20 +1495,20 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
-        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm"
+        "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -1604,6 +1612,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -1622,6 +1631,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status",
         "switch-type"
       ],
@@ -1635,21 +1645,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2229,6 +2239,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -2247,6 +2258,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "side-lighting",
         "status",
         "switch-type"
@@ -2261,21 +2273,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": "Q: six effects; mode-specific controls",
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2392,6 +2404,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -2410,6 +2423,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "rf-version",
         "sleep",
         "status",
@@ -2425,8 +2439,8 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": {
@@ -2446,15 +2460,15 @@
         },
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
         "axis_write": true,
-        "transport": "USB only; wireless connections not enabled"
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2556,6 +2570,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -2574,6 +2589,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status",
         "switch-type"
       ],
@@ -2587,21 +2603,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2704,6 +2720,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -2722,6 +2739,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status",
         "switch-type"
       ],
@@ -2735,21 +2753,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2845,6 +2863,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -2863,6 +2882,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "side-lighting",
         "status",
         "switch-type"
@@ -2877,21 +2897,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": "Q: six effects; mode-specific controls",
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -3125,6 +3145,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -3143,6 +3164,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "rf-version",
         "side-lighting",
         "sleep",
@@ -3159,8 +3181,8 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": "Q: six effects; speed 0–3; mode-specific controls",
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": {
@@ -3180,15 +3202,15 @@
         },
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
         "axis_write": true,
-        "transport": "USB only; wireless connections not enabled"
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -3291,6 +3313,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -3309,6 +3332,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status",
         "switch-type"
       ],
@@ -3322,21 +3346,21 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
         "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
-        "axis_write": true
+        "axis_write": true,
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -5367,6 +5391,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "fn-keymap",
@@ -5384,6 +5409,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "sleep",
         "status"
       ],
@@ -5397,17 +5423,17 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
-        "calibration": "timed USB session; physical result unverified"
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
+        "calibration": "timed USB session; physical result unverified",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ]
     },
     {
@@ -5509,6 +5535,7 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "backup",
         "calibration-session",
         "calibration-telemetry",
         "debounce",
@@ -5527,6 +5554,7 @@
         "picture-read-write",
         "picture-slot-edit",
         "profile-selection",
+        "restore",
         "status"
       ],
       "backend_limits": {
@@ -5539,17 +5567,17 @@
         "hardware_round_trips_verified": false,
         "normal_submodes_per_profile": 4,
         "side_lighting": false,
-        "backup": false,
-        "restore": false,
-        "calibration": "timed USB session; physical result unverified"
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
+        "calibration": "timed USB session; physical result unverified",
+        "snapshot_macro_slots": 256
       },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "configuration-recovery"
+        "graphical-interface"
       ]
     },
     {
