@@ -13,3 +13,7 @@ dist/
 *.egg-info/
 *.pcap*
 *.log
+ui/node_modules/
+ui/test-results/
+ui/playwright-report/
+src/epomaker_driver/web/

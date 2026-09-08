@@ -20,7 +20,7 @@ epomaker = "epomaker_driver.cli:main"
 dev = ["pytest==9.0.2", "pytest-cov==7.0.0", "ruff==0.15.1", "build==1.4.0"]
 
 [tool.setuptools.package-data]
-epomaker_driver = ["data/*.json"]
+epomaker_driver = ["data/*.json", "web/*", "web/assets/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

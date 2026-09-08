@@ -14,12 +14,12 @@ IDs do not establish that another model speaks the same protocol.
 | Linux HID discovery | Sysfs descriptors and command collection classification | More hardware descriptors |
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
-| Key remapping | Glyph key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Visual editor, remaining action types and other families |
+| Key remapping | Glyph key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Three Glyph matrices; active profile selection; versioned configuration restore | Vendor export semantics, other models |
-| Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and interactive editor |
+| Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
-| Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, visual editor, ambiguous legacy motion timing and hardware comparison |
-| Screen | Still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer and clock sync | Image/GIF UI, still-bank selection, remaining display settings, hardware comparison |
+| Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
+| Screen | Still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer and clock sync | Still-bank selection, remaining display settings, hardware comparison |
 | Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Research only | F6/F7/FC/FE transport and paired-device handling |
@@ -27,10 +27,12 @@ IDs do not establish that another model speaks the same protocol.
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
-| Desktop application | Not started | Layout editor, settings pages, localization, accessibility |
+| Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |
 | Firmware management | Research only | Image validation, upgrade transport and recovery |
 | Vendor online services | Research only | Accounts, community, cloud profiles and supported service integrations |
 | Installation | Python package and CLI | Desktop packaging, permissions integration and upgrades |
+
+The graphical interface is documented in [control-interface.md](control-interface.md).
 
 Tests cover independently authored packet fixtures, simulated firmware round trips,
 malformed responses, disconnects and file handling. CI requires at least 98% combined

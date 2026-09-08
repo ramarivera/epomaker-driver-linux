@@ -28,6 +28,13 @@ def parser():
     commands.add_parser("discover", help="list HID metadata without opening devices")
     commands.add_parser("models", help="list catalog and implementation status")
     commands.add_parser("actions", help="list supported semantic binding names")
+    serve = commands.add_parser("serve", help="start the local control interface")
+    serve.add_argument("--port", type=int, default=8932)
+    serve.add_argument(
+        "--backup-dir",
+        type=Path,
+        default=Path.home() / ".local/state/epomaker-driver-linux/backups",
+    )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     commands.add_parser("clock", help="synchronize the display clock")
@@ -141,6 +148,14 @@ def select_device(path):
 
 
 def execute(args):
+    if args.command == "serve":
+        from .server import Controller, ControlServer
+
+        codec.bounded(args.port, 65535, "port")
+        with ControlServer(Controller(args.backup_dir), port=args.port) as server:
+            print(f"http://127.0.0.1:{server.server_port}/#token={server.token}", flush=True)
+            server.serve_forever()
+        return {"stopped": True}
     if args.command == "discover":
         return [d.public_dict() for d in discover()]
     if args.command == "models":

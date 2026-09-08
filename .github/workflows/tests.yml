@@ -13,8 +13,22 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci --prefix ui
+      - run: npm run format:check --prefix ui
+      - run: npm run build --prefix ui
       - run: python -m pip install -e '.[dev]'
       - run: ruff check src tests
       - run: ruff format --check src tests
       - run: python -m pytest --cov=epomaker_driver --cov-branch --cov-report=term-missing --cov-fail-under=98
       - run: python -m build
+      - run: npx --prefix ui playwright install --with-deps chromium
+        if: matrix.python == '3.14'
+      - run: npm test --prefix ui
+        if: matrix.python == '3.14'
+        env:
+          EPOMAKER_TEST_PYTHON: python

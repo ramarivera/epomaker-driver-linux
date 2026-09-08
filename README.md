@@ -4,15 +4,19 @@ Independent Linux configuration software for EPOMAKER keyboards, mice and receiv
 **Work in progress. The target is greater than 95% feature parity with the Windows/macOS
 3.2.22 installers; that target has not been reached.**
 
-The first implementation is a userspace Python HID backend and CLI for the Glyph/YC3123
-protocol. It includes USB/Bluetooth transport code, device discovery, remapping, profiles,
+The first implementation is a userspace Python HID backend, CLI and local React control
+interface for the Glyph/YC3123 protocol. It includes USB/Bluetooth transport code, device discovery, remapping, profiles,
 lighting, sleep timers, macros, screen transfer primitives and offline tests. Other model
-families, the UI and background features remain in the migration plan.
+families and background features remain in the migration plan.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
 
 ## Run
+
+For the graphical interface, follow the [build and launch instructions](docs/control-interface.md).
+Run `epomaker serve`, open its printed session URL, and select the discovered keyboard.
+
 
 ```sh
 python3 -m venv .venv

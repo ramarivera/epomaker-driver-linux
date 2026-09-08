@@ -1,2 +1,3 @@
 recursive-include docs *.md *.json
 recursive-include tests *.py *.json *.bin
+recursive-include src/epomaker_driver/web *
