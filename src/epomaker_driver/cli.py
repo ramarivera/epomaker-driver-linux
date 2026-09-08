@@ -24,6 +24,7 @@ from .discovery import discover
 from .errors import DeviceUnavailable, DriverError, UnsupportedDevice
 from .he import COMMANDS as HE_COMMANDS
 from .he import HE_PRODUCTS, HEKeyboard
+from .he_calibration import validate_duration
 from .he_modes import validate_definition
 from .he_switches import resolve_switch
 from .legacy import COMMANDS as LEGACY_COMMANDS
@@ -56,6 +57,9 @@ def parser():
     commands.add_parser(
         "get-magnetic", help="read supported magnetic-keyboard parameters for the current profile"
     )
+    commands.add_parser("read-calibration", help="read raw calibration telemetry over USB")
+    calibration = commands.add_parser("calibrate", help="run a timed USB key calibration session")
+    calibration.add_argument("--seconds", type=validate_duration, default=30)
     magnetic = commands.add_parser(
         "magnetic-key", help="update magnetic actuation/rapid-trigger settings"
     )
@@ -280,7 +284,16 @@ def execute(args):
         raise UnsupportedDevice("This magnetic-keyboard command has not been migrated yet")
     if not is_he and (
         args.command
-        in ("get-magnetic", "magnetic-key", "magnetic-mode", "snap", "snap-clear", "switch-type")
+        in (
+            "get-magnetic",
+            "read-calibration",
+            "calibrate",
+            "magnetic-key",
+            "magnetic-mode",
+            "snap",
+            "snap-clear",
+            "switch-type",
+        )
         or getattr(args, "submode", 0)
     ):
         raise UnsupportedDevice(
@@ -333,6 +346,25 @@ def execute(args):
             return keyboard.clear_snap(args.slot)
         if args.command == "magnetic-mode":
             return keyboard.set_magnetic_mode(args.slot, prepared)
+        if args.command == "read-calibration":
+            return keyboard.read_calibration()
+        if args.command == "calibrate":
+
+            def progress(event):
+                if event["phase"] == "release":
+                    print(
+                        "Release all keys for the two-second baseline measurement.",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                elif event["phase"] == "press":
+                    print(
+                        f"Press every key fully during the next {args.seconds:g} seconds. Ctrl-C stops the session.",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+
+            return keyboard.calibrate(args.seconds, on_progress=progress)
         if args.command == "switch-type":
             return keyboard.set_switch_type(args.slots, args.switch)
         if args.command == "get-magnetic":

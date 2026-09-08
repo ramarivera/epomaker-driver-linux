@@ -5,6 +5,7 @@ from __future__ import annotations
 from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
+from .he_calibration import HECalibrationMixin
 from .he_lighting import HELightingMixin
 from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
@@ -39,6 +40,8 @@ COMMANDS = frozenset(
         "macro",
         "profile",
         "get-magnetic",
+        "read-calibration",
+        "calibrate",
         "magnetic-key",
         "magnetic-mode",
         "snap",
@@ -70,6 +73,8 @@ OPCODES = frozenset(
         0x10,
         0x11,
         0x17,
+        0x1C,
+        0x1E,
         0x65,
         0x80,
         0x84,
@@ -88,7 +93,7 @@ OPCODES = frozenset(
 )
 
 
-class HEKeyboard(HESwitchMixin, HESnapMixin, HELightingMixin, Keyboard):
+class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin, Keyboard):
     def __init__(self, transport, *, product_id):
         super().__init__(transport)
         if product_id not in HE_PRODUCTS:
@@ -207,6 +212,7 @@ class HEKeyboard(HESwitchMixin, HESnapMixin, HELightingMixin, Keyboard):
                 "submodes",
                 "os",
                 "magnetic-read",
+                "calibration-session",
                 "magnetic-actuation",
                 "magnetic-modes",
                 "snap",

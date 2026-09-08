@@ -23,8 +23,8 @@ epomaker --device /dev/hidrawN get-magnetic
 
 Magnetic reads describe the current profile and retain raw field bytes and
 unknown mode values. These reads are not a complete restorable backup.
-Calibration, recovery and firmware upgrades remain outside this backend's
-current operation gate.
+[Timed USB calibration](calibration.md) now provides start/stop sequencing, raw
+telemetry and cleanup. Recovery and firmware upgrades remain outside the gate.
 
 ## Actuation and rapid-trigger updates
 
@@ -149,7 +149,7 @@ device's currently readable magnetic state from application-managed profiles;
 it must not invent per-profile wire storage from the catalog layer count.
 
 Remaining evidence work includes physical USB command descriptors, magnetic
-calibration, recovery and hardware comparisons.
+calibration results, recovery and hardware comparisons.
 
 
 ## Everyday controls and lighting

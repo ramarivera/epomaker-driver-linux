@@ -40,7 +40,7 @@ Read field 10 at stage `g`, slot `p`, is byte `g * 128 + p`.
 The byte-level codec preserves unknown mode/axis values. HE60 integrates the
 known magnetic modes. [HE68 Lite](ry5088-he68.md) supports model-gated
 switch-type selection through separate committed field-252 writes, preserving
-other magnetic state and keymaps. Calibration and hardware validation remain
+other magnetic state and keymaps. [Timed USB calibration](calibration.md) is available; physical validation remains
 outstanding. The
 `write_commands` helper accepts an already-selected set of changed simple
 fields and emits the vendor order with only the final command committed; it

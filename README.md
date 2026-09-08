@@ -50,6 +50,9 @@ four profiles with four normal submodes each, Windows/Mac Fn maps, macros,
 OS controls, main lighting and five custom pictures. Magnetic controls use
 firmware-dependent 0.1, 0.01 or 0.005 mm steps. [HE68 Lite variants](docs/ry5088-he68.md) additionally enable IDs 2762, 2883
 and 3664, including lossless switch-type reads and selection. Other same-PID siblings remain gated.
+All six migrated magnetic IDs also support a [timed USB calibration session](docs/calibration.md)
+with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
+have not been verified.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.

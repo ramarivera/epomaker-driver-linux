@@ -1306,6 +1306,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "fn-keymap",
         "identify",
         "keymap",
@@ -1335,7 +1337,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false,
+        "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm"
@@ -1346,7 +1348,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ],
       "installer_class_evidence": {
@@ -1451,6 +1452,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "fn-keymap",
         "identify",
         "keymap",
@@ -1482,7 +1485,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false,
+        "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
@@ -1494,7 +1497,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ],
       "installer_class_evidence": {
@@ -2415,6 +2417,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "fn-keymap",
         "identify",
         "keymap",
@@ -2446,7 +2450,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false,
+        "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
@@ -2458,7 +2462,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ],
       "installer_class_evidence": {
@@ -2904,6 +2907,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "fn-keymap",
         "identify",
         "keymap",
@@ -2935,7 +2940,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false,
+        "calibration": "timed USB session; physical result unverified",
         "debounce": false,
         "sleep": false,
         "magnetic_step": "firmware-dependent: 0.1 / 0.01 / 0.005 mm",
@@ -2947,7 +2952,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ],
       "installer_class_evidence": {
@@ -4979,6 +4983,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "fn-keymap",
         "identify",
         "keymap",
@@ -5009,7 +5015,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false
+        "calibration": "timed USB session; physical result unverified"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -5017,7 +5023,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ]
     },
@@ -5120,6 +5125,8 @@
       },
       "backend_implemented_features": [
         "automatic-os",
+        "calibration-session",
+        "calibration-telemetry",
         "debounce",
         "fn-keymap",
         "identify",
@@ -5150,7 +5157,7 @@
         "side_lighting": false,
         "backup": false,
         "restore": false,
-        "calibration": false
+        "calibration": "timed USB session; physical result unverified"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -5158,7 +5165,6 @@
         "reconnect-and-monitoring",
         "vendor-online-services",
         "graphical-interface",
-        "magnetic-calibration",
         "configuration-recovery"
       ]
     },
