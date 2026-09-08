@@ -1795,7 +1795,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x502e",
-    "implementation": "catalogued",
+    "implementation": "he60-partial",
     "hardware_verified": false
   },
   {
@@ -1839,7 +1839,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x502c",
-    "implementation": "catalogued",
+    "implementation": "he60-partial",
     "hardware_verified": false
   },
   {

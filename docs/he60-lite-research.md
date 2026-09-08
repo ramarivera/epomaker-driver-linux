@@ -3,7 +3,25 @@
 These findings come from the two installers in
 [source-releases.json](source-releases.json). Both catalog entries have the
 same display name but must be selected by internal identity and USB metadata.
-Neither is enabled by this research note, and neither has hardware validation.
+Both now have partial USB backend support; neither has hardware validation.
+
+The CLI supports identity/status, two normal profiles with submodes 0–3,
+one Fn layer for each of Windows and Mac, raw/semantic macro reads and writes,
+active profile selection, and magnetic-parameter reads. `--profile` selects a
+normal profile; for `--fn` it must be 0, and `--os-mode` selects Windows (0) or
+Mac (1). Fn commands do not accept a nonzero submode. For example, after
+selecting the actual command collection from `epomaker discover`:
+
+```sh
+epomaker --device /dev/hidrawN matrix --profile 1 --submode 3
+epomaker --device /dev/hidrawN matrix --fn --os-mode 1
+epomaker --device /dev/hidrawN get-magnetic
+```
+
+Magnetic reads describe the current profile and retain raw field bytes and
+unknown mode values. These reads are not a complete restorable backup. Setting
+magnetic parameters, calibration, lighting/settings, recovery and firmware
+upgrades remain outside this backend's current operation gate.
 
 | Fact | Internal ID 3759 | Internal ID 3727 |
 | --- | --- | --- |
@@ -57,12 +75,13 @@ OLED version at offsets 1–2 and flash version at 3–4. Zero is unavailable,
 independently for each component. Requests have the normal checksum at offset
 7 and are padded to 64 bytes. This follows macOS `623d2d52.js` lines 150–189
 and the matching Windows `17dc9c62.js` methods. These offsets are not the old
-YC3121 version protocol. The codec alone enables no new device operations.
+YC3121 version protocol. The HE60 backend uses the USB query for both models
+and the RF query for wireless model 3759; MLED/OLED queries remain codec-only.
 
 Both installers' HID filters agree on USB products `502c` and `502e`: vendor
 `3151`, interface number 2, usage page `ffff`, usage 2. The filter records do
-not contain physical report descriptors; the future Linux discovery gate must
-also validate the live command report's type and size. Both lighting layouts
+not contain physical report descriptors; Linux discovery additionally
+requires report ID 0 with a 64-byte feature payload. Both lighting layouts
 omit side lighting, but 3759 references `S` and 3727 references `ce`; shared
 base inheritance is insufficient to assume identical speed controls.
 
@@ -83,5 +102,5 @@ device's currently readable magnetic state from application-managed profiles;
 it must not invent per-profile wire storage from the catalog layer count.
 
 Remaining evidence work includes physical USB command descriptors, complete
-model-specific lighting layouts, version-query integration, magnetic field decoding,
+model-specific lighting layouts, magnetic setting integration,
 calibration and dynamic-action semantics, and hardware comparisons.

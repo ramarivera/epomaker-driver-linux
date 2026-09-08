@@ -22,6 +22,8 @@ from . import (
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError, UnsupportedDevice
+from .he import COMMANDS as HE_COMMANDS
+from .he import HE_PRODUCTS, HEKeyboard
 from .legacy import COMMANDS as LEGACY_COMMANDS
 from .legacy import LegacyKeyboard
 from .models import catalog
@@ -49,6 +51,9 @@ def parser():
     )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
+    commands.add_parser(
+        "get-magnetic", help="read HE60 magnetic parameters for the current profile"
+    )
     commands.add_parser(
         "factory-reset", help="save recovery snapshot, then reset keyboard configuration"
     ).add_argument("--backup", type=Path, required=True)
@@ -88,6 +93,7 @@ def parser():
     matrix.add_argument("--profile", type=int, default=0)
     matrix.add_argument("--fn", action="store_true")
     matrix.add_argument("--os-mode", type=int, default=0)
+    matrix.add_argument("--submode", type=int, choices=range(4), default=0)
     matrix.add_argument("--decoded", action="store_true")
     for name in ("bind-key", "bind-media", "bind-mouse", "bind-macro", "disable-key"):
         binding = commands.add_parser(name)
@@ -95,6 +101,7 @@ def parser():
         binding.add_argument("--profile", type=int, default=0)
         binding.add_argument("--fn", action="store_true")
         binding.add_argument("--os-mode", type=int, default=0)
+        binding.add_argument("--submode", type=int, choices=range(4), default=0)
         if name == "bind-key":
             binding.add_argument("key", choices=actions.KEYS)
             binding.add_argument("--second", choices=actions.KEYS, default=0)
@@ -114,6 +121,7 @@ def parser():
     key.add_argument("--profile", type=int, default=0)
     key.add_argument("--fn", action="store_true")
     key.add_argument("--os-mode", type=int, default=0)
+    key.add_argument("--submode", type=int, choices=range(4), default=0)
     commands.add_parser("profile").add_argument("index", type=int)
     commands.add_parser("debounce").add_argument("milliseconds", type=int)
     get_macro = commands.add_parser("get-macro")
@@ -223,6 +231,12 @@ def execute(args):
             codec.bounded(int(color, 16), 0xFFFFFF, "rgb").to_bytes(3, "big") for color in colors
         )
     device = select_device(args.device)
+    is_he = device.product_id in HE_PRODUCTS
+    if is_he and args.command not in HE_COMMANDS:
+        raise UnsupportedDevice("This HE60 Lite command has not been migrated yet")
+    if not is_he and (args.command == "get-magnetic" or getattr(args, "submode", 0)):
+        raise UnsupportedDevice("Magnetic controls and keymap submodes require HE60 Lite")
+    matrix_options = {"mode": getattr(args, "submode", 0)} if is_he else {}
     if (
         args.command == "restore"
         and isinstance(prepared, dict)
@@ -231,7 +245,9 @@ def execute(args):
     ):
         raise UnsupportedDevice("schema 6 snapshots require a YC3121 device")
     with Transport.open(device) as transport:
-        if device.product_id == 0x4015:
+        if is_he:
+            keyboard = HEKeyboard(transport, product_id=device.product_id)
+        elif device.product_id == 0x4015:
             if args.command not in LEGACY_COMMANDS:
                 raise UnsupportedDevice("This YC3121 command has not been migrated yet")
             keyboard = LegacyKeyboard(transport)
@@ -249,13 +265,20 @@ def execute(args):
             else:
                 action = bytes(4)
             keyboard.set_key(
-                args.slot, action, profile=args.profile, fn=args.fn, os_mode=args.os_mode
+                args.slot,
+                action,
+                profile=args.profile,
+                fn=args.fn,
+                os_mode=args.os_mode,
+                **matrix_options,
             )
             return actions.decode(action)
         if args.command == "identify":
             return keyboard.identify()
         if args.command == "status":
             return keyboard.status()
+        if args.command == "get-magnetic":
+            return keyboard.get_magnetic()
         if args.command == "system-info":
             for index in range(args.count):
                 if index:
@@ -304,7 +327,9 @@ def execute(args):
         if args.command == "sleep":
             return keyboard.set_sleep(args.bt, args.dongle, args.deep_bt, args.deep_dongle)
         if args.command == "matrix":
-            value = keyboard.read_matrix(args.profile, fn=args.fn, os_mode=args.os_mode)
+            value = keyboard.read_matrix(
+                args.profile, fn=args.fn, os_mode=args.os_mode, **matrix_options
+            )
             if args.decoded:
                 return {
                     "slots": [actions.decode(value[i : i + 4]) for i in range(0, len(value), 4)]
@@ -317,6 +342,7 @@ def execute(args):
                 profile=args.profile,
                 fn=args.fn,
                 os_mode=args.os_mode,
+                **matrix_options,
             )
         if args.command == "profile":
             keyboard.set_profile(args.index)

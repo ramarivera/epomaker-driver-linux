@@ -68,3 +68,18 @@ def test_discover_metadata(tmp_path, descriptor):
 def test_report_invalid_kind():
     with pytest.raises(ValueError):
         Report(0).payload_bytes("bad")
+
+
+@pytest.mark.parametrize("pid", [0x502C, 0x502E])
+def test_he60_usb_filters_require_matching_command_report(pid):
+    descriptor = bytes.fromhex("06ffff0902a10175089540b102c0")
+    assert classify(3, 0x3151, pid, parse_descriptor(descriptor)) == ("usb", 0)
+    for wrong in (
+        "06ffff0901a10175089540b102c0",  # Wrong usage.
+        "06feff0902a10175089540b102c0",  # Wrong usage page.
+        "06ffff0902a1017508953fb102c0",  # Short feature report.
+        "06ffff0902a101750895408102c0",  # Input rather than feature.
+        "06ffff0902a101850675089540b102c0",  # Wrong report ID.
+    ):
+        assert classify(3, 0x3151, pid, parse_descriptor(bytes.fromhex(wrong))) == (None, None)
+    assert classify(5, 0x3151, pid, parse_descriptor(descriptor)) == (None, None)
