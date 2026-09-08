@@ -42,8 +42,8 @@ two normal profiles with four submodes each, Windows/Mac Fn maps, macros,
 profile selection, magnetic-parameter reads and per-key actuation/rapid-trigger
 settings with readback, OS controls, 21 main-light effects and custom RGB pictures.
 Debounce is wired-only; three sleep timers are wireless-only. Magnetic mode
-changes, calibration and complete HE60
-recovery are still being migrated.
+definitions now include DKS, tap/hold and toggle actions. Snap pairing,
+calibration and complete HE60 recovery are still being migrated.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.

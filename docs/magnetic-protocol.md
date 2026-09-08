@@ -5,7 +5,8 @@ macOS `623d2d52.js` and Windows `17dc9c62.js` bundles. Their entire contents
 match after imported chunk filenames are normalized. This codec performs no
 device access. The [HE60 backend](he60-lite-research.md) now uses its bulk
 read, decoding and ordered-write functions for actuation and rapid-trigger
-updates. Mode switching, dynamic/MT edits and snap pairing remain unintegrated.
+updates and normal/DKS/MT/toggle mode definitions with action bindings. Snap
+pairing remains unintegrated.
 
 The multi-key read command is packetized as `e5 field 01 page` and the
 corresponding write command as `65 field 00 key-index commit 00 00 00`, with
@@ -37,9 +38,9 @@ instead of reproducing the vendor's integer wraparound.
 | 10 | 8 | Four stage arrays of 128 bytes each |
 
 Read field 10 at stage `g`, slot `p`, is byte `g * 128 + p`.
-The byte-level codec preserves unknown mode/axis values; it does not yet map
-them to user-facing magnetic modes or switch types. Calibration and model
-integration remain unimplemented and hardware validation is outstanding. The
+The byte-level codec preserves unknown mode/axis values. HE60 integrates the
+known magnetic modes; axis replacement and calibration remain unimplemented,
+and hardware validation is outstanding. The
 `write_commands` helper accepts an already-selected set of changed simple
 fields and emits the vendor order with only the final command committed; it
 does not infer diffs from prior state. Snap pairing and axis-type (252) writes
@@ -51,3 +52,32 @@ simple-write packet and sequencing 1338–1463, and paired snap writes
 1466–1482. The codec is `src/epomaker_driver/magnetic.py`; version requests
 are in `src/epomaker_driver/versions.py`. See also
 [HE60 Lite research](he60-lite-research.md) for model-specific constraints.
+
+
+## Multi-action magnetic modes
+
+A magnetic action is represented jointly by the mode byte and normal keymap
+submodes. DKS (`2`) uses four actions at submodes 0–3; MT (`3`) uses hold then
+tap actions at submodes 0–1; toggle hold (`4`) and toggle dots (`5`) use one
+action at submode 0. The high mode bit independently enables rapid trigger.
+Each action retains the existing four-byte key-binding representation.
+
+The application writes changed actions first through single-key `0a` packets,
+with the active profile and action index as submode. Only the final action
+packet carries its action-group commit. It then writes the magnetic mode and
+parameters through `65`: mode field 7 first, followed by changed simple fields,
+with a separate final magnetic-group commit. These groups are not an atomic
+transaction; readback must verify both keymap and magnetic state.
+
+DKS stores four two-bit trigger cells in each action's trigger byte:
+`cell0 | cell1 << 2 | cell2 << 4 | cell3 << 6`. Four action bytes are written as
+field 8, while readback places each at `action_index * 128 + key_slot` in bulk
+field 10. Dynamic travel is field 4. MT's duration is field 5, encoded in units
+of 10 milliseconds. Wire capacity alone does not establish the UI's limits.
+
+The macOS main bundle's pretty lines 112500–112538 establish the action order
+and trigger packing; 113580–113608 reconstruct actions from submodes, and
+113685–113701 establish action-before-parameter write order. Single-key reset
+is a distinct operation: lines 113717 onward restore the base action and clear
+all three extra submodes. Ordinary mode updates must not silently perform that
+reset or erase unrelated submode data.

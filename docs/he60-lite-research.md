@@ -23,7 +23,7 @@ epomaker --device /dev/hidrawN get-magnetic
 
 Magnetic reads describe the current profile and retain raw field bytes and
 unknown mode values. These reads are not a complete restorable backup.
-Magnetic mode switching, dynamic/MT edits, snap pairing, calibration,
+Snap pairing, calibration,
 recovery and firmware upgrades remain outside this backend's
 current operation gate.
 
@@ -150,7 +150,7 @@ device's currently readable magnetic state from application-managed profiles;
 it must not invent per-profile wire storage from the catalog layer count.
 
 Remaining evidence work includes physical USB command descriptors, magnetic
-base-mode changes, calibration and dynamic-action semantics, recovery and
+snap pairing, calibration, recovery and
 hardware comparisons.
 
 
@@ -202,3 +202,65 @@ epomaker --device /dev/hidrawN sleep 600 600 1200
 Selecting music or screen lighting sets the device effect; it does not implement
 continuous host audio/screen sampling. All validation remains simulated, with
 no physical HE60 reports captured or writes attempted.
+
+
+## Magnetic modes and action bindings
+
+`magnetic-mode SLOT PATH` installs a complete mode definition from JSON in the
+current profile. It supports normal, DKS, MT, toggle hold and toggle dots on
+both HE60 variants. Actions are four-byte hex bindings, using the same format
+as the existing `key` command. The definition must explicitly supply the
+mode's action slots and parameters:
+
+| Mode | `actions` order | Required parameters |
+| --- | --- | --- |
+| `normal` | One normal action | `travel`, `lift`, `deadzone`; same version limits as actuation updates |
+| `dks` | Four actions, submodes 0–3 | `dynamic_travel` 0.5–2.5 mm in 0.01 mm steps; `trigger_modes` four bytes |
+| `mt` | Hold, then tap | `mt_time` 10–1000 ms, integer |
+| `tgl_hold` | One toggle action | None |
+| `tgl_dots` | One toggle action | None |
+
+Optional `fire`, `rapid_press` and `rapid_lift` use the existing rapid-trigger
+rules. Omitted rapid-trigger state is preserved; enabled thresholds must be
+valid or explicitly replaced. Normal mode also accepts `top_deadzone` on
+supported firmware. Definitions reject unknown fields, invalid actions, and
+unsupported parameter combinations before writes. Existing snap and unknown
+modes cannot be replaced by this command, because pairing cleanup needs its
+own operation.
+
+For example, save this as `tap-hold.json`, then run
+`epomaker --device /dev/hidrawN magnetic-mode 5 tap-hold.json`:
+
+```json
+{"mode":"mt","actions":["01000000","00000400"],"mt_time":200}
+```
+
+This assigns the first action to hold and the second to tap. A DKS definition
+contains four bindings and four packed trigger bytes, for example:
+
+```json
+{"mode":"dks","actions":["00000400","00000500","00000600","00000700"],"dynamic_travel":0.71,"trigger_modes":[1,4,16,64]}
+```
+
+Each trigger byte packs four two-bit cells in increasing bit order. The raw
+bytes retain the vendor representation; the vendor UI also uses linked spans
+across cells. See [magnetic protocol](magnetic-protocol.md) for wire layout.
+
+MT accepts the UI's 1 ms increments, but the vendor truncates `ms / 10` into
+one byte: 201 ms writes 20 and reads back as 200 ms. DKS travel uses the existing
+firmware multiplier and truncation, so old firmware may also quantize its
+finer UI steps. The backend compares encoded bytes, not the unquantized input.
+
+All four normal matrices are read before writes and compared afterwards,
+including unused submodes and neighboring keys. It also preserves and verifies
+complete magnetic fields read for the operation. The active profile is checked
+before writing and after readback. No-op definitions emit no write. A failure
+can leave partial state: action and magnetic groups have separate commits.
+This command is not a factory reset and does not clear unused submodes.
+
+Evidence: main pretty lines 108836–108846 define DKS bounds; macOS UI chunk
+`7cdd7654.js` and Windows `3189ee15.js` supply its 0.01 slider step. Main lines
+108998–109010 establish MT bounds and 1 ms UI step; the modern base's simple
+field-5 writer divides by 10. The implementation is
+`src/epomaker_driver/he_modes.py` plus `HEKeyboard.set_magnetic_mode` in
+`src/epomaker_driver/he.py`. Tests exercise simulated USB reports, not hardware.

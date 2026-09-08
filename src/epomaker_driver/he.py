@@ -6,6 +6,7 @@ from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
 from .he_lighting import HELightingMixin
+from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
 from .magnetic import (
     assemble_pages,
@@ -35,6 +36,7 @@ COMMANDS = frozenset(
         "profile",
         "get-magnetic",
         "magnetic-key",
+        "magnetic-mode",
         "get-options",
         "options",
         "get-auto-os",
@@ -186,6 +188,7 @@ class HEKeyboard(HELightingMixin, Keyboard):
                 "os",
                 "magnetic-read",
                 "magnetic-actuation",
+                "magnetic-modes",
             ]
             result = {
                 "identity": self.identity,
@@ -334,6 +337,65 @@ class HEKeyboard(HELightingMixin, Keyboard):
             for page in range({128: 2, 256: 4, 512: 8}[length])
         ]
         return assemble_pages(pages, length=length)
+
+    def set_magnetic_mode(self, slot, definition):
+        """Install actions and magnetic parameters with full readback; not hardware atomic."""
+        codec.bounded(slot, 127, "slot")
+        definition = validate_definition(definition)
+
+        def operation():
+            state = self.get_magnetic()
+            profile = state["profile"]
+            for field, length in required_fields(definition, state["modes"][slot]).items():
+                if str(field) not in state["fields"]:
+                    state["fields"][str(field)] = self._read_field(field, length).hex()
+            plan = plan_mode(self.expected_id, slot, definition, state)
+            matrices = [self.read_matrix(profile, mode=submode) for submode in range(4)]
+            expected_matrices = list(matrices)
+            changed_actions = []
+            for submode, action in enumerate(definition["actions"]):
+                raw = bytearray(matrices[submode])
+                raw[slot * 4 : slot * 4 + 4] = bytes.fromhex(action)
+                expected_matrices[submode] = bytes(raw)
+                if expected_matrices[submode] != matrices[submode]:
+                    changed_actions.append(submode)
+            commands = [
+                codec.single_key(
+                    profile,
+                    slot,
+                    bytes.fromhex(definition["actions"][submode]),
+                    mode=submode,
+                    profile_max=1,
+                    commit=index == len(changed_actions) - 1,
+                )
+                for index, submode in enumerate(changed_actions)
+            ] + plan["commands"]
+            if self._query(codec.packet([0x84]), expected=0x84)[1] != profile:
+                raise ProtocolError("active profile changed before magnetic mode write")
+            if not commands:
+                return {
+                    "changed": False,
+                    "profile": profile,
+                    "mode": definition["mode"],
+                    "slot": slot,
+                }
+            self._write(commands)
+            actual_matrices = [self.read_matrix(profile, mode=submode) for submode in range(4)]
+            actual_fields = {
+                field: self._read_field(int(field), len(bytes.fromhex(value))).hex()
+                for field, value in plan["expected_fields"].items()
+            }
+            if self._query(codec.packet([0x84]), expected=0x84)[1] != profile:
+                raise ProtocolError(
+                    "active profile changed during magnetic mode write; state may be partial"
+                )
+            if actual_matrices != expected_matrices:
+                raise ProtocolError("magnetic action readback differs; state may be partial")
+            if actual_fields != plan["expected_fields"]:
+                raise ProtocolError("magnetic mode readback differs; state may be partial")
+            return {"changed": True, "profile": profile, "mode": definition["mode"], "slot": slot}
+
+        return self.transport.transaction(operation)
 
     def set_magnetic(self, slot, patch):
         """Patch actuation/rapid-trigger settings and verify complete read fields.

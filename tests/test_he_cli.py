@@ -88,3 +88,64 @@ def test_non_he_rejects_magnetic_commands_before_open(command, monkeypatch, caps
     monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
     assert cli.main(["--device", info.path, *command]) == 1
     assert "require HE60 Lite" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("product", [0x502C, 0x502E])
+def test_magnetic_mode_cli_definition_routes(product, tmp_path, monkeypatch, capsys):
+    info = DeviceInfo("/dev/he-mode", "HE60 Lite", 3, 0x3151, product, b"", "usb", 0)
+    definition = {"mode": "tgl_hold", "actions": ["00000400"]}
+    path = tmp_path / "mode.json"
+    path.write_text(json.dumps(definition))
+    calls = []
+
+    class Opened:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            pass
+
+    class Backend:
+        def __init__(self, transport, *, product_id):
+            assert isinstance(transport, Opened)
+            assert product_id == product
+
+        def set_magnetic_mode(self, slot, value):
+            calls.append((slot, value))
+            return {"changed": True, "profile": 1}
+
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Opened())
+    monkeypatch.setattr(cli, "HEKeyboard", Backend)
+    assert cli.main(["--device", info.path, "magnetic-mode", "7", str(path)]) == 0
+    assert calls == [(7, definition)]
+    assert json.loads(capsys.readouterr().out) == {"changed": True, "profile": 1}
+
+
+@pytest.mark.parametrize(
+    "slot,definition",
+    [
+        (-1, {"mode": "tgl_hold", "actions": ["00000400"]}),
+        (128, {"mode": "tgl_hold", "actions": ["00000400"]}),
+        (0, {"mode": "tgl_hold", "actions": []}),
+        (0, {"mode": "tgl_hold", "actions": ["zz"]}),
+        (0, {"mode": "unknown", "actions": ["00000400"]}),
+        (0, {"mode": "mt", "actions": ["00000400", "00000500"]}),
+    ],
+)
+def test_magnetic_mode_invalid_file_before_open(slot, definition, tmp_path, monkeypatch, capsys):
+    path = tmp_path / "mode.json"
+    path.write_text(json.dumps(definition))
+    monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
+    assert cli.main(["magnetic-mode", str(slot), str(path)]) == 1
+    assert capsys.readouterr().err
+
+
+def test_magnetic_mode_non_he_before_open(tmp_path, monkeypatch, capsys):
+    info = DeviceInfo("/dev/other", "Other", 3, 0x3151, 0x5002, b"", "usb", 0)
+    path = tmp_path / "mode.json"
+    path.write_text(json.dumps({"mode": "tgl_hold", "actions": ["00000400"]}))
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
+    assert cli.main(["--device", info.path, "magnetic-mode", "1", str(path)]) == 1
+    assert "require HE60 Lite" in capsys.readouterr().err

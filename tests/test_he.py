@@ -22,8 +22,15 @@ class Firmware:
         self.short_pages = False
         self.mismatch_key = False
         self.change_profile_on_read = False
+        self.profile_query_count = 0
+        self.change_profile_on_query = None
         self.drop_magnetic_write = False
         self.corrupt_magnetic_neighbor = False
+        self.drop_mode_write = False
+        self.corrupt_mode_neighbor = False
+        self.change_profile_on_mode_read = False
+        self.corrupt_action_after_write = False
+        self._action_write_seen = False
         self.options = bytearray(64)
         self.options[0] = 0x89
         self.auto_os = False
@@ -71,7 +78,11 @@ class Firmware:
             raw = bytearray(64)
             raw[0] = op
             raw[1] = self.profile
-            if self.change_profile_on_read:
+            self.profile_query_count += 1
+            if self.change_profile_on_read and (
+                self.change_profile_on_query is None
+                or self.profile_query_count >= self.change_profile_on_query
+            ):
                 self.profile = 1 - self.profile
             return bytes(raw)
         if op == 0x89:
@@ -94,6 +105,8 @@ class Firmware:
         if op == 0x8A:
             data = self.matrices[(command[1], command[4])]
             result = data[command[3] * 64 : (command[3] + 1) * 64]
+            if self.corrupt_action_after_write and self._action_write_seen:
+                result = bytes([result[0] ^ 1]) + result[1:]
             return result[:-1] if self.short_pages else result
         if op == 0x90:
             data = self.fn[(command[2], command[1])]
@@ -113,11 +126,18 @@ class Firmware:
             assert command[2] == 0 and command[5:7] == bytes(2)
             assert (sum(command[:8]) & 255) == 255
             field, slot = command[1], command[3]
-            width = 1 if field in (7, 251) else 2
+            width = 4 if field == 8 else 1 if field in (5, 7, 251) else 2
+            if field == 8:
+                if not self.drop_mode_write:
+                    trigger = bytearray(self.fields[10])
+                    for stage, value in enumerate(command[8:12]):
+                        trigger[stage * 128 + slot] = value
+                    self.fields[10] = bytes(trigger)
+                return
             data = bytearray(self.fields[field])
             if not self.drop_magnetic_write:
                 data[slot * width : (slot + 1) * width] = command[8 : 8 + width]
-            if self.corrupt_magnetic_neighbor:
+            if self.corrupt_magnetic_neighbor or self.corrupt_mode_neighbor:
                 data[((slot + 1) % 128) * width] ^= 1
             self.fields[field] = bytes(data)
         elif command[0] == 0x04:
@@ -145,6 +165,7 @@ class Firmware:
             data[page * 56 : page * 56 + count] = command[8 : 8 + count]
             self.pictures[picture] = bytes(data)
         elif command[0] == 0x0A:
+            self._action_write_seen = True
             profile = command[1]
             if command[2] == 255:
                 start = command[3] * 56
@@ -364,6 +385,223 @@ def test_he_magnetic_profile_change_is_rejected():
     kb = keyboard(fw, product=0x502E)
     with pytest.raises(ProtocolError, match="profile changed"):
         kb.get_magnetic()
+
+
+@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+@pytest.mark.parametrize("profile", [0, 1])
+@pytest.mark.parametrize(
+    "definition",
+    [
+        {"mode": "normal", "actions": ["00000400"], "travel": 2, "lift": 2.8, "deadzone": 0.3},
+        {
+            "mode": "dks",
+            "actions": ["00000400", "00000500", "00000600", "00000700"],
+            "dynamic_travel": 0.7,
+            "trigger_modes": [1, 2, 3, 4],
+        },
+        {"mode": "mt", "actions": ["00000400", "00000500"], "mt_time": 200},
+        {"mode": "tgl_hold", "actions": ["00000400"]},
+        {"mode": "tgl_dots", "actions": ["00000500"]},
+    ],
+)
+def test_he_magnetic_mode_usb_roundtrip(product, model, profile, definition):
+    fw = Firmware(model_id=model)
+    kb = keyboard(fw, product=product)
+    kb.identify()
+    if profile:
+        kb.set_profile(profile)
+    before_matrices = fw.matrices.copy()
+    before_fields = fw.fields.copy()
+    result = kb.set_magnetic_mode(5, definition)
+    assert result["changed"] is True
+    assert fw.profile == profile
+    count = len(definition["actions"])
+    for submode, action in enumerate(definition["actions"]):
+        expected = bytearray(before_matrices[(profile, submode)])
+        expected[20:24] = bytes.fromhex(action)
+        assert fw.matrices[(profile, submode)] == bytes(expected)
+    for submode in range(count, 4):
+        assert fw.matrices[(profile, submode)] == before_matrices[(profile, submode)]
+    for key, value in before_matrices.items():
+        if key[0] != profile:
+            assert fw.matrices[key] == value
+    assert (
+        fw.fields[7][5] & 0x7F
+        == {"normal": 0, "dks": 2, "mt": 3, "tgl_hold": 4, "tgl_dots": 5}[definition["mode"]]
+    )
+    if definition["mode"] == "dks":
+        assert [fw.fields[10][stage * 128 + 5] for stage in range(4)] == definition["trigger_modes"]
+        writes = [command for command in fw.sent if command[0] in (0x0A, 0x65)]
+        assert [command[0] for command in writes] == [0x0A] * 4 + [0x65, 0x65, 0x65]
+        assert [command[6] for command in writes[:4]] == [0, 1, 2, 3]
+        assert [command[5] for command in writes[:4]] == [0, 0, 0, 1]
+        assert writes[4] == codec.packet([0x65, 7, 0, 5, 0, 0, 0, 0, 2])
+        dynamic_raw = 70 if model == 3727 else 140
+        assert writes[5] == codec.packet([0x65, 4, 0, 5, 0, 0, 0, 0, dynamic_raw, 0])
+        assert writes[6] == codec.packet([0x65, 8, 0, 5, 1, 0, 0, 0, 1, 2, 3, 4])
+    assert fw.fields[0][:10] == before_fields[0][:10]
+    assert fw.fields[0][12:] == before_fields[0][12:]
+
+
+@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+def test_he_magnetic_mode_rejects_corrupt_readback_without_silent_success(product, model):
+    fw = Firmware(model_id=model)
+    fw.drop_mode_write = True
+    kb = keyboard(fw, product=product)
+    kb.identify()
+    with pytest.raises(ProtocolError):
+        kb.set_magnetic_mode(
+            5,
+            {
+                "mode": "dks",
+                "actions": ["00000400", "00000500", "00000600", "00000700"],
+                "dynamic_travel": 0.7,
+                "trigger_modes": [1, 2, 3, 4],
+            },
+        )
+
+
+def test_he_magnetic_mode_rejects_unknown_existing_mode_before_writes():
+    fw = Firmware()
+    modes = bytearray(fw.fields[7])
+    modes[5] = 0x66
+    fw.fields[7] = bytes(modes)
+    kb = keyboard(fw)
+    kb.identify()
+    sent = len(fw.sent)
+    with pytest.raises(ValueError):
+        kb.set_magnetic_mode(5, {"mode": "tgl_hold", "actions": ["00000400"]})
+    assert len(fw.sent) == sent
+
+
+def test_he_magnetic_mode_neighbor_corruption_is_reported():
+    fw = Firmware()
+    fw.corrupt_mode_neighbor = True
+    kb = keyboard(fw)
+    kb.identify()
+    with pytest.raises(ProtocolError):
+        kb.set_magnetic_mode(
+            5,
+            {
+                "mode": "dks",
+                "actions": ["00000400", "00000500", "00000600", "00000700"],
+                "dynamic_travel": 0.7,
+                "trigger_modes": [1, 2, 3, 4],
+            },
+        )
+
+
+def test_he_magnetic_mode_action_matrix_corruption_is_reported():
+    fw = Firmware()
+    fw.corrupt_action_after_write = True
+    kb = keyboard(fw)
+    kb.identify()
+    with pytest.raises(ProtocolError):
+        kb.set_magnetic_mode(5, {"mode": "tgl_hold", "actions": ["00000400"]})
+
+
+def test_he_magnetic_mode_noop_does_not_send():
+    fw = Firmware()
+    kb = keyboard(fw)
+    kb.identify()
+    definition = {"mode": "tgl_hold", "actions": ["00000400"]}
+    kb.set_magnetic_mode(5, definition)
+    sent = len(fw.sent)
+    result = kb.set_magnetic_mode(5, definition)
+    assert result["changed"] is False
+    assert len(fw.sent) == sent
+
+
+def test_he_magnetic_mode_mt_wire_value_is_quantized_on_readback():
+    fw = Firmware()
+    kb = keyboard(fw)
+    kb.identify()
+    result = kb.set_magnetic_mode(
+        5,
+        {"mode": "mt", "actions": ["00000400", "00000500"], "mt_time": 201},
+    )
+    assert result["changed"] is True
+    assert fw.fields[5][5] == 20
+
+
+def test_he_magnetic_mode_enables_rapid_trigger_and_reads_back_values():
+    fw = Firmware()
+    for field, raw in ((2, 20), (3, 30)):
+        data = bytearray(fw.fields[field])
+        data[5 * 2 : 5 * 2 + 2] = raw.to_bytes(2, "little")
+        fw.fields[field] = bytes(data)
+    kb = keyboard(fw)
+    kb.identify()
+    result = kb.set_magnetic_mode(
+        5,
+        {
+            "mode": "normal",
+            "actions": ["00000400"],
+            "travel": 2,
+            "lift": 2.8,
+            "deadzone": 0.3,
+            "fire": True,
+        },
+    )
+    assert result["changed"] is True
+    assert fw.fields[7][5] & 0x80
+    assert int.from_bytes(fw.fields[2][10:12], "little") == 20
+    assert int.from_bytes(fw.fields[3][10:12], "little") == 30
+
+
+@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+def test_he_magnetic_mode_cli_uses_real_usb_backend(product, model, tmp_path, monkeypatch, capsys):
+    fw = Firmware(model_id=model)
+    transport = keyboard(fw, product=product).transport
+    info = DeviceInfo(
+        "/dev/he-mode-usb",
+        "HE60 Lite",
+        3,
+        0x3151,
+        product,
+        bytes.fromhex("06ffff0902a10175089540b102c0"),
+        "usb",
+        0,
+    )
+    definition = {
+        "mode": "tgl_hold",
+        "actions": ["00000400"],
+    }
+    path = tmp_path / "mode.json"
+    path.write_text(json.dumps(definition))
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: transport)
+    assert cli.main(["--device", info.path, "magnetic-mode", "5", str(path)]) == 0
+    assert json.loads(capsys.readouterr().out)["changed"] is True
+    assert fw.fields[7][5] & 0x7F == 4
+
+
+def test_he_magnetic_mode_active_profile_change_is_reported():
+    fw = Firmware()
+    fw.change_profile_on_read = True
+    kb = keyboard(fw)
+    with pytest.raises(ProtocolError):
+        kb.set_magnetic_mode(5, {"mode": "tgl_hold", "actions": ["00000400"]})
+
+
+def test_he_magnetic_mode_profile_change_before_write_is_reported():
+    fw = Firmware()
+    fw.change_profile_on_read = True
+    fw.change_profile_on_query = 2
+    kb = keyboard(fw)
+    with pytest.raises(ProtocolError, match="before magnetic mode write"):
+        kb.set_magnetic_mode(5, {"mode": "tgl_hold", "actions": ["00000400"]})
+    assert not any(command[0] in (0x0A, 0x65) for command in fw.sent)
+
+
+def test_he_magnetic_mode_profile_change_after_write_is_reported():
+    fw = Firmware()
+    fw.change_profile_on_read = True
+    fw.change_profile_on_query = 3
+    kb = keyboard(fw)
+    with pytest.raises(ProtocolError, match="during magnetic mode write"):
+        kb.set_magnetic_mode(5, {"mode": "tgl_hold", "actions": ["00000400"]})
+    assert any(command[0] in (0x0A, 0x65) for command in fw.sent)
 
 
 def test_he_wireless_status_reads_rf_version():
@@ -775,3 +1013,18 @@ def test_he_magnetic_send_failure_stops_sequence(monkeypatch):
         keyboard(fw).set_magnetic(1, {"travel": 1.2, "deadzone": 0.3, "top_deadzone": 0.4})
     assert count == 2
     assert [c[1] for c in fw.sent if c[0] == 0x65] == [0]
+
+
+def test_mode_invalid_preserved_rapid_thresholds_require_explicit_repair():
+    fw = Firmware()
+    # Slot zero starts with fire enabled and out-of-range fixture thresholds.
+    kb = keyboard(fw)
+    definition = {"mode": "tgl_hold", "actions": ["00000400"]}
+    with pytest.raises(ValueError, match="provide valid rapid_press"):
+        kb.set_magnetic_mode(0, definition)
+    assert not fw.sent
+    result = kb.set_magnetic_mode(0, {**definition, "rapid_press": 0.2, "rapid_lift": 0.3})
+    assert result["changed"]
+    assert fw.fields[7][0] == 0x84
+    assert fw.fields[2][:2] == bytes([20, 0])
+    assert fw.fields[3][:2] == bytes([30, 0])
