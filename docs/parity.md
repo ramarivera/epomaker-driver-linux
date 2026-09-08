@@ -5,7 +5,8 @@ Baseline: EPOMAKER Driver v4 3.2.22, Windows and macOS installers recorded in
 feature parity. It has not been achieved, and there is no defensible overall
 percentage until the inventory and weighting have been completed.
 
-The catalog contains 46 EPOMAKER models. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
+The [model inventory](model-inventory.md) records all 46 EPOMAKER catalog rows,
+per-model feature gates and loader matches from both installers. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
 enabled, plus [five RY6602 models](ry6602.md) with core configuration support.
 [Two older YC3121 models](yc3121.md), RT100 and Dynatab75X-UK, additionally have
 USB keymap/profile/macro/lighting/custom-picture/sleep/debounce/automatic-OS configuration.

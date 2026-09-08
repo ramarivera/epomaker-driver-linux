@@ -1,0 +1,82 @@
+# Model inventory
+
+Baseline: EPOMAKER Driver v4 3.2.22, from the two installers recorded in
+[source-releases.json](source-releases.json). [model-inventory.json](model-inventory.json)
+cross-references all 46 catalog rows with the Linux backend gates and the
+installer modules that load each model.
+
+There are **13 partial backends, 33 catalog-only entries and zero models verified
+on physical hardware**. These counts are not a feature-parity percentage. A
+weighted feature inventory, hardware comparisons and application-wide workflows
+remain necessary for the greater-than-95% target in [migration status](parity.md).
+
+## Reading the data
+
+- `catalog_functional_descriptors` preserves functional catalog values. Each
+  value has a `present` flag: omission is different from an explicit `false`.
+  `layer` retains the vendor field name; it does not establish the same profile
+  semantics for keyboards and mice. `other` includes model-specific options.
+- `installer_loaders` records exact name-keyed finder and model module filenames
+  separately for macOS and Windows. A matching import establishes a loading path,
+  not complete support or packet compatibility.
+- `backend_implemented_features` lists implemented, model-gated operations.
+  `backend_limits` records important restrictions. Neither means hardware-tested.
+- `protocol_family` on catalog-only rows is a name-prefix grouping, explicitly
+  marked `family_evidence: name-prefix-only`. See the research candidates below
+  for additional source evidence; these have not been enabled in the backend.
+- `remaining_domains` is a migration checklist, not an exhaustive or weighted
+  denominator. Shared application features must also be counted.
+
+| Implemented family | Internal IDs | Current scope |
+| --- | --- | --- |
+| Older YC3121 | 1379, 1723 | RT100 and Dynatab75X-UK; physical Fn layer 0, with OS-specific Fn addressing unresolved |
+| Modern YC3123 | 2895, 3059, 3152, 3223 | RT85, Glyph, RT100 PRO and RT75; model-specific display and configuration gates |
+| HE60 Lite | 3727, 3759 | Wired/wireless; two profiles, four normal submodes, actuation, modes and snap; calibration/recovery outstanding |
+| RY6602 | 3858, 3633, 3673, 3573, 3674 | Five models; three have display transfers, none has enabled clock/language/system-info commands |
+
+The desktop interface currently supports Glyph. Other enabled models have CLI
+support with different capabilities. RT85 has no enabled debounce or system-info
+command; Dynatab75X-UK has no enabled display-language command. These distinctions
+are retained rather than inferred from a shared superclass.
+
+## Loader coverage and migration candidates
+
+Exact catalog-name lookup resolves 45 of 46 rows in both installers. IDs 2762
+and 2883 share a catalog name and loader, so 45 rows correspond to 44 distinct
+resolved names. The unresolved entry is **Epomaker M65, ID 2550**,
+`ry5088_mmdkm60c_dm_8k_002`. Its catalog presence remains in scope; the missing
+loader match is a source ambiguity, not a reason to discard it or a claim that
+the physical keyboard is unsupported by the vendor.
+
+The 22 RY5088-named rows are the largest catalog-only keyboard group. Direct
+inspection of the following model modules confirms that they import the same
+modern base, `623d2d52.js` on macOS / `17dc9c62.js` on Windows, and declare
+512-byte default normal, Fn and Fn-Mac matrices without child method overrides.
+
+| Candidate | Internal ID | VID:PID | macOS module | Windows module |
+| --- | --- | --- | --- | --- |
+| H60 | 3662 | 3151:5029 | 00bc96cb.js | 82c2850d.js |
+| HE68 Llte (vendor spelling) | 2762, 2883 | 3151:5029 | 1a9b921e.js | 4e6e3981.js |
+| HE60 Wired | 3691 | 3151:5030 | 66d72914.js | 8b45ed1f.js |
+| HE60 Wireless | 3692 | 3151:5030 | bf16d6e2.js | dcf3221c.js |
+
+Their catalog declares four layers and one Fn layer per OS, compared with the
+two-profile HE60 Lite implementation. Shared command ancestry makes these useful
+next candidates; it does not justify routing their IDs directly into the existing
+two-profile backend. Profile addressing, magnetic parameters, capability gates,
+matrix data and discovery need model-specific validation before enablement.
+
+Other catalog groups include seven mice, two dongles, one PAN1086 entry and
+additional YC3121/YC3123 entries. Their functional metadata is preserved in the
+JSON, but DPI, sensor, polling, receiver and magnetic behavior require separate
+protocol work. Firmware management, reconnect/monitoring, online services and
+broader GUI support remain gaps across the inventory.
+
+## Provenance and maintenance
+
+The JSON `sources` list identifies the public catalog and implementation files
+used for the backend crosswalk. Loader filenames refer to private extracted
+installer JavaScript; vendor code and assets are not redistributed here. Archive
+hashes in [source-releases.json](source-releases.json) identify the baseline.
+Update this inventory when model gates or features change. Maintain the distinction
+between catalog declarations, implemented behavior and hardware verification.

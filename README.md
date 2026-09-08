@@ -124,7 +124,8 @@ See [system-information collection](docs/system-info.md) for units and sensor se
 ```
 
 Tests use fake transports and packet fixtures. Unit-test coverage is not hardware validation
-or feature parity. See [migration status](docs/parity.md) and [protocol provenance](docs/provenance.md).
+or feature parity. See [migration status](docs/parity.md), [model inventory](docs/model-inventory.md)
+and [protocol provenance](docs/provenance.md).
 The [Glyph protocol reference](docs/glyph-protocol.md) documents recovered packet layouts
 and unresolved behavior for contributors.
 
