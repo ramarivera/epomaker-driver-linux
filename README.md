@@ -58,7 +58,12 @@ and `delay_ms` (1–65535). For example:
 {"repeat":1,"events":[{"hid_usage":4,"down":true,"delay_ms":10},{"hid_usage":4,"down":false,"delay_ms":10}]}
 ```
 
-Assigning a macro to a key is a separate remapping operation. Still images are converted
+Assigning a macro to a key is a separate remapping operation. Use `bind-macro`,
+`bind-key`, `bind-media`, `bind-mouse`, and `disable-key` for named actions. Macro files
+also support mouse-button and movement events; `get-macro --decoded` exports editable
+JSON. See [macro and binding commands](docs/macros.md).
+
+Still images are converted
 to the display's column-major RGB565 format. Animated images are currently rejected.
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 

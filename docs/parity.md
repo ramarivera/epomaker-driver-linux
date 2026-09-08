@@ -14,11 +14,11 @@ IDs do not establish that another model speaks the same protocol.
 | Linux HID discovery | Sysfs descriptors and command collection classification | More hardware descriptors |
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
-| Key remapping | Glyph key and Fn slots, matrix read/write, readback checks | Semantic action editor and other families |
+| Key remapping | Glyph key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Visual editor, remaining action types and other families |
 | Profiles | Three Glyph matrices; active profile selection; versioned configuration restore | Vendor export semantics, other models |
 | Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and interactive editor |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
-| Macros | Keyboard-event JSON CLI, encoding, slots read/write | Mouse/motion events, recording, editor, assignment semantics |
+| Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, visual editor, ambiguous legacy motion timing and hardware comparison |
 | Screen | Still-image CLI, RGB565 conversion, bounded frame transfer, clock sync | Image/GIF UI, playback and display settings, hardware comparison |
 | Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |

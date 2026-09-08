@@ -169,3 +169,32 @@ def test_picture_cli(cli_device, firmware, tmp_path, capsys, activate):
         path.write_text(json.dumps(invalid))
         assert cli.main(args) == 1
         assert firmware.sent == before
+
+
+@pytest.mark.parametrize(
+    "args,expected",
+    [
+        (["bind-key", "10", "c", "--modifier", "ctrl"], "00010600"),
+        (["bind-media", "10", "volume-up"], "0300e900"),
+        (["bind-mouse", "10", "left"], "0100f000"),
+        (["bind-macro", "10", "5", "--mode", "held"], "09020500"),
+        (["disable-key", "10"], "00000000"),
+    ],
+)
+def test_semantic_binding_cli(args, expected, cli_device, capsys):
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, *args]) == 0
+    assert json.loads(capsys.readouterr().out)["raw"] == expected
+    assert cli.main([*prefix, "matrix", "--decoded"]) == 0
+    assert json.loads(capsys.readouterr().out)["slots"][10]["raw"] == expected
+
+
+def test_decoded_macro_cli_and_action_catalog(cli_device, firmware, capsys):
+    from epomaker_driver import macros
+
+    value = {"repeat": 2, "events": [{"type": "mouse_move", "dx": 1, "dy": -1, "delay_ms": 10}]}
+    firmware.macros[0] = bytearray(macros.encode(**value))
+    assert cli.main(["--device", cli_device.path, "get-macro", "0", "--decoded"]) == 0
+    assert json.loads(capsys.readouterr().out) == value
+    assert cli.main(["actions"]) == 0
+    assert "volume-up" in json.loads(capsys.readouterr().out)["media"]

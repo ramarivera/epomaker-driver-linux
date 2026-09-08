@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, codec, media, profiles, snapshot
+from . import __version__, actions, codec, macros, media, profiles, snapshot
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError
@@ -26,6 +26,7 @@ def parser():
     commands = root.add_subparsers(dest="command", required=True)
     commands.add_parser("discover", help="list HID metadata without opening devices")
     commands.add_parser("models", help="list catalog and implementation status")
+    commands.add_parser("actions", help="list supported semantic binding names")
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     commands.add_parser("clock", help="synchronize the display clock")
@@ -52,6 +53,26 @@ def parser():
     matrix.add_argument("--profile", type=int, default=0)
     matrix.add_argument("--fn", action="store_true")
     matrix.add_argument("--os-mode", type=int, default=0)
+    matrix.add_argument("--decoded", action="store_true")
+    for name in ("bind-key", "bind-media", "bind-mouse", "bind-macro", "disable-key"):
+        binding = commands.add_parser(name)
+        binding.add_argument("slot", type=int)
+        binding.add_argument("--profile", type=int, default=0)
+        binding.add_argument("--fn", action="store_true")
+        binding.add_argument("--os-mode", type=int, default=0)
+        if name == "bind-key":
+            binding.add_argument("key", choices=actions.KEYS)
+            binding.add_argument("--second", choices=actions.KEYS, default=0)
+            binding.add_argument(
+                "--modifier", choices=actions.MODIFIERS, action="append", default=[]
+            )
+        elif name == "bind-media":
+            binding.add_argument("name", choices=actions.MEDIA)
+        elif name == "bind-mouse":
+            binding.add_argument("name", choices=actions.MOUSE)
+        elif name == "bind-macro":
+            binding.add_argument("macro_slot", type=int)
+            binding.add_argument("--mode", choices=actions.MACRO_MODES, default="count")
     key = commands.add_parser("key")
     key.add_argument("slot", type=int)
     key.add_argument("action", help="four bytes as hex, for example 00000500")
@@ -60,8 +81,10 @@ def parser():
     key.add_argument("--os-mode", type=int, default=0)
     commands.add_parser("profile").add_argument("index", type=int)
     commands.add_parser("debounce").add_argument("milliseconds", type=int)
-    commands.add_parser("get-macro").add_argument("slot", type=int)
-    macro = commands.add_parser("macro", help="write a keyboard-event JSON macro with readback")
+    get_macro = commands.add_parser("get-macro")
+    get_macro.add_argument("slot", type=int)
+    get_macro.add_argument("--decoded", action="store_true")
+    macro = commands.add_parser("macro", help="write a keyboard/mouse JSON macro with readback")
     macro.add_argument("slot", type=int)
     macro.add_argument("path", type=Path)
     screen = commands.add_parser("screen", help="upload a still image to the Glyph display")
@@ -105,6 +128,14 @@ def execute(args):
         return [d.public_dict() for d in discover()]
     if args.command == "models":
         return catalog()
+    if args.command == "actions":
+        return {
+            "keys": actions.KEYS,
+            "modifiers": actions.MODIFIERS,
+            "media": actions.MEDIA,
+            "mouse": actions.MOUSE,
+            "macro_modes": actions.MACRO_MODES,
+        }
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
@@ -117,7 +148,7 @@ def execute(args):
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
         if not isinstance(value, dict) or set(value) != {"repeat", "events"}:
             raise ValueError("macro must contain exactly repeat and events")
-        prepared = codec.macro_data(value["repeat"], value["events"])
+        prepared = macros.encode(value["repeat"], value["events"])
     elif args.command == "restore":
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
@@ -137,6 +168,21 @@ def execute(args):
         )
     with Transport.open(select_device(args.device)) as transport:
         keyboard = Keyboard(transport)
+        if args.command.startswith("bind-") or args.command == "disable-key":
+            if args.command == "bind-key":
+                action = actions.keyboard(args.key, second=args.second, modifiers=args.modifier)
+            elif args.command == "bind-media":
+                action = actions.media(args.name)
+            elif args.command == "bind-mouse":
+                action = actions.mouse(args.name)
+            elif args.command == "bind-macro":
+                action = actions.macro(args.macro_slot, args.mode)
+            else:
+                action = bytes(4)
+            keyboard.set_key(
+                args.slot, action, profile=args.profile, fn=args.fn, os_mode=args.os_mode
+            )
+            return actions.decode(action)
         if args.command == "identify":
             return keyboard.identify()
         if args.command == "status":
@@ -181,6 +227,10 @@ def execute(args):
             return keyboard.set_sleep(args.bt, args.dongle, args.deep_bt, args.deep_dongle)
         if args.command == "matrix":
             value = keyboard.read_matrix(args.profile, fn=args.fn, os_mode=args.os_mode)
+            if args.decoded:
+                return {
+                    "slots": [actions.decode(value[i : i + 4]) for i in range(0, len(value), 4)]
+                }
             return {"slots": [list(value[i : i + 4]) for i in range(0, len(value), 4)]}
         if args.command == "key":
             return keyboard.set_key(
@@ -193,7 +243,8 @@ def execute(args):
         if args.command == "profile":
             keyboard.set_profile(args.index)
         elif args.command == "get-macro":
-            return {"slot": args.slot, "data": keyboard.read_macro(args.slot).hex()}
+            data = keyboard.read_macro(args.slot)
+            return macros.decode(data) if args.decoded else {"slot": args.slot, "data": data.hex()}
         elif args.command == "macro":
             keyboard.write_macro(args.slot, prepared)
         elif args.command == "screen":
