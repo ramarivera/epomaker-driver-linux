@@ -61,7 +61,10 @@ and 云玉磁轴/天青轴 switch selection. [HE108 ID 3365](docs/ry5088-he108.m
 profiles, side lighting, magnetic controls, and model-specific sleep/travel limits;
 hardware remains unverified.
 
-All sixteen implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
+[G84 HE Pro](docs/g84-he-pro.md) adds its code-133 switch, catalog travel/deadzone
+limits and sleep settings through the USB backend.
+
+All seventeen implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

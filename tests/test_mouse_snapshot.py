@@ -400,3 +400,257 @@ def test_factory_reset_version_change_during_backup_prevents_reset(monkeypatch, 
         mouse_snapshot.factory_reset(mouse, backup)
     assert not backup.exists()
     assert all(command[0] == 2 for command in firmware.sent)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value.update(schema_version=7),
+        lambda value: value.update(identity={"device_id": 9999, "usb_version": 1}),
+        lambda value: value.update(profile=True),
+        lambda value: value["profiles"].__setitem__(
+            0, {"matrix": None, "dpi": "00" * 64, "settings": {}}
+        ),
+        lambda value: value["profiles"].__setitem__(
+            0, {"matrix": "zz", "dpi": "00" * 64, "settings": {}}
+        ),
+        lambda value: value["profiles"].__setitem__(
+            0, {"matrix": "00" * 64, "dpi": "00" * 64, "settings": {}}
+        ),
+        lambda value: value.update(macros=[]),
+        lambda value: value.update(limitations="test"),
+    ],
+)
+def test_validate_rejects_malformed_schema_shapes(mutate):
+    value = snapshot_template()
+    mutate(value)
+    with pytest.raises(ValueError):
+        mouse_snapshot.validate(value)
+
+
+def test_validate_rejects_wrong_boolean_setting_and_unknown_usb_settings():
+    value = snapshot_template()
+    value["profiles"][0]["settings"]["line_repair"] = 1
+    with pytest.raises(ValueError, match="boolean"):
+        mouse_snapshot.validate(value)
+    value = snapshot_template(3961, None)
+    del value["profiles"][0]["settings"]["sleep_bt"]
+    with pytest.raises(ValueError, match="settings"):
+        mouse_snapshot.validate(value)
+
+
+def test_capture_rejects_non_usb_before_identify():
+    mouse = FakeMouse()
+    mouse.transport.kind = "bluetooth"
+    with pytest.raises(UnsupportedDevice, match="USB"):
+        mouse_snapshot.capture(mouse)
+
+
+class _ChangingIdentity(FakeMouse):
+    def __init__(self):
+        super().__init__()
+        self.identify_calls = 0
+
+    def identify(self):
+        self.identify_calls += 1
+        if self.identify_calls == 3:
+            return {"device_id": 3303, "usb_version": self.usb_version}
+        return super().identify()
+
+
+def test_capture_rejects_identity_drift_and_attempts_profile_cleanup():
+    mouse = _ChangingIdentity()
+    mouse.profile = 4
+    with pytest.raises(ProtocolError, match="identity or profile changed"):
+        mouse_snapshot.capture(mouse)
+    assert mouse.profile == 4
+
+
+def test_capture_rejects_setting_gate_mismatch_before_profile_reads():
+    mouse = FakeMouse()
+    original = mouse._setting_supported
+    calls = 0
+
+    def missing_once(name):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise UnsupportedDevice("not supported")
+        return original(name)
+
+    mouse._setting_supported = missing_once
+    with pytest.raises(ProtocolError, match="setting gates"):
+        mouse_snapshot.capture(mouse)
+    assert mouse.profile == 0
+
+
+def test_capture_rejects_bad_profile_matrix_or_dpi_response():
+    mouse = FakeMouse()
+    mouse.matrices[0] = b"short"
+    with pytest.raises(ProtocolError, match="invalid length"):
+        mouse_snapshot.capture(mouse)
+    mouse = FakeMouse()
+    bad = bytearray(mouse.dpis[0])
+    bad[0] = 0x10
+    mouse.dpis[0] = bytes(bad)
+    with pytest.raises(ProtocolError, match="invalid length"):
+        mouse_snapshot.capture(mouse)
+
+
+def test_restore_capture_failure_happens_before_recovery_file(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    requested = snapshot_template(3961, 0x0400)
+    monkeypatch.setattr(
+        mouse_snapshot, "capture", lambda _: (_ for _ in ()).throw(RuntimeError("capture failed"))
+    )
+    backup = tmp_path / "before.json"
+    with pytest.raises(RuntimeError, match="capture failed"):
+        mouse_snapshot.restore(mouse, requested, backup)
+    assert not backup.exists()
+    assert not firmware.sent
+
+
+def test_restore_rejects_dpi_readback_mismatch_after_backup(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    requested = mouse_snapshot.capture(mouse)
+    original_dpi = requested["profiles"][0]["dpi"]
+    changed = bytearray.fromhex(original_dpi)
+    changed[2] = (changed[2] + 1) & 0xFF
+    requested["profiles"][0]["dpi"] = bytes(changed).hex()
+    original_write = mouse._write
+
+    def drop_dpi(command):
+        if command[0] != 0x10:
+            original_write(command)
+
+    monkeypatch.setattr(mouse, "_write", drop_dpi)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="DPI readback differs"):
+        mouse_snapshot.restore(mouse, requested, backup)
+    assert backup.exists()
+
+
+def test_restore_reports_profile_cleanup_failure_after_partial_write(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    requested = mouse_snapshot.capture(mouse)
+    original_profile = mouse.get_profile()
+    writes_started = False
+
+    def fail_matrix(profile, matrix):
+        nonlocal writes_started
+        writes_started = True
+        firmware.profile = 3
+        raise RuntimeError("matrix write failed")
+
+    original_set_profile = mouse.set_profile
+
+    def fail_cleanup(profile):
+        if writes_started and profile == original_profile:
+            raise RuntimeError("cleanup profile failed")
+        return original_set_profile(profile)
+
+    monkeypatch.setattr(mouse, "write_matrix", fail_matrix)
+    monkeypatch.setattr(mouse, "set_profile", fail_cleanup)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="profile cleanup failed"):
+        mouse_snapshot.restore(mouse, requested, backup)
+    assert backup.exists()
+
+
+def test_restore_rejects_profile_drift_after_matrix_before_dpi(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    requested = mouse_snapshot.capture(mouse)
+    original_write_matrix = mouse.write_matrix
+
+    def drift(profile, matrix):
+        original_write_matrix(profile, matrix)
+        firmware.profile = 7
+
+    monkeypatch.setattr(mouse, "write_matrix", drift)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="before DPI restore"):
+        mouse_snapshot.restore(mouse, requested, backup)
+    assert backup.exists()
+
+
+def test_factory_reset_rejects_unsupported_identity_before_backup(tmp_path):
+    mouse, firmware = real_mouse()
+    firmware.model_id = 9999
+    with pytest.raises(UnsupportedDevice, match="does not match"):
+        mouse_snapshot.factory_reset(mouse, tmp_path / "before.json")
+    assert not (tmp_path / "before.json").exists()
+    assert not firmware.sent
+
+
+@pytest.mark.parametrize(
+    "name,value",
+    [("line_repair", 1), ("debounce", -1), ("debounce", 256)],
+)
+def test_raw_setting_command_rejects_invalid_values(name, value):
+    with pytest.raises(ValueError):
+        mouse_snapshot._raw_setting_command(name, value)
+
+
+@pytest.mark.parametrize("code", [True, -1, 256])
+def test_raw_report_rate_command_rejects_invalid_raw_byte(code):
+    with pytest.raises(ValueError, match="raw byte"):
+        mouse_snapshot._raw_rate_command(code)
+
+
+def test_raw_dpi_command_rejects_wrong_response_shape():
+    with pytest.raises(ValueError, match="captured DPI"):
+        mouse_snapshot._raw_dpi_command(bytes(64), 0)
+    with pytest.raises(ValueError, match="captured DPI"):
+        mouse_snapshot._raw_dpi_command(bytes([0x90]) * 63, 0)
+
+
+def test_capture_rejects_short_report_rate_response():
+    mouse = FakeMouse()
+    mouse._query = lambda payload, expected=None: bytes(3)
+    with pytest.raises(ProtocolError, match="report-rate"):
+        mouse_snapshot.capture(mouse)
+
+
+def test_restore_changed_matrix_dpi_scalar_and_macro_reads_back(tmp_path):
+    mouse, firmware = real_mouse()
+    requested = mouse_snapshot.capture(mouse)
+    requested["profiles"][0]["matrix"] = (bytes([0xA5]) + bytes(63)).hex()
+    dpi = bytearray.fromhex(requested["profiles"][0]["dpi"])
+    dpi[2] = 2
+    requested["profiles"][0]["dpi"] = dpi.hex()
+    requested["profiles"][0]["settings"]["debounce"] = 7
+    requested["macros"]["0"] = (bytes([0x5A]) * 256).hex()
+    result = mouse_snapshot.restore(mouse, requested, tmp_path / "before.json")
+    assert result["restored"] is True
+    assert firmware.matrix[(0, 0)][0] == 0xA5
+    assert firmware.current == 2
+    assert firmware.setting_banks[0]["debounce"] == 7
+    assert firmware.macros[0] == bytes([0x5A]) * 256
+
+
+def test_restore_rejects_identity_drift_after_backup_before_write(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    requested = mouse_snapshot.capture(mouse)
+    monkeypatch.setattr(mouse_snapshot, "capture", lambda _: requested)
+    calls = 0
+
+    def drift():
+        nonlocal calls
+        calls += 1
+        model_id = 3961 if calls == 1 else 3303
+        return {"device_id": model_id, "usb_version": 0x0400}
+
+    monkeypatch.setattr(mouse, "identify", drift)
+    with pytest.raises(ProtocolError, match="before restore write"):
+        mouse_snapshot.restore(mouse, requested, tmp_path / "before.json")
+
+
+class _UnsupportedIdentityMouse(FakeMouse):
+    def identify(self):
+        return {"device_id": 9999, "usb_version": 1}
+
+
+def test_factory_reset_rejects_identity_not_in_snapshot_models(tmp_path):
+    mouse = _UnsupportedIdentityMouse()
+    with pytest.raises(UnsupportedDevice, match="not supported"):
+        mouse_snapshot.factory_reset(mouse, tmp_path / "before.json")
