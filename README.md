@@ -24,6 +24,10 @@ and OS controls, lighting and custom RGB pictures. SN020, TH80 V3 MAX and TH65
 Max also support RGB24 still images and animations. All five have configuration
 backup, restore and reset with recovery copies.
 
+[Older YC3121 support](docs/yc3121.md) adds RT100 and Dynatab75X-UK over USB:
+normal keymaps, three profiles, sleep timers, debounce and automatic OS selection.
+Their Fn layers, macros, lighting, screens and recovery remain unfinished.
+
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
 

@@ -11,7 +11,9 @@ from pathlib import Path
 from . import __version__, actions, codec, macros, media, profiles, snapshot, system_info
 from .device import Keyboard
 from .discovery import discover
-from .errors import DeviceUnavailable, DriverError
+from .errors import DeviceUnavailable, DriverError, UnsupportedDevice
+from .legacy import COMMANDS as LEGACY_COMMANDS
+from .legacy import LegacyKeyboard
 from .models import catalog
 from .transport import Transport
 
@@ -207,8 +209,14 @@ def execute(args):
         prepared = b"".join(
             codec.bounded(int(color, 16), 0xFFFFFF, "rgb").to_bytes(3, "big") for color in colors
         )
-    with Transport.open(select_device(args.device)) as transport:
-        keyboard = Keyboard(transport)
+    device = select_device(args.device)
+    with Transport.open(device) as transport:
+        if device.product_id == 0x4015:
+            if args.command not in LEGACY_COMMANDS:
+                raise UnsupportedDevice("This YC3121 command has not been migrated yet")
+            keyboard = LegacyKeyboard(transport)
+        else:
+            keyboard = Keyboard(transport)
         if args.command.startswith("bind-") or args.command == "disable-key":
             if args.command == "bind-key":
                 action = actions.keyboard(args.key, second=args.second, modifiers=args.modifier)
