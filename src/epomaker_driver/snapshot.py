@@ -1,7 +1,7 @@
 """Versioned Glyph configuration snapshots; validate all fields before restoration."""
 
 from . import codec, profiles
-from .errors import ProtocolError
+from .errors import ProtocolError, UnsupportedDevice
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
 
@@ -13,6 +13,8 @@ def macro_slots(matrices):
 def capture(keyboard, *, extra_macro_slots=()):
     def operation():
         identity = keyboard.identify()
+        if identity["device_id"] != 3059:
+            raise UnsupportedDevice("Configuration snapshots currently support Glyph only")
         matrices = [keyboard.read_matrix(p) for p in range(3)]
         fn = {
             name: keyboard.read_matrix(fn=True, os_mode=mode)
@@ -139,6 +141,7 @@ def factory_reset(keyboard, backup_path):
     """Save every macro slot and current settings before sending the vendor reset."""
 
     def operation():
+        keyboard._check_commands([codec.packet([1])])
         current = capture(keyboard, extra_macro_slots=range(256))
         current["limitations"] = ["screen pixels are not included"]
         profiles.save(backup_path, current)

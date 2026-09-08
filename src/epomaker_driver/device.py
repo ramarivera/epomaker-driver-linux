@@ -1,4 +1,4 @@
-"""Glyph high-level configuration operations with complete-read and model gates."""
+"""High-level keyboard configuration with explicit model/operation gates."""
 
 from __future__ import annotations
 
@@ -25,19 +25,34 @@ class Keyboard:
     def _supported(self):
         if self.identity is None:
             self.identify()
-        if self.identity["device_id"] != 3059:
+        if self.identity["device_id"] not in (2895, 3059):
             raise UnsupportedDevice(
-                "Configuration currently supports Glyph ID 3059; other families are being migrated"
+                "Configuration supports Glyph and RT85 keymaps/macros; other models are being migrated"
             )
         if self.identity["is_boot"]:
             raise UnsupportedDevice("Device is in bootloader mode")
 
-    def _query(self, command, *, expected=None):
+    def _check_commands(self, commands):
         self._supported()
+        # RT85 inherits the same key/Fn/macro protocol. Other features need their
+        # own model limits; see docs/rt85.md before expanding this allowlist.
+        if self.identity["device_id"] == 2895:
+            for command in commands:
+                if command[0] not in (4, 10, 11, 16, 0x84, 0x8A, 0x8B, 0x90):
+                    raise UnsupportedDevice(
+                        "RT85 currently supports keymaps, Fn layers, macros and profiles"
+                    )
+
+    def _profile_max(self):
+        self._supported()
+        return self.model["layer"] - 1
+
+    def _query(self, command, *, expected=None):
+        self._check_commands([command])
         return self.transport.exchange(command, expected=expected)
 
     def _write(self, commands):
-        self._supported()
+        self._check_commands(commands)
 
         def operation():
             for command in commands:
@@ -49,6 +64,16 @@ class Keyboard:
     def status(self):
         self._supported()
         profile = self._query(codec.packet([0x84]), expected=0x84)[1]
+        if self.identity["device_id"] == 2895:
+            return {
+                "identity": self.identity,
+                "model": self.model["displayName"],
+                "profile": profile,
+                "profiles": self.model["layer"],
+                "battery": self.transport.battery,
+                "online": self.transport.online,
+                "capabilities": ["keymap", "fn", "macro", "profile"],
+            }
         rate = self._query(codec.packet([0x83]), expected=0x83)[2]
         debounce = self._query(codec.packet([0x86]), expected=0x86)[1]
         return {
@@ -149,7 +174,7 @@ class Keyboard:
                 command = (
                     codec.fn_read(profile, page, os_mode)
                     if fn
-                    else codec.key_matrix_read(profile, page)
+                    else codec.key_matrix_read(profile, page, profile_max=self._profile_max())
                 )
                 response = self.transport.exchange(command)
                 if len(response) != 64:
@@ -163,7 +188,7 @@ class Keyboard:
         command = (
             codec.fn_single(slot, action, layer=profile, os_mode=os_mode)
             if fn
-            else codec.single_key(profile, slot, action)
+            else codec.single_key(profile, slot, action, profile_max=self._profile_max())
         )
         self._write([command])
         actual = self.read_matrix(profile, fn=fn, os_mode=os_mode)[slot * 4 : slot * 4 + 4]
@@ -172,13 +197,13 @@ class Keyboard:
         return list(actual)
 
     def write_matrix(self, matrix, profile=0):
-        self._write(list(codec.matrix_chunks(matrix, profile)))
+        self._write(list(codec.matrix_chunks(matrix, profile, profile_max=self._profile_max())))
         actual = self.read_matrix(profile)
         if actual != bytes(matrix):
             raise ProtocolError("matrix readback differs from requested data")
 
     def set_profile(self, profile):
-        codec.bounded(profile, 2, "profile")
+        codec.bounded(profile, self._profile_max(), "profile")
         self._write([codec.packet([4, profile])])
         actual = self._query(codec.packet([0x84]), expected=0x84)[1]
         if actual != profile:
@@ -276,7 +301,7 @@ class Keyboard:
         self._transfer_screen(prepare, chunks, progress)
 
     def _transfer_screen(self, prepare, chunks, progress):
-        self._supported()
+        self._check_commands([prepare])
 
         def operation():
             for _ in range(11):

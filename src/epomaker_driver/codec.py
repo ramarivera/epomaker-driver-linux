@@ -54,11 +54,11 @@ def parse_identity(command_response):
     }
 
 
-def key_matrix_read(profile, page, mode=0):
+def key_matrix_read(profile, page, mode=0, *, profile_max=2):
     return packet(
         [
             0x8A,
-            bounded(profile, 2, "profile"),
+            bounded(profile, bounded(profile_max, 255, "profile maximum"), "profile"),
             255,
             bounded(page, 7, "page"),
             bounded(mode, 255, "mode"),
@@ -66,7 +66,7 @@ def key_matrix_read(profile, page, mode=0):
     )
 
 
-def single_key(profile, slot, action, commit=True, mode=0):
+def single_key(profile, slot, action, commit=True, mode=0, *, profile_max=2):
     action = bytes(action)
     if len(action) != 4:
         raise ValueError("action must contain four bytes")
@@ -74,7 +74,7 @@ def single_key(profile, slot, action, commit=True, mode=0):
         bytes(
             [
                 0x0A,
-                bounded(profile, 2, "profile"),
+                bounded(profile, bounded(profile_max, 255, "profile maximum"), "profile"),
                 bounded(slot, 127, "slot"),
                 0,
                 0,
@@ -286,11 +286,11 @@ def parse_light(data, *, side=False):
     }
 
 
-def matrix_chunks(matrix, profile=0, mode=0):
+def matrix_chunks(matrix, profile=0, mode=0, *, profile_max=2):
     matrix = bytes(matrix)
     if len(matrix) != 512:
         raise ValueError("matrix must have 128 four-byte entries")
-    bounded(profile, 2, "profile")
+    bounded(profile, bounded(profile_max, 255, "profile maximum"), "profile")
     bounded(mode, 255, "mode")
     for index, start in enumerate(range(0, 512, 56)):
         chunk = matrix[start : start + 56]

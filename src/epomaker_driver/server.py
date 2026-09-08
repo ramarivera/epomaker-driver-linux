@@ -15,7 +15,7 @@ from urllib.parse import unquote, urlsplit
 from . import actions, codec, macros, media, snapshot, system_info
 from .device import Keyboard
 from .discovery import discover
-from .errors import DeviceUnavailable, DriverError, ProtocolError
+from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
 from .models import glyph_matrix
 from .transport import Transport
 
@@ -76,6 +76,10 @@ class Controller:
                 keyboard = Keyboard(transport)
                 keyboard._supported()
                 identity = keyboard.identify()
+                if identity["device_id"] != 3059:
+                    raise UnsupportedDevice(
+                        "The graphical interface currently supports Glyph; use the CLI for RT85"
+                    )
             except Exception:
                 transport.close()
                 raise

@@ -5,8 +5,8 @@ Baseline: EPOMAKER Driver v4 3.2.22, Windows and macOS installers recorded in
 feature parity. It has not been achieved, and there is no defensible overall
 percentage until the inventory and weighting have been completed.
 
-The catalog contains 46 EPOMAKER models. Only the Glyph implementation is currently
-enabled; it has not been verified against physical hardware. Shared vendor/product
+The catalog contains 46 EPOMAKER models. Glyph and the [RT85 keymap core](rt85.md) are currently
+enabled; neither has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
 | Capability | Implemented | Remaining validation or work |
@@ -14,8 +14,8 @@ IDs do not establish that another model speaks the same protocol.
 | Linux HID discovery | Sysfs descriptors and command collection classification | More hardware descriptors |
 | USB and Bluetooth transport | Feature reports, Bluetooth envelopes, status filtering, timeouts | Physical device round trips |
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
-| Key remapping | Glyph key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
-| Profiles | Three Glyph matrices; active profile selection; versioned configuration restore | Vendor export semantics, other models |
+| Key remapping | Glyph and RT85 key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
+| Profiles | Three Glyph / four RT85 matrices; active profile selection; Glyph configuration restore | Vendor export semantics, other models |
 | Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |

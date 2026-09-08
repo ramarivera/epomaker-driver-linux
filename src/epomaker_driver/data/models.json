@@ -1551,7 +1551,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5002",
-    "implementation": "catalogued",
+    "implementation": "rt85-keymap",
     "hardware_verified": false
   },
   {

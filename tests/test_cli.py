@@ -275,3 +275,18 @@ def test_factory_reset_cli(cli_device, firmware, tmp_path, capsys):
     result = json.loads(capsys.readouterr().out)
     assert result["reset_sent"] and result["previous_configuration"] == str(destination)
     assert firmware.sent[-1][:8] == bytes.fromhex("01000000000000fe")
+
+
+def test_rt85_fourth_profile(cli_device, firmware, capsys):
+    from epomaker_driver.models import default_matrix
+
+    firmware.model_id = 2895
+    firmware.matrices = [bytearray(default_matrix(2895)) for _ in range(4)]
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, "profile", "3"]) == 0
+    assert firmware.profile == 3
+    capsys.readouterr()
+    assert cli.main([*prefix, "key", "9", "00000500", "--profile", "3"]) == 0
+    assert bytes(firmware.matrices[3][36:40]) == bytes([0, 0, 5, 0])
+    capsys.readouterr()
+    assert cli.main([*prefix, "profile", "4"]) != 0
