@@ -18,7 +18,7 @@ IDs do not establish that another model speaks the same protocol.
 | Key remapping | Glyph, RT85, RT75 and five RY6602 models' key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Per-model three/four matrices; active profile selection; model-checked Glyph/RT85/RT75 configuration restore | Vendor export semantics, other models |
 | Lighting | Glyph/RT85 main and side modes, RT75 main modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
-| Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce; sleep readback checks | Hardware limits and persistence |
+| Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph, RT85 and RT75 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Glyph, RT85 and RT75 key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |

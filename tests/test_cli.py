@@ -410,3 +410,22 @@ def test_ry6602_core_cli(cli_device, firmware, model_id):
     assert cli.main([*prefix, "key", "9", "00000500", "--profile", str(last)]) == 0
     assert firmware.matrices[last][36:40] == bytes([0, 0, 5, 0])
     assert cli.main([*prefix, "status"]) == 0
+
+
+@pytest.mark.parametrize("model_id", [3858, 3633, 3673, 3573, 3674])
+def test_ry6602_three_timer_cli(cli_device, firmware, model_id, capsys):
+    firmware.model_id = model_id
+    firmware.sleep_data[14:16] = bytes.fromhex("faff")
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, "sleep", "600", "1200", "1800"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result == {"bluetooth": 600, "dongle": 1200, "deep_bluetooth": 1800}
+    assert firmware.sleep_data[14:16] == bytes.fromhex("faff")
+    before = len(firmware.sent)
+    assert cli.main([*prefix, "sleep", "600", "1200", "1800", "2400"]) != 0
+    assert len(firmware.sent) == before
+
+
+def test_glyph_still_requires_four_sleep_values(cli_device, firmware):
+    assert cli.main(["--device", cli_device.path, "sleep", "60", "120", "600"]) != 0
+    assert not firmware.sent

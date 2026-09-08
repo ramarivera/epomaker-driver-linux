@@ -70,7 +70,11 @@ def validate_sleep_times(model_id: int, values):
     model = model_by_id(model_id)
     fields = (("sleepBT", "sleep"), ("sleep24", "sleep"), ("sleepBT", "deep"), ("sleep24", "deep"))
     for value, (connection, kind) in zip(values, fields, strict=True):
-        limits = model["other"][connection][kind]
+        limits = model["other"][connection].get(kind)
+        if limits is None:
+            if value is not None:
+                raise ValueError(f"{connection} {kind} is not exposed by this model; omit it")
+            continue
         bounded(value, limits["max"], "sleep seconds")
         if value < limits["min"]:
             raise ValueError(f"{connection} {kind} must be at least {limits['min']} seconds")

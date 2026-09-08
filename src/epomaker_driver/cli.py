@@ -71,7 +71,7 @@ def parser():
     commands.add_parser("auto-os").add_argument("enabled", choices=("on", "off"))
     sleep = commands.add_parser("sleep")
     for name in ("bt", "dongle", "deep_bt", "deep_dongle"):
-        sleep.add_argument(name, type=int)
+        sleep.add_argument(name, type=int, **({"nargs": "?"} if name == "deep_dongle" else {}))
     matrix = commands.add_parser("matrix")
     matrix.add_argument("--profile", type=int, default=0)
     matrix.add_argument("--fn", action="store_true")

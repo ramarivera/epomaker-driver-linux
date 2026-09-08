@@ -101,10 +101,27 @@ class Keyboard:
                 )
 
         if self.identity["device_id"] in RY6602_IDS:
-            allowed = (4, 6, 9, 10, 11, 16, 0x17, 0x84, 0x86, 0x89, 0x8A, 0x8B, 0x90, 0x97)
+            allowed = (
+                4,
+                6,
+                9,
+                10,
+                11,
+                16,
+                0x11,
+                0x17,
+                0x84,
+                0x86,
+                0x89,
+                0x8A,
+                0x8B,
+                0x90,
+                0x91,
+                0x97,
+            )
             if any(command[0] not in allowed for command in commands):
                 raise UnsupportedDevice(
-                    "RY6602 core supports keymaps, Fn, macros, profiles, debounce and OS controls"
+                    "RY6602 supports keymaps, Fn, macros, profiles, sleep, debounce and OS controls"
                 )
 
     def _profile_max(self):
@@ -136,7 +153,8 @@ class Keyboard:
                 "profiles": self.model["layer"],
                 "battery": self.transport.battery,
                 "online": self.transport.online,
-                "capabilities": ["keymap", "fn", "macro", "profile", "debounce", "os"],
+                "capabilities": ["keymap", "fn", "macro", "profile", "debounce", "os", "sleep"],
+                "sleep": self.get_sleep(),
                 "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
                 "options": self.get_options(),
                 "auto_os": self.get_auto_os(),
@@ -289,23 +307,41 @@ class Keyboard:
         return actual
 
     def get_sleep(self):
-        return codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))
+        result = codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))
+        if self.identity["device_id"] in RY6602_IDS:
+            result.pop("deep_dongle")
+        return result
 
-    def set_sleep(self, bt, dongle, deep_bt, deep_dongle):
+    def set_sleep(self, bt, dongle, deep_bt, deep_dongle=None):
         self._check_commands([codec.packet([0x11])])
         validate_sleep_times(self.identity["device_id"], (bt, dongle, deep_bt, deep_dongle))
-        self._write([codec.sleep_times(bt, dongle, deep_bt, deep_dongle)])
-        actual = self.get_sleep()
-        expected = dict(
-            zip(
-                ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle"),
-                (bt, dongle, deep_bt, deep_dongle),
-                strict=True,
+
+        def operation():
+            ry = self.identity["device_id"] in RY6602_IDS
+            command = bytearray(codec.sleep_times(bt, dongle, deep_bt, 0 if ry else deep_dongle))
+            expected = dict(
+                zip(
+                    ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle"),
+                    (bt, dongle, deep_bt, deep_dongle),
+                    strict=True,
+                )
             )
-        )
-        if actual != expected:
-            raise ProtocolError("sleep readback differs")
-        return actual
+            if ry:
+                # Preserve the unexposed fourth uint16, including opaque values >64800.
+                # Same packet layout, different UI capabilities: docs/ry6602.md.
+                raw = self._query(codec.packet([0x91]), expected=0x91)
+                original = codec.parse_sleep(raw)
+                command[14:16] = raw[14:16]
+                expected["deep_dongle"] = original["deep_dongle"]
+            self._write([bytes(command)])
+            actual = codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))
+            if actual != expected:
+                raise ProtocolError("sleep readback differs")
+            if ry:
+                actual.pop("deep_dongle")
+            return actual
+
+        return self.transport.transaction(operation)
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0):
         self._supported()

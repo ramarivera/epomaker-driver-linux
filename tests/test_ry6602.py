@@ -43,7 +43,7 @@ def ry(request, firmware):
 def test_usb_core_roundtrip(ry, firmware):
     status = ry.status()
     assert status["profiles"] == (4 if firmware.model_id == 3858 else 3)
-    assert status["capabilities"] == ["keymap", "fn", "macro", "profile", "debounce", "os"]
+    assert status["capabilities"] == ["keymap", "fn", "macro", "profile", "debounce", "os", "sleep"]
     last = status["profiles"] - 1
     before = ry.read_matrix(0)
     ry.set_profile(last)
@@ -82,7 +82,6 @@ def test_fn_and_os_controls(ry, firmware, os_mode):
     "operation",
     [
         lambda k: k.set_light("solid"),
-        lambda k: k.set_sleep(600, 600, 600, 600),
         lambda k: k.upload_screen(bytes(2), (0, 0, 1, 1)),
         lambda k: snapshot.capture(k),
         lambda k: k._write([codec.packet([4]), codec.packet([1])]),
@@ -104,3 +103,51 @@ def test_usb_filter_requires_exact_command_collection():
         assert classify(3, 0x3151, 0x5056, parse_descriptor(bad)) == (None, None)
     assert classify(3, 0x3151, 0x5058, parse_descriptor(descriptor)) == (None, None)
     assert classify(5, 0x3151, 0x5056, parse_descriptor(descriptor)) == (None, None)
+
+
+def test_sleep_preserves_hidden_field_and_checks_model_limits(ry, firmware):
+    minimum = model_by_id(firmware.model_id)["other"]["sleepBT"]["sleep"]["min"]
+    firmware.sleep_data[14:16] = bytes.fromhex("ffff")
+    result = ry.set_sleep(minimum, 64800, minimum)
+    assert result == {"bluetooth": minimum, "dongle": 64800, "deep_bluetooth": minimum}
+    assert firmware.sent[-1][14:16] == bytes.fromhex("ffff")
+    assert ry.get_sleep() == result
+    assert "deep_dongle" not in ry.status()["sleep"]
+    before = len(firmware.sent)
+    for values in [
+        (minimum - 1, minimum, minimum),
+        (minimum, 64801, minimum),
+        (minimum, minimum, minimum - 1),
+        (minimum, minimum, minimum, 600),
+    ]:
+        with pytest.raises(ValueError):
+            ry.set_sleep(*values)
+    assert len(firmware.sent) == before
+
+
+def test_sleep_failed_read_prevents_write(ry, firmware):
+    from epomaker_driver.errors import ProtocolError
+
+    exchange = firmware.exchange
+    firmware.exchange = lambda command, **kwargs: (
+        bytes(63) if command[0] == 0x91 else exchange(command, **kwargs)
+    )
+    with pytest.raises(ProtocolError):
+        ry.set_sleep(600, 600, 600)
+    assert not firmware.sent
+
+
+def test_sleep_detects_hidden_field_mutation(ry, firmware):
+    from epomaker_driver.errors import ProtocolError
+
+    send = firmware.send
+
+    def mutate(command, **kwargs):
+        send(command, **kwargs)
+        if command[0] == 0x11:
+            firmware.sleep_data[14:16] = bytes.fromhex("1234")
+
+    firmware.send = mutate
+    with pytest.raises(ProtocolError, match="sleep readback"):
+        ry.set_sleep(600, 600, 600)
+    assert len(firmware.sent) == 1
