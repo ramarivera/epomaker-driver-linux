@@ -119,6 +119,7 @@ def test_matrix_schema_lengths_and_byte_values():
         "3417",
         "3518",
         "3613",
+        "2520",
         "3883",
         "2762",
         "2883",
@@ -133,10 +134,13 @@ def test_matrix_schema_lengths_and_byte_values():
         "2761",
         "2959",
     }
-    for model in DATA.values():
-        assert set(model) == set(NAMES) | (
-            {"defaultFnMACMatrix"} if model is DATA["3759"] else set()
-        )
+    for model_id, model in DATA.items():
+        expected = set(NAMES)
+        if model_id == "2520":
+            expected.remove("defaultFnMacMatrix")
+        elif model_id == "3759":
+            expected.add("defaultFnMACMatrix")
+        assert set(model) == expected
         for matrix in model.values():
             assert len(matrix) == 512
             assert all(type(value) is int and 0 <= value <= 255 for value in matrix)

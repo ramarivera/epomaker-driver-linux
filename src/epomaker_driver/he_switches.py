@@ -8,6 +8,7 @@ from .magnetic import encode_write
 from .models import RY5088_SWITCH_IDS, model_by_id
 
 SWITCH_TYPES = {
+    "磁白轴": 8,
     "高特": 0,
     "磁玉": 1,
     "磁玉pro": 2,

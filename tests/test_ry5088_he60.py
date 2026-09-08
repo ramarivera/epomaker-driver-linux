@@ -83,11 +83,11 @@ def test_he60_catalog_rapid_maximum_is_2_5(usb):
     assert plan_update(3746, 0, {"rapid_press": 2.5}, state)["changed_fields"] == [2]
 
 
-def test_he60_catalog_deadzone_maximum_is_one_on_old_firmware():
+def test_he60_old_firmware_deadzone_maximum_is_four():
     state = _state(0x200)
-    assert plan_update(3746, 0, {"deadzone": 1}, state)["changed_fields"] == [6]
+    assert plan_update(3746, 0, {"deadzone": 4}, state)["changed_fields"] == [6]
     with pytest.raises(ValueError):
-        plan_update(3746, 0, {"deadzone": 1.01}, state)
+        plan_update(3746, 0, {"deadzone": 4.1}, state)
 
 
 def test_he60_sub_wire_precision_is_rejected_until_usb_0500():

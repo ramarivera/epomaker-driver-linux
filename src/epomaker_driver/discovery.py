@@ -134,6 +134,7 @@ def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
         0x502C,
         0x502D,
         0x502E,
+        0x502F,
         0x5030,
         0x503A,
         0x5043,

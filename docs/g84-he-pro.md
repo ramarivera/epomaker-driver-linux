@@ -26,8 +26,7 @@ There is no model-specific alias mapping. Global code 0 (`高特`) is not on
 this model's supported list. New enum entries do not widen older models' gates.
 
 Catalog travel is 0.1–3.3 mm, step 0.005 mm, default 2 mm. Bottom dead zone is
-0–1 mm, step 0.005 mm, default 0.3 mm. These bounds apply even on old firmware;
-ordinary edits reject precision finer than the active firmware can represent.
+0–1 mm, step 0.005 mm, default 0.3 mm. On effective firmware below 0300, the shared UI max-4 precedence applies before catalog maxima; newer firmware uses these catalog bounds. Ordinary edits reject precision finer than the active firmware can represent.
 RF version takes precedence over USB version for this wireless-capable model.
 No rapid-trigger bounds override is specified, so the shared firmware-dependent
 limits apply. See [magnetic commands](magnetic-protocol.md).

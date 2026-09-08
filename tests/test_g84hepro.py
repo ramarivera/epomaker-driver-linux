@@ -97,8 +97,8 @@ def test_g84_catalog_has_no_knob_or_rapid_trigger_metadata():
     assert "fireLift" not in other["travelSetting"]
 
 
-@pytest.mark.parametrize("usb", [0x200, 0x300, 0x500])
-def test_g84_explicit_deadzone_limit_applies_even_to_old_firmware(usb):
+@pytest.mark.parametrize("usb", [0x300, 0x500])
+def test_g84_explicit_deadzone_limit_applies_on_new_firmware(usb):
     state = _state(usb)
     with pytest.raises(ValueError):
         plan_update(4071, 0, {"deadzone": 1.1}, state)

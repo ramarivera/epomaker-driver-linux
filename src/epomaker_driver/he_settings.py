@@ -152,8 +152,11 @@ def plan_update(model_id, slot, patch, state):
         if setting is not None:
             limits[name] = (
                 setting["min"],
-                setting["max"],
-                max(Decimal(str(setting["step"])), wire_step),
+                4
+                if (name in ("travel", "lift") and 0 < effective_version < 0x300)
+                or (name == "deadzone" and effective_version < 0x300)
+                else setting["max"],
+                max(Decimal(str(setting.get("step", step))), wire_step),
             )
     modes = state.get("modes")
     if (

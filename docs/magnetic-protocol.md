@@ -19,6 +19,17 @@ Travel values are multiplied by 10 for versions below `0x0300`, 100 from
 precedence over USB version when nonzero; an absent version uses multiplier 10. Top dead
 zone fields are available only when either version is at least `0x0400`.
 
+The shared UI applies an old-firmware exception before catalog limits. The
+effective version is nonzero RF when available, otherwise USB; a missing version
+acts as zero. For effective versions from `0x0001` through `0x02ff`, travel and lift use a
+maximum of 4 mm. Bottom dead zone uses a maximum of 4 mm for effective versions
+below `0x0300`, including effective version zero. When a rapid
+trigger step is missing from the catalog, the UI fallback is 0.1 mm below
+`0x0300`, 0.01 mm from `0x0300` through `0x04ff`, and 0.005 mm at `0x0500` or
+later. Values must still be representable by the wire multiplier. These gates
+are shown in the macOS main UI at lines 107169–107180, 107859, 107796/107828,
+and 107677–107702.
+
 Field IDs confirmed in both bundles are travel 0, lift travel 1, rapid-trigger
 press/lift 2/3, dynamic travel 4, MT time 5, dead zone 6, mode 7, trigger
 modes 8, snap binding 9, and top dead zone 251. Travel fields are little-endian
