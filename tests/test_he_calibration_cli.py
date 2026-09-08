@@ -31,6 +31,7 @@ def install(monkeypatch, model, *, cancel=False):
         3703: 0x5030,
         2761: 0x5030,
         2959: 0x5030,
+        3365: 0x5030,
     }.get(model, 0x5029)
     info = DeviceInfo("/dev/calibration", "Keyboard", 3, 0x3151, product, b"", "usb", 0)
     now = [0.0]
@@ -57,7 +58,24 @@ def install(monkeypatch, model, *, cancel=False):
 
 @pytest.mark.parametrize(
     "model",
-    (3662, 3664, 2762, 2883, 3727, 3759, 2465, 2586, 2870, 3691, 3692, 3703, 2761, 2959, 3746),
+    (
+        3662,
+        3664,
+        2762,
+        2883,
+        3727,
+        3759,
+        2465,
+        2586,
+        2870,
+        3691,
+        3692,
+        3703,
+        2761,
+        2959,
+        3746,
+        3365,
+    ),
 )
 def test_calibration_cli_orders_start_stop_and_reports_raw_readings(model, monkeypatch, capsys):
     fw, path = install(monkeypatch, model)

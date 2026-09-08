@@ -1,6 +1,6 @@
 # Magnetic configuration backup and restore
 
-Schema 7 supports the fifteen migrated magnetic models through their USB command
+Schema 7 supports the sixteen enabled migrated magnetic models through their USB command
 interfaces. It includes all normal profiles and four submodes per profile, each
 exposed Fn bank, all 256 macro slots, all supported custom RGB picture banks,
 main/side lighting, OS options and automatic selection, model-specific sleep and
@@ -53,6 +53,8 @@ slider limits, so existing or older device settings can be backed up losslessly.
 
 ## Restore ordering and verification
 
+HE108 ID 3365 is included as an enabled partial USB backend; hardware verification remains outstanding.
+
 The implementation writes changed macros, then each profile's normal matrices
 and magnetic data. It sets the mode before its parameters, reapplying every
 parameter when a mode changes so mode initialization cannot discard saved values. The four stage-major
@@ -86,5 +88,5 @@ Protocol evidence is shared with [magnetic commands](magnetic-protocol.md),
 and the [wired](ry5088-wired.md) / [wireless-capable](ry5088-wireless.md) additions.
 The independent Linux schema is implemented in `he_snapshot.py`; raw restoration
 and final comparisons are in `he_recovery.py`. Profile-aware simulated tests
-exercise all fifteen IDs, all domains, hidden data, recovery-file collisions,
+exercise all sixteen IDs, all domains, hidden data, recovery-file collisions,
 firmware/model mismatch, capture cleanup and restoration failures.

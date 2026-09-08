@@ -27,6 +27,7 @@ from .models import (
     RY5088_SIDE_IDS,
     RY5088_SWITCH_IDS,
     model_by_id,
+    validate_sleep_times,
 )
 from .versions import parse_version, version_request
 
@@ -295,6 +296,9 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         if self.expected_id == 3759:
             if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
                 raise ValueError("wireless HE60 sleep timers must be integers from 60 through 3600")
+        elif self.expected_id == 3365:
+            # HE108 exposes three timers; keep the fourth wire word untouched below.
+            validate_sleep_times(self.expected_id, (*values, None))
         elif (
             any(type(value) is not int or not 0 <= value <= 64800 for value in values)
             or deep_bt < 10
