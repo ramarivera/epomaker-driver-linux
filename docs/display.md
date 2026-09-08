@@ -1,4 +1,4 @@
-# Glyph and RT85 display images and animation
+# Keyboard display images and animation
 
 ```sh
 epomaker --device /dev/hidrawN screen still.png --fit --bank 5
@@ -7,7 +7,7 @@ epomaker --device /dev/hidrawN animation moving.gif --fit
 epomaker --device /dev/hidrawN animation moving.gif --fit --delay-ms 80
 ```
 
-Without `--fit`, frames must be exactly 428×142 pixels for Glyph or 320×172 for RT85. With it, the image is scaled
+Without `--fit`, frames must be exactly 428×142 pixels for Glyph, 320×172 for RT85 or 240×240 for RT75. With it, the image is scaled
 with preserved aspect ratio and black borders. Transparency is composited onto black.
 The CLI opens the selected HID device and reads its identity to choose the dimensions;
 all frames are then decoded, converted and validated before any display writes. GIF
@@ -82,7 +82,7 @@ RT85 uses the same transfer layout with a 320×172 RGB565 display. Its identical
 floor((6*1024*1024 - 4096) / ((floor(320*172*2 / 4096) + 1)*4096)) - 5 = 51
 ```
 
-Each full frame is 110,080 bytes in 1,966 chunks. `models.display_spec` derives both
+Each full frame is 110,080 bytes in 1,966 chunks. `models.display_spec` derives the supported
 models' dimensions and frame limits from the catalog; media conversion and the
 high-level uploader use the same values. Python conversion functions default to
 Glyph for compatibility and accept `model_id=2895` for RT85. The CLI detects the
@@ -90,4 +90,12 @@ model automatically. The graphical interface continues to support Glyph only.
 
 The memory formula comes from `memoryForEachFrame` / `maxImageFrameCount` in the
 macOS main bundle (pretty lines 110112–110148). RT85's date and language flags enable
-clock and language operations; system-information display remains Glyph-only.
+clock and language operations; system-information display is available on Glyph and RT75, but not RT85.
+
+
+## RT75 limits
+
+RT75 uses 240×240 RGB565 frames, five banks from the vendor's default bank list,
+and the same 6 MiB allocation. This gives 47 animation frames; each full frame
+contains 115,200 bytes in 2,058 chunks. The CLI detects its dimensions automatically.
+See [rt75.md](rt75.md) for the bank fallback, allocation formula and capability flags.

@@ -147,7 +147,7 @@ def test_display_banks_dimensions_and_commands(rt85, firmware):
         rt85._write([codec.packet([0x22])])
     assert len(firmware.sent) == before_count
     with pytest.raises(UnsupportedDevice):
-        display_spec(3223)
+        display_spec(9999)
 
 
 def test_animation_model_capacity(rt85, firmware, monkeypatch):

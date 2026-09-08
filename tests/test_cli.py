@@ -366,3 +366,17 @@ def test_rt75_core_cli(cli_device, firmware):
     before = len(firmware.sent)
     assert cli.main([*prefix, "sleep", "0", "120", "600", "1200"]) != 0
     assert len(firmware.sent) == before
+
+
+def test_rt75_display_cli(cli_device, firmware, tmp_path):
+    from PIL import Image
+
+    firmware.model_id = 3223
+    prefix = ["--device", cli_device.path]
+    path = tmp_path / "square.png"
+    Image.new("RGB", (240, 240), "red").save(path)
+    assert cli.main([*prefix, "screen", str(path), "--bank", "5"]) == 0
+    assert len(firmware.sent) == 2058
+    assert firmware.sent[0][1:4] == bytes([4, 1, 0])
+    assert cli.main([*prefix, "clock"]) == 0
+    assert cli.main([*prefix, "light", "off"]) != 0

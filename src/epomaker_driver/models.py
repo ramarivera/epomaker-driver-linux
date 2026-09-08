@@ -39,12 +39,12 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
 
 def display_spec(device_id: int) -> dict:
     """Migrated RGB565 display limits, derived from the installer catalog."""
-    if device_id not in (2895, 3059):
+    if device_id not in (2895, 3059, 3223):
         raise UnsupportedDevice("No migrated display protocol for this model")
     screen = model_by_id(device_id)["other"]["screen"]
     size = screen["size"]
     width, height = size["w"], size["h"]
-    banks = len(screen["layer"])
+    banks = len(screen.get("layer", ["1", "2", "3", "4", "5"]))
     # Vendor rounds to the next block even when exactly aligned; docs/display.md.
     block_bytes = (width * height * 2 // 4096 + 1) * 4096
     return {

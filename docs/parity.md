@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, Windows and macOS installers recorded in
 feature parity. It has not been achieved, and there is no defensible overall
 percentage until the inventory and weighting have been completed.
 
-The catalog contains 46 EPOMAKER models. Glyph, [RT85 CLI features](rt85.md) and [RT75 core configuration](rt75.md) are
+The catalog contains 46 EPOMAKER models. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
 currently enabled; none has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
@@ -16,10 +16,10 @@ IDs do not establish that another model speaks the same protocol.
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85 and RT75 key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Three Glyph/RT75 or four RT85 matrices; active profile selection; model-checked Glyph/RT85 configuration restore | Vendor export semantics, other models |
-| Lighting | Glyph and RT85 main/side modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
+| Lighting | Glyph/RT85 main and side modes, RT75 main modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
-| Screen | Glyph and RT85 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
+| Screen | Glyph, RT85 and RT75 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Glyph and RT85 key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |

@@ -71,6 +71,14 @@ class Keyboard:
         if self.identity["device_id"] == 3223:
             # RT75 display/light metadata differs; migrated operations: docs/rt75.md.
             allowed = (
+                7,
+                12,
+                0x22,
+                0x27,
+                0x28,
+                0x87,
+                0x8C,
+                0xA5,
                 4,
                 6,
                 9,
@@ -90,7 +98,7 @@ class Keyboard:
             )
             if any(command[0] not in allowed for command in commands):
                 raise UnsupportedDevice(
-                    "RT75 currently supports keymaps, Fn, macros, profiles, sleep, debounce and OS controls"
+                    "RT75 currently supports keymaps, Fn, macros, profiles, sleep, debounce, OS controls, main lighting and display"
                 )
 
     def _profile_max(self):
@@ -147,7 +155,19 @@ class Keyboard:
                 "profiles": self.model["layer"],
                 "battery": self.transport.battery,
                 "online": self.transport.online,
-                "capabilities": ["keymap", "fn", "macro", "profile", "sleep", "debounce", "os"],
+                "capabilities": [
+                    "keymap",
+                    "fn",
+                    "macro",
+                    "profile",
+                    "sleep",
+                    "debounce",
+                    "os",
+                    "lighting",
+                    "display",
+                ],
+                "display": display_spec(3223),
+                "light": self.get_light(),
                 "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
                 "sleep": self.get_sleep(),
                 "options": self.get_options(),
@@ -235,6 +255,8 @@ class Keyboard:
         self._supported()
         side = options.get("side", False)
         speed_max = 3
+        if self.identity["device_id"] == 3223 and (side or mode == "off"):
+            raise UnsupportedDevice("RT75 has no side-light layout or explicit off mode")
         if side and self.identity["device_id"] == 2895:
             # RT85's Kt layout differs from Glyph's Q: docs/rt85.md.
             if mode not in ("off", "solid", "breathing", "neon", "wave"):
