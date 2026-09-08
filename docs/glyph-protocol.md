@@ -223,7 +223,7 @@ The general dongle adapter `yM` serializes/selects the destination:
 - `FE,length` is an available send-length notification helper.
 - `F1` can read a dongle ID as u16 little-endian in a restricted VID/PID allowlist.
 
-These routing messages do not all pass through the ordinary checksum encoder. Match the source call path. Their presence establishes a general dongle mechanism; the connected Glyph receiver identity and behavior remain untested.
+The internal Linux adapter and its remaining integration boundaries are described in [receiver.md](receiver.md). These routing messages do not all pass through the ordinary checksum encoder. Match the source call path. Their presence establishes a general dongle mechanism; the connected Glyph receiver identity and behavior remain untested.
 
 ## Firmware findings
 

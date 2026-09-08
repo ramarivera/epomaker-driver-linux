@@ -22,7 +22,7 @@ IDs do not establish that another model speaks the same protocol.
 | Screen | Still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
-| Receiver routing | Research only | F6/F7/FC/FE transport and paired-device handling |
+| Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | Catalog only | Older YC3121 and model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
