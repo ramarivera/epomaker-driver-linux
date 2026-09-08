@@ -1,8 +1,8 @@
 """Versioned keyboard configuration snapshots; validate all fields before restoration."""
 
 from . import codec, profiles
-from .errors import ProtocolError, UnsupportedDevice
-from .models import model_by_id
+from .errors import ProtocolError
+from .models import model_by_id, validate_sleep_times
 
 LIMITATIONS = ["screen pixels and unreferenced macro slots are not included"]
 
@@ -15,8 +15,6 @@ def capture(keyboard, *, extra_macro_slots=()):
     def operation():
         identity = keyboard.identify()
         keyboard._supported()
-        if identity["device_id"] not in (2895, 3059):
-            raise UnsupportedDevice("Snapshots currently support Glyph and RT85")
         rt85 = identity["device_id"] == 2895
         matrices = [keyboard.read_matrix(p) for p in range(keyboard.model["layer"])]
         fn = {
@@ -27,14 +25,14 @@ def capture(keyboard, *, extra_macro_slots=()):
         macros = {str(slot): keyboard.read_macro(slot).hex() for slot in slots}
         status = keyboard.status()
         return {
-            "schema_version": 4 if rt85 else 3,
+            "schema_version": 3 if identity["device_id"] == 3059 else 4,
             "identity": identity,
             "matrices": [m.hex() for m in matrices],
             "fn": {k: v.hex() for k, v in fn.items()},
             "macros": macros,
             "pictures": [keyboard.read_picture(i).hex() for i in range(5)],
             "light": keyboard.get_light(),
-            "side_light": keyboard.get_light(side=True),
+            "side_light": None if identity["device_id"] == 3223 else keyboard.get_light(side=True),
             "sleep": keyboard.get_sleep(),
             "profile": status["profile"],
             "debounce": None if rt85 else status["debounce"],
@@ -52,8 +50,8 @@ def validate(value):
         if type(value["schema_version"]) is not int or value["schema_version"] not in (2, 3, 4):
             raise ValueError("restoration requires a version 2, 3 or 4 snapshot")
         model_id = value["identity"]["device_id"]
-        if type(model_id) is not int or model_id not in (2895, 3059):
-            raise ValueError("snapshot model must be Glyph ID 3059 or RT85 ID 2895")
+        if type(model_id) is not int or model_id not in (2895, 3059, 3223):
+            raise ValueError("snapshot model must be Glyph ID 3059, RT85 ID 2895 or RT75 ID 3223")
         if value["schema_version"] < 4 and model_id != 3059:
             raise ValueError("version 2 and 3 snapshots are only for Glyph ID 3059")
         count = model_by_id(model_id)["layer"]
@@ -79,6 +77,10 @@ def validate(value):
                 raise ValueError("snapshot requires five 378-byte RGB pictures")
         settings = []
         for key, opcode in (("light", 7), ("side_light", 8), ("options", 9)):
+            if model_id == 3223 and key == "side_light":
+                if value[key] is not None:
+                    raise ValueError("RT75 snapshots must leave side_light null")
+                continue
             raw = bytes(value[key]["raw"])
             if len(raw) != 64 or raw[0] != opcode + 128:
                 raise ValueError(f"invalid {key} response data")
@@ -90,8 +92,7 @@ def validate(value):
         sleep = value["sleep"]
         times = [sleep[k] for k in ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle")]
         sleep_command = codec.sleep_times(*times)
-        if min(times[2:]) < 10:
-            raise ValueError("deep sleep must be at least 10 seconds")
+        validate_sleep_times(model_id, times)
         codec.bounded(value["profile"], count - 1, "profile")
         if model_id == 2895:
             if value["debounce"] is not None:
@@ -126,7 +127,12 @@ def restore(keyboard, value, backup_path):
             for index, colors in enumerate(pictures):
                 keyboard.write_picture(colors, index)
             keyboard._write(settings + [sleep_command])
-            for key, command in zip(("light", "side_light", "options"), settings, strict=True):
+            keys = (
+                ("light", "options")
+                if value["identity"]["device_id"] == 3223
+                else ("light", "side_light", "options")
+            )
+            for key, command in zip(keys, settings, strict=True):
                 read = (
                     keyboard.get_options()
                     if key == "options"

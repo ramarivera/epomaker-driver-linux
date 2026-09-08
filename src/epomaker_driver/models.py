@@ -53,3 +53,16 @@ def display_spec(device_id: int) -> dict:
         "banks": banks,
         "max_frames": (size["memorySize"] * 1024 * 1024 - 4096) // block_bytes - banks,
     }
+
+
+def validate_sleep_times(model_id: int, values):
+    """Apply the same catalog limits to direct writes and snapshot restoration."""
+    from .codec import bounded
+
+    model = model_by_id(model_id)
+    fields = (("sleepBT", "sleep"), ("sleep24", "sleep"), ("sleepBT", "deep"), ("sleep24", "deep"))
+    for value, (connection, kind) in zip(values, fields, strict=True):
+        limits = model["other"][connection][kind]
+        bounded(value, limits["max"], "sleep seconds")
+        if value < limits["min"]:
+            raise ValueError(f"{connection} {kind} must be at least {limits['min']} seconds")

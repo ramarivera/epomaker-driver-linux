@@ -277,3 +277,83 @@ def test_glyph_version4_import(firmware, tmp_path):
     value = snapshot.capture(keyboard)
     value["schema_version"] = 4
     assert snapshot.restore(keyboard, value, tmp_path / "glyph.json")["restored"]
+
+
+def rt75_keyboard(firmware):
+    from epomaker_driver.models import default_matrix
+
+    firmware.model_id = 3223
+    firmware.matrices = [bytearray(default_matrix(3223)) for _ in range(3)]
+    firmware.fn = [
+        bytearray(default_matrix(3223, name)) for name in ("defaultFnMatrix", "defaultFnMacMatrix")
+    ]
+    firmware.sleep_data = bytearray(codec.sleep_times(60, 120, 600, 1200))
+    return Keyboard(firmware)
+
+
+def test_rt75_snapshot_restores_actual_mac_fn_without_side_light(firmware, tmp_path):
+    keyboard = rt75_keyboard(firmware)
+    keyboard.set_key(9, [0, 0, 6, 0], fn=True, os_mode=1)
+    original = snapshot.capture(keyboard)
+    assert original["schema_version"] == 4 and original["side_light"] is None
+    keyboard.set_key(9, [0, 0, 7, 0], fn=True, os_mode=1)
+    keyboard.set_debounce(20)
+    keyboard.set_sleep(120, 240, 1200, 1800)
+    firmware.sent.clear()
+    result = snapshot.restore(keyboard, original, tmp_path / "recovery.json")
+    assert result["restored"]
+    assert snapshot.capture(keyboard) == original
+    assert all(p[0] != 8 for p in firmware.sent)
+    assert keyboard.read_matrix(fn=True, os_mode=1)[36:40] == bytes([0, 0, 6, 0])
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        lambda v: v.update(side_light={"raw": list(codec.packet([0x88]))}),
+        lambda v: v["sleep"].update(bluetooth=0),
+        lambda v: v["sleep"].update(deep_dongle=3601),
+        lambda v: v.update(debounce=None),
+        lambda v: v.update(schema_version=3),
+    ],
+)
+def test_rt75_bad_snapshots_fail_before_recovery_or_writes(firmware, tmp_path, damage):
+    keyboard = rt75_keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    damage(value)
+    with pytest.raises(ValueError):
+        snapshot.restore(keyboard, value, tmp_path / "recovery.json")
+    assert not firmware.sent and not (tmp_path / "recovery.json").exists()
+
+
+def test_rt75_factory_reset_validates_recovery(firmware, tmp_path):
+    keyboard = rt75_keyboard(firmware)
+    firmware.macros[255] = bytearray([123] * 256)
+    destination = tmp_path / "reset.json"
+    send = firmware.send
+
+    def checked(command, **kwargs):
+        saved = json.loads(destination.read_text())
+        assert saved["side_light"] is None and len(saved["macros"]) == 256
+        assert saved["macros"]["255"] == bytes([123] * 256).hex()
+        send(command, **kwargs)
+
+    firmware.send = checked
+    assert snapshot.factory_reset(keyboard, destination)["reset_sent"]
+    assert firmware.sent == [codec.packet([1])]
+    assert keyboard.identity is None
+    firmware.sleep_data = bytearray(codec.sleep_times(0, 0, 10, 10))
+    firmware.sent.clear()
+    with pytest.raises(ValueError):
+        snapshot.factory_reset(keyboard, tmp_path / "invalid.json")
+    assert not firmware.sent and not (tmp_path / "invalid.json").exists()
+
+
+@pytest.mark.parametrize("source,target", [(3223, 3059), (3223, 2895), (3059, 3223), (2895, 3223)])
+def test_rt75_cross_model_rejection(firmware, tmp_path, source, target):
+    keyboard = {3223: rt75_keyboard, 2895: rt85_keyboard, 3059: Keyboard}[source](firmware)
+    value = snapshot.capture(keyboard)
+    firmware.model_id = target
+    with pytest.raises(ValueError, match="does not match"):
+        snapshot.restore(keyboard, value, tmp_path / "recovery.json")
+    assert not firmware.sent and not (tmp_path / "recovery.json").exists()

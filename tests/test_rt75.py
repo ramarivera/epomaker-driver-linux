@@ -2,7 +2,7 @@
 
 import pytest
 
-from epomaker_driver import codec, snapshot
+from epomaker_driver import codec
 from epomaker_driver.device import Keyboard
 from epomaker_driver.errors import UnsupportedDevice
 from epomaker_driver.models import default_matrix
@@ -92,8 +92,7 @@ def test_settings_model_limits(rt75, firmware):
         lambda k: k.set_light("solid", side=True),
         lambda k: k.set_light("off"),
         lambda k: k.get_light(side=True),
-        lambda k: k._write([codec.packet([4]), codec.packet([1])]),
-        lambda k: snapshot.capture(k),
+        lambda k: k._write([codec.packet([4]), codec.packet([0x88])]),
     ],
 )
 def test_unmigrated_features_do_not_write(rt75, firmware, operation):

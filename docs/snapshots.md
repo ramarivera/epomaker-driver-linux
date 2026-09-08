@@ -1,7 +1,7 @@
 # Configuration snapshots and recovery
 
-`backup` writes a version 3 JSON snapshot for Glyph or version 4 for RT85. It captures
-all three Glyph or four RT85 normal matrices,
+`backup` writes a version 3 JSON snapshot for Glyph or version 4 for RT85/RT75. It captures
+all three Glyph/RT75 or four RT85 normal matrices,
 Windows/Mac Fn matrices, every macro referenced by those matrices, main/side lighting
 configuration, sleep timers, active profile, debounce, keyboard options and automatic
 OS selection, plus all five custom RGB pictures. Unknown four-byte key actions and unrelated keyboard-option bytes are
@@ -88,3 +88,22 @@ both models (shared protocol `623d2d52.js`, `reset`, lines 140–149). RT85 rese
 captures four profiles and all 256 macro slots. Its saved snapshot is validated
 before the reset command. As with Glyph, `reset_sent` does not prove factory
 state, reconnect behavior or screen-image recovery.
+
+
+## RT75 recovery without side lighting
+
+RT75 uses schema version 4 with three normal matrices, actual Windows/Mac Fn
+matrices, numeric debounce and `side_light: null`. Capturing and restoring this
+model never query or write side-light state. A non-null side-light section is
+rejected before any writes. Full configuration recovery uses the bytes read from
+the keyboard, independently of the vendor Mac-default naming discrepancy.
+
+All four sleep timers are validated against the same model data used for direct
+writes. RT75 values outside 60–3600 seconds are rejected before creating the
+recovery file. Glyph and RT85 retain their wider limits. A recovery capture with
+invalid timer values also prevents a restore or factory reset.
+
+RT75 reset uses the inherited YC3123 `01` command after saving and validating all
+three profiles, both Fn maps, five RGB pictures, settings and all 256 macro slots.
+The reset result continues to distinguish a sent command from verified factory
+state. Cross-model restores between any pair of Glyph, RT85 and RT75 are rejected.

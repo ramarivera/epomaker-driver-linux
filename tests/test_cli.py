@@ -380,3 +380,17 @@ def test_rt75_display_cli(cli_device, firmware, tmp_path):
     assert firmware.sent[0][1:4] == bytes([4, 1, 0])
     assert cli.main([*prefix, "clock"]) == 0
     assert cli.main([*prefix, "light", "off"]) != 0
+
+
+def test_rt75_recovery_cli(cli_device, firmware, tmp_path):
+    firmware.model_id = 3223
+    prefix = ["--device", cli_device.path]
+    path = tmp_path / "rt75.json"
+    assert cli.main([*prefix, "backup", str(path)]) == 0
+    value = json.loads(path.read_text())
+    assert value["side_light"] is None and value["schema_version"] == 4
+    assert (
+        cli.main([*prefix, "restore", str(path), "--backup", str(tmp_path / "recovery.json")]) == 0
+    )
+    assert cli.main([*prefix, "factory-reset", "--backup", str(tmp_path / "reset.json")]) == 0
+    assert firmware.sent[-1][0] == 1

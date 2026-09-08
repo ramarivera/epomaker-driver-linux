@@ -6,7 +6,7 @@ import datetime
 
 from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
-from .models import display_spec, model_by_id
+from .models import display_spec, model_by_id, validate_sleep_times
 
 
 class Keyboard:
@@ -71,6 +71,7 @@ class Keyboard:
         if self.identity["device_id"] == 3223:
             # RT75 display/light metadata differs; migrated operations: docs/rt75.md.
             allowed = (
+                1,
                 7,
                 12,
                 0x22,
@@ -274,16 +275,7 @@ class Keyboard:
 
     def set_sleep(self, bt, dongle, deep_bt, deep_dongle):
         self._supported()
-        for value, connection, kind in (
-            (bt, "sleepBT", "sleep"),
-            (dongle, "sleep24", "sleep"),
-            (deep_bt, "sleepBT", "deep"),
-            (deep_dongle, "sleep24", "deep"),
-        ):
-            limits = self.model["other"][connection][kind]
-            codec.bounded(value, limits["max"], "sleep seconds")
-            if value < limits["min"]:
-                raise ValueError(f"{connection} {kind} must be at least {limits['min']} seconds")
+        validate_sleep_times(self.identity["device_id"], (bt, dongle, deep_bt, deep_dongle))
         self._write([codec.sleep_times(bt, dongle, deep_bt, deep_dongle)])
         actual = self.get_sleep()
         expected = dict(
