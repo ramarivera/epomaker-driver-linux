@@ -27,6 +27,7 @@ COMMANDS = frozenset(
         "mouse-bind",
         "backup",
         "restore",
+        "factory-reset",
     )
 )
 

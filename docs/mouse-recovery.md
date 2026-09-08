@@ -83,3 +83,41 @@ The mouse controller's `getLight` returns immediately without that metadata
 (Mac main bundle around lines 115672–115693). Shared opcode `17`/`97` lighting
 methods therefore do not establish a vendor lighting feature for these models.
 No mouse lighting state is included or written.
+
+## Factory-reset command
+
+```text
+epomaker --device /dev/hidrawN factory-reset --backup before-reset.json
+```
+
+The command captures and saves the same complete schema-8 configuration before
+sending a single reset request. It rechecks model and firmware identity before
+sending, uses opcode `0e` with Bit7 checksum `f1` and a 300 ms settle, then
+reidentifies the device and reads its configuration again. The pre-reset active
+profile is not forced back after reset; post-reset capture restores only the
+profile it observed at its own start. No replacement keymaps, macros, DPI tables
+or settings are written after the reset command.
+
+The result reports that the reset command was sent and the device could be read
+afterward. `factory_defaults_verified` remains false: the installer does not
+supply a complete authoritative firmware-default snapshot, and the implementation
+has not been tested on physical hardware. A disconnect, interruption, identity
+change or read failure reports the backup path and an uncertain reset outcome.
+It does not automatically resend the command or attempt configuration rollback.
+An existing backup file prevents reset.
+
+Evidence: `CommonMSCH585.reset` in Mac `5d75ced3.js` and Windows `78e397ff.js`
+sends `[0e]` with Bit7 checksum and waits 300 ms. The shared root reset handler
+calls `reset(!Mp)` and removes local key/recoil caches. A device-originated reset
+event sets `Mp`, avoiding a duplicate reset command. The actual mouse controller
+`CM` then reads its state again; it does not restore cached configuration to the
+device. The separate `mousePan1080` controller is not the evidence for this flow.
+
+The shared CH585 protocol also declares a separate 16-slot recoil bank (`89`/`09`).
+The actual controller reads it only when `other.hasRecoilControl` is set. None
+of the five supported mouse rows has that flag in either supplied installer.
+Consequently recoil configuration is not an advertised vendor feature for these
+models and is not read or written by schema 8. Method presence alone does not
+establish a model capability. The unimplemented `8a` battery query likewise has
+no established response decoder; USB initialization's synthetic 100% value is
+not treated as a battery measurement.

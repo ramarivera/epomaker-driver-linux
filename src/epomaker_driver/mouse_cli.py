@@ -16,6 +16,7 @@ SHARED_COMMANDS = frozenset(
         "disable-key",
         "backup",
         "restore",
+        "factory-reset",
     )
 )
 
@@ -52,6 +53,8 @@ def parsers(commands):
 
 
 def run(mouse, args, prepared=None):
+    if args.command == "factory-reset":
+        return mouse_snapshot.factory_reset(mouse, args.backup)
     if args.command == "backup":
         value = mouse_snapshot.capture(mouse)
         profiles.save(args.path, value, overwrite=args.overwrite)

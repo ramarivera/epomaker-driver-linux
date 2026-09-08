@@ -168,3 +168,40 @@ def test_restore_ignores_changing_dpi_reply_metadata_and_limitations(monkeypatch
     mouse_snapshot.restore(mouse, before, tmp_path / "before.json")
     assert fw.levels[1]["x"] == 900
     assert fw.profile == before["profile"]
+
+
+@pytest.mark.parametrize("model", [3961, 3303, 3304, 3929, 3919])
+def test_mouse_factory_reset_cli_saves_before_reset_and_preserves_post_profile(
+    monkeypatch, capsys, tmp_path, model
+):
+    _, info = setup(monkeypatch, model)
+    fw = SettingsFirmware(model)
+    fw.profile = 7
+    backup = tmp_path / "before-reset.json"
+    send = fw.send
+    waits = []
+
+    def reset(command):
+        if command[0] == 0x0E:
+            saved = json.loads(backup.read_text())
+            assert saved["profile"] == 7
+            assert len(saved["macros"]) == 50
+            assert len(saved["profiles"]) == 8
+            assert command == bytes([14]) + bytes(6) + bytes([241]) + bytes(56)
+            fw.sent.append(bytes(command))
+            fw.profile = 3  # Arbitrary observed post-reset value, not assumed vendor defaults.
+            fw.values["debounce"] = 2
+        else:
+            send(command)
+
+    monkeypatch.setattr(fw, "send", reset)
+    monkeypatch.setattr(
+        cli.Transport, "open", lambda _: Transport(USB(fw), "usb", sleep=waits.append)
+    )
+    assert cli.main(["--device", info.path, "factory-reset", "--backup", str(backup)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["factory_defaults_verified"] is False
+    assert fw.profile == 3
+    assert waits.count(0.3) == 1
+    assert sum(command[0] == 14 for command in fw.sent) == 1
+    assert all(command[0] in (2, 14) for command in fw.sent)

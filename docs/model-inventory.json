@@ -311,7 +311,8 @@
         "mouse-macros",
         "mouse-named-bindings",
         "configuration-backup",
-        "configuration-restore"
+        "configuration-restore",
+        "factory-reset-with-backup"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -327,7 +328,10 @@
         "macro_slots": 50,
         "macro_bytes": 256,
         "snapshot_schema": 8,
-        "lighting": "not exposed: lightLayout absent in both installer catalogs"
+        "lighting": "not exposed: lightLayout absent in both installer catalogs",
+        "factory_reset": true,
+        "factory_defaults_verified": false,
+        "recoil": "not exposed: hasRecoilControl absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -435,7 +439,8 @@
         "mouse-macros",
         "mouse-named-bindings",
         "configuration-backup",
-        "configuration-restore"
+        "configuration-restore",
+        "factory-reset-with-backup"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -451,7 +456,10 @@
         "macro_slots": 50,
         "macro_bytes": 256,
         "snapshot_schema": 8,
-        "lighting": "not exposed: lightLayout absent in both installer catalogs"
+        "lighting": "not exposed: lightLayout absent in both installer catalogs",
+        "factory_reset": true,
+        "factory_defaults_verified": false,
+        "recoil": "not exposed: hasRecoilControl absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -560,7 +568,8 @@
         "mouse-macros",
         "mouse-named-bindings",
         "configuration-backup",
-        "configuration-restore"
+        "configuration-restore",
+        "factory-reset-with-backup"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -576,7 +585,10 @@
         "macro_slots": 50,
         "macro_bytes": 256,
         "snapshot_schema": 8,
-        "lighting": "not exposed: lightLayout absent in both installer catalogs"
+        "lighting": "not exposed: lightLayout absent in both installer catalogs",
+        "factory_reset": true,
+        "factory_defaults_verified": false,
+        "recoil": "not exposed: hasRecoilControl absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -688,7 +700,8 @@
         "mouse-macros",
         "mouse-named-bindings",
         "configuration-backup",
-        "configuration-restore"
+        "configuration-restore",
+        "factory-reset-with-backup"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -704,7 +717,10 @@
         "macro_slots": 50,
         "macro_bytes": 256,
         "snapshot_schema": 8,
-        "lighting": "not exposed: lightLayout absent in both installer catalogs"
+        "lighting": "not exposed: lightLayout absent in both installer catalogs",
+        "factory_reset": true,
+        "factory_defaults_verified": false,
+        "recoil": "not exposed: hasRecoilControl absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",
@@ -832,7 +848,8 @@
         "mouse-macros",
         "mouse-named-bindings",
         "configuration-backup",
-        "configuration-restore"
+        "configuration-restore",
+        "factory-reset-with-backup"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -848,7 +865,10 @@
         "macro_slots": 50,
         "macro_bytes": 256,
         "snapshot_schema": 8,
-        "lighting": "not exposed: lightLayout absent in both installer catalogs"
+        "lighting": "not exposed: lightLayout absent in both installer catalogs",
+        "factory_reset": true,
+        "factory_defaults_verified": false,
+        "recoil": "not exposed: hasRecoilControl absent in both installer catalogs"
       },
       "remaining_domains": [
         "hardware-comparison",

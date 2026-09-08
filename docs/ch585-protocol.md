@@ -248,12 +248,14 @@ Unknown bindings retain their four raw bytes.
 [Schema-8 backup and restore](mouse-recovery.md) covers all eight profiles, full
 matrices, DPI tables, supported scalar settings and all 50 macro slots. Restore
 saves the current configuration before payload writes and verifies the final state.
+`factory-reset --backup PATH` saves that recovery copy before sending opcode `0e`,
+then reads the device again without claiming its factory defaults are verified.
 The five catalog entries have no `lightLayout`; the vendor controller skips
 lighting reads for them, so shared lighting methods are not a model capability.
 
 ## Remaining work
 
-Additional function/gamepad/dual-action/recoil bindings, motion-sync/FPS controls,
-battery interpretation, reset, firmware upgrades,
+Additional function/gamepad/dual-action bindings, motion-sync/FPS controls,
+battery interpretation, firmware upgrades,
 Bluetooth/receiver routing and GUI integration are unfinished.
 The PAN1080/PAN1080-8K mouse families require separate protocol implementations.

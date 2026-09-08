@@ -90,7 +90,7 @@ def parser():
         "slot", type=int
     )
     commands.add_parser(
-        "factory-reset", help="save recovery snapshot, then reset keyboard configuration"
+        "factory-reset", help="save recovery snapshot, then reset device configuration"
     ).add_argument("--backup", type=Path, required=True)
     commands.add_parser("clock", help="synchronize the display clock")
     for name in ("host-info", "system-info"):

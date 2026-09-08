@@ -345,3 +345,59 @@ def restore(mouse, snapshot, backup_path):
         }
 
     return mouse.transport.transaction(operation)
+
+
+def factory_reset(mouse, backup_path):
+    """Back up a CH585 mouse, send vendor reset, and report post-reset state."""
+    if mouse.transport.kind != "usb":
+        raise UnsupportedDevice("CH585 factory reset requires USB")
+
+    def operation():
+        identity = mouse.identify()
+        expected_identity = {
+            "device_id": identity["device_id"],
+            "usb_version": identity["usb_version"],
+        }
+        if expected_identity["device_id"] not in _MODEL_IDS:
+            raise UnsupportedDevice("model is not supported by CH585 snapshots")
+        backup = capture(mouse)
+        if backup["identity"] != expected_identity:
+            raise ProtocolError("mouse identity changed while creating reset backup")
+        profiles.save(backup_path, backup)
+        before_reset = mouse.identify()
+        if {
+            "device_id": before_reset["device_id"],
+            "usb_version": before_reset["usb_version"],
+        } != expected_identity:
+            raise ProtocolError("mouse identity or USB version changed before factory reset")
+        try:
+            mouse.transport.send(codec.packet([0x0E]))
+            mouse.transport.sleep(0.3)
+        except BaseException as error:
+            raise ProtocolError(
+                f"factory reset outcome is unknown; recovery snapshot is saved at {backup_path}: {error}"
+            ) from error
+        finally:
+            mouse.identity = None
+            mouse.model = None
+        try:
+            post = capture(mouse)
+            if post["identity"] != expected_identity:
+                raise ProtocolError("mouse identity or USB version changed after factory reset")
+        except BaseException as error:
+            raise ProtocolError(
+                f"factory reset was sent; post-reset verification failed; "
+                f"recovery snapshot is saved at {backup_path}: {error}"
+            ) from error
+        return {
+            "reset_command_sent": True,
+            "factory_defaults_verified": False,
+            "previous_configuration": str(backup_path),
+            "post_reset": {
+                "device_id": post["identity"]["device_id"],
+                "usb_version": post["identity"]["usb_version"],
+                "profile": post["profile"],
+            },
+        }
+
+    return mouse.transport.transaction(operation)

@@ -9,7 +9,7 @@ from test_mouse import USB
 from test_mouse_recovery_cli import BankedSettingsFirmware
 
 from epomaker_driver import mouse_snapshot
-from epomaker_driver.errors import ProtocolError
+from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 from epomaker_driver.mouse import Mouse
 from epomaker_driver.transport import Transport
 
@@ -267,3 +267,136 @@ def test_restore_partial_failure_saves_backup_and_restores_original_profile(monk
         mouse_snapshot.restore(mouse, snapshot, backup)
     assert backup.exists()
     assert firmware.profile == original
+
+
+def test_factory_reset_sends_exact_command_after_noclobber_backup(tmp_path):
+    mouse, firmware = real_mouse()
+    sleeps = []
+    commands = []
+    mouse.transport.sleep = sleeps.append
+    original_send = mouse.transport.send
+
+    def send(command, **kwargs):
+        commands.append(bytes(command))
+        if command[0] != 0x0E:
+            original_send(command, **kwargs)
+
+    mouse.transport.send = send
+    result = mouse_snapshot.factory_reset(mouse, tmp_path / "before.json")
+    assert result["reset_command_sent"] is True
+    assert result["factory_defaults_verified"] is False
+    reset_commands = [command for command in commands if command[0] == 0x0E]
+    assert len(reset_commands) == 1
+    assert reset_commands[0][7] == (255 - sum(reset_commands[0][:7])) & 255
+    assert 0.3 in sleeps
+    assert mouse.identity is not None
+
+
+def test_factory_reset_existing_backup_fails_before_reset_packet(tmp_path):
+    mouse, firmware = real_mouse()
+    backup = tmp_path / "before.json"
+    backup.write_text("keep")
+    with pytest.raises(FileExistsError):
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert backup.read_text() == "keep"
+    assert not any(command[0] == 0x0E for command in firmware.sent)
+
+
+def test_factory_reset_post_reset_identity_failure_reports_backup(tmp_path, monkeypatch):
+    mouse, firmware = real_mouse()
+    backup = tmp_path / "before.json"
+    original_send = mouse.transport.send
+
+    def send(command, **kwargs):
+        if command[0] == 0x0E:
+            firmware.model_id = 3303
+            return
+        original_send(command, **kwargs)
+
+    monkeypatch.setattr(mouse.transport, "send", send)
+    with pytest.raises(ProtocolError, match="post-reset verification failed"):
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert backup.exists()
+
+
+@pytest.mark.parametrize("failure", [OSError("lost connection"), KeyboardInterrupt()])
+def test_factory_reset_interruption_invalidates_cache_and_reports_unknown_outcome(
+    monkeypatch, tmp_path, failure
+):
+    mouse, firmware = real_mouse()
+    original = mouse.transport.send
+
+    def fail(command, **kwargs):
+        if command[0] == 14:
+            raise failure
+        return original(command, **kwargs)
+
+    monkeypatch.setattr(mouse.transport, "send", fail)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="outcome is unknown.*before.json") as caught:
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert backup.exists()
+    assert caught.value.__cause__ is failure
+    assert mouse.identity is None and mouse.model is None
+
+
+def test_factory_reset_identity_drift_after_backup_prevents_reset(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    backup = tmp_path / "before.json"
+    original = mouse.identify
+
+    def drift():
+        if backup.exists():
+            firmware.usb_version += 1
+        return original()
+
+    monkeypatch.setattr(mouse, "identify", drift)
+    with pytest.raises(ProtocolError, match="before factory reset"):
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert backup.exists()
+    assert not any(command[0] == 14 for command in firmware.sent)
+
+
+def test_factory_reset_usb_only(tmp_path):
+    mouse, firmware = real_mouse()
+    mouse.transport.kind = "bluetooth"
+    with pytest.raises(UnsupportedDevice):
+        mouse_snapshot.factory_reset(mouse, tmp_path / "backup")
+    assert not firmware.sent
+
+
+def test_factory_reset_post_reset_firmware_change_is_reported(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    original = mouse.transport.send
+
+    def changed(command, **kwargs):
+        if command[0] == 14:
+            firmware.usb_version += 1
+            return
+        return original(command, **kwargs)
+
+    monkeypatch.setattr(mouse.transport, "send", changed)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="post-reset verification failed.*after factory reset"):
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert backup.exists()
+
+
+def test_factory_reset_version_change_during_backup_prevents_reset(monkeypatch, tmp_path):
+    mouse, firmware = real_mouse()
+    original = mouse.identify
+    calls = 0
+
+    def changed():
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            firmware.usb_version += 1
+        return original()
+
+    monkeypatch.setattr(mouse, "identify", changed)
+    backup = tmp_path / "before.json"
+    with pytest.raises(ProtocolError, match="creating reset backup"):
+        mouse_snapshot.factory_reset(mouse, backup)
+    assert not backup.exists()
+    assert all(command[0] == 2 for command in firmware.sent)

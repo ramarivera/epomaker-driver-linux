@@ -54,7 +54,7 @@ IDs do not establish that another model speaks the same protocol.
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |
 | Desktop application | Local React interface: visual keymap, lighting, macros, display, settings and backups; loopback API and browser tests | Native packaging, localization, broader accessibility audit and remaining vendor workflows |
-| Factory reset | Nine modern models: explicit CLI reset after saving settings and all 256 macro slots | Other backends, GUI integration, factory-state and reconnect hardware comparison |
+| Factory reset | Nine modern models: explicit CLI reset after saving settings and all 256 macro slots; five CH585 mice: schema-8 backup, reset and post-reset reads | Other backends, GUI integration, factory-state and reconnect hardware comparison |
 | Firmware management | Research only | Image validation, upgrade transport and recovery |
 | Vendor online services | Research only | Accounts, community, cloud profiles and supported service integrations |
 | Installation | Python package and CLI | Desktop packaging, permissions integration and upgrades |
