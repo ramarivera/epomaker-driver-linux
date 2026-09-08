@@ -50,6 +50,22 @@ A Linux implementation needs the complete read/modify/write encoding and
 firmware-version queries before exposing these controls; this list alone is
 not a ready-to-send packet specification.
 
+The independent `src/epomaker_driver/versions.py` codec now covers the modern
+version queries. USB uses `8f` with a little-endian uint16 at reply offsets 7–8;
+RF uses `80` at offsets 1–2. MLED uses `ae` at offsets 1–2. OLED uses `ad`, with
+OLED version at offsets 1–2 and flash version at 3–4. Zero is unavailable,
+independently for each component. Requests have the normal checksum at offset
+7 and are padded to 64 bytes. This follows macOS `623d2d52.js` lines 150–189
+and the matching Windows `17dc9c62.js` methods. These offsets are not the old
+YC3121 version protocol. The codec alone enables no new device operations.
+
+Both installers' HID filters agree on USB products `502c` and `502e`: vendor
+`3151`, interface number 2, usage page `ffff`, usage 2. The filter records do
+not contain physical report descriptors; the future Linux discovery gate must
+also validate the live command report's type and size. Both lighting layouts
+omit side lighting, but 3759 references `S` and 3727 references `ce`; shared
+base inheritance is insufficient to assume identical speed controls.
+
 Normal keymap addressing uses the modern base: `8a` reads profile at byte 1,
 `ff` at byte 2, page at byte 3 and submode at byte 4. Single-key `0a` writes
 profile at byte 1, slot at byte 2, commit at byte 5 and submode at byte 6, with
@@ -57,6 +73,15 @@ four action bytes beginning at byte 8 (lines 752–790). Migration must preserve
 magnetic submodes instead of treating the default submode as the complete
 keyboard configuration.
 
-Remaining evidence work includes USB command descriptors, model-specific
-lighting layouts, version retrieval, complete magnetic field decoding,
+The macOS main bundle's `___获取所有按键信息` (pretty lines 113019–113036)
+reads four submodes, numbered 0–3, for every normal profile when the magnetic
+flag exists. For either HE60 Lite that means eight 512-byte normal matrices,
+not two. Magnetic parameter reads have no profile selector in their `e5`
+headers, while the application caches magnetic settings by profile and can
+restore cached values on switching. A future backup must distinguish the
+device's currently readable magnetic state from application-managed profiles;
+it must not invent per-profile wire storage from the catalog layer count.
+
+Remaining evidence work includes physical USB command descriptors, complete
+model-specific lighting layouts, version-query integration, magnetic field decoding,
 calibration and dynamic-action semantics, and hardware comparisons.
