@@ -33,6 +33,7 @@ def install(monkeypatch, model, *, cancel=False):
         2959: 0x5030,
         3365: 0x5030,
         4071: 0x5030,
+        3417: 0x5030,
     }.get(model, 0x5029)
     info = DeviceInfo("/dev/calibration", "Keyboard", 3, 0x3151, product, b"", "usb", 0)
     now = [0.0]
@@ -77,6 +78,7 @@ def install(monkeypatch, model, *, cancel=False):
         3746,
         3365,
         4071,
+        3417,
     ),
 )
 def test_calibration_cli_orders_start_stop_and_reports_raw_readings(model, monkeypatch, capsys):

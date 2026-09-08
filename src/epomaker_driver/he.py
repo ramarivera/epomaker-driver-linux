@@ -6,6 +6,7 @@ from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
 from .he_calibration import HECalibrationMixin
+from .he_knobs import knob_slots, validate_knob_binding
 from .he_lighting import HELightingMixin
 from .he_modes import plan_mode, required_fields, validate_definition
 from .he_settings import plan_update
@@ -194,6 +195,7 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         def operation():
             self._supported()
             codec.bounded(slot, 127, "slot")
+            validate_knob_binding(self.expected_id, slot, action, fn=fn)
             if fn:
                 if profile != 0 or mode != 0:
                     raise ValueError("Fn writes use layer 0 and submode 0")
@@ -257,6 +259,9 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             if self.expected_id in RY5088_SWITCH_IDS:
                 result["capabilities"].extend(("magnetic-axis-read", "switch-type"))
                 result["switch_types"] = model_switch_types(self.expected_id)
+            slots = knob_slots(self.expected_id)
+            if slots:
+                result["knob_slots"] = slots
             if self.expected_id in RY5088_SIDE_IDS:
                 result["capabilities"].append("side-lighting")
                 result["side_light"] = self.get_light(side=True)
@@ -284,14 +289,21 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         raw = self._query(codec.packet([0x91]), expected=0x91)
         parsed = codec.parse_sleep(raw)
         parsed.pop("deep_dongle")
+        if self.expected_id == 3417:
+            parsed.pop("deep_bluetooth")
         return parsed
 
-    def set_sleep(self, bt, dongle, deep_bt, deep_dongle=None):
+    def set_sleep(self, bt, dongle, deep_bt=None, deep_dongle=None):
         self._supported()
         if self.expected_id not in HE_SLEEP_IDS:
             raise UnsupportedDevice("sleep controls are unavailable on this model")
-        if deep_dongle is not None:
+        if self.expected_id == 3417:
+            if deep_bt is not None or deep_dongle is not None:
+                raise ValueError("this model exposes two public sleep timers")
+        elif deep_dongle is not None:
             raise ValueError("this model exposes three public sleep timers")
+        elif deep_bt is None:
+            raise ValueError("this model requires the deep Bluetooth sleep timer")
         values = (bt, dongle, deep_bt)
         if self.expected_id == 3759:
             if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
@@ -299,6 +311,8 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         elif self.expected_id in (3365, 4071):
             # These models expose three public timers; keep the fourth wire word untouched below.
             validate_sleep_times(self.expected_id, (*values, None))
+        elif self.expected_id == 3417:
+            validate_sleep_times(self.expected_id, (bt, dongle, None, None))
         elif (
             any(type(value) is not int or not 0 <= value <= 64800 for value in values)
             or deep_bt < 10
@@ -309,16 +323,31 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
 
         def operation():
             original = self._query(codec.packet([0x91]), expected=0x91)
-            command = bytearray(codec.sleep_times(bt, dongle, deep_bt, 0))
-            command[14:16] = original[14:16]
+            command = bytearray(codec.sleep_times(bt, dongle, deep_bt or 0, deep_dongle or 0))
+            if self.expected_id == 3417:
+                command[12:16] = original[12:16]
+            else:
+                command[14:16] = original[14:16]
             self._write([bytes(command)])
             actual = self._query(codec.packet([0x91]), expected=0x91)
             parsed = codec.parse_sleep(actual)
-            if actual[14:16] != original[14:16]:
+            if self.expected_id == 3417 and actual[12:16] != original[12:16]:
+                raise ProtocolError("hidden sleep timers changed during write")
+            if self.expected_id != 3417 and actual[14:16] != original[14:16]:
                 raise ProtocolError("hidden sleep timer changed during write")
-            if tuple(parsed[key] for key in ("bluetooth", "dongle", "deep_bluetooth")) != values:
+            if self.expected_id == 3417:
+                expected = (bt, dongle)
+                actual_values = tuple(parsed[key] for key in ("bluetooth", "dongle"))
+            else:
+                expected = values
+                actual_values = tuple(
+                    parsed[key] for key in ("bluetooth", "dongle", "deep_bluetooth")
+                )
+            if actual_values != expected:
                 raise ProtocolError("sleep readback differs")
             parsed.pop("deep_dongle")
+            if self.expected_id == 3417:
+                parsed.pop("deep_bluetooth")
             return parsed
 
         return self.transport.transaction(operation)

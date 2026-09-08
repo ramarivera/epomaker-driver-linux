@@ -64,7 +64,12 @@ hardware remains unverified.
 [G84 HE Pro](docs/g84-he-pro.md) adds its code-133 switch, catalog travel/deadzone
 limits and sleep settings through the USB backend.
 
-All seventeen implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
+[HE65 V2](docs/he65-v2.md) adds internal ID 3417 with four profiles, Fn maps,
+magnetic configuration, main lighting, pictures, normal 24G/Bluetooth sleep
+timers, seven catalog switch types and three normal-layer knob bindings.
+Hardware remains unverified.
+
+All eighteen implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

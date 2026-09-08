@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from .he_knobs import validate_magnetic_slot
 from .magnetic import (
     BYTE_FIELDS,
     READ_PAGES,
@@ -102,6 +103,7 @@ def plan_update(model_id, slot, patch, state):
         raise ValueError("unsupported HE model")
     if type(slot) is not int or not 0 <= slot <= 127:
         raise ValueError("slot must be 0..127")
+    validate_magnetic_slot(model_id, slot)
     if not isinstance(patch, dict) or not patch:
         raise ValueError("patch must be a nonempty mapping")
     if any(key not in _PATCH_FIELDS and key != "fire" for key in patch):
