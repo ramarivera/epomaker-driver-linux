@@ -9,8 +9,9 @@ interface for the Glyph/YC3123 protocol. It includes USB/Bluetooth transport cod
 lighting, sleep timers, macros, screen transfer primitives and offline tests. Other model
 families and background features remain in the migration plan.
 
-[RT85 keymap support](docs/rt85.md) is also available through the CLI: four normal
-profiles, Windows/Mac Fn layers and macros. Its other settings remain disabled.
+[RT85 support](docs/rt85.md) is also available through the CLI: four normal
+profiles, Windows/Mac Fn layers, macros, sleep timers and its 320×172 display.
+Lighting and other unverified RT85 settings remain disabled.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.

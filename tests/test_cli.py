@@ -290,3 +290,25 @@ def test_rt85_fourth_profile(cli_device, firmware, capsys):
     assert bytes(firmware.matrices[3][36:40]) == bytes([0, 0, 5, 0])
     capsys.readouterr()
     assert cli.main([*prefix, "profile", "4"]) != 0
+
+
+def test_rt85_display_detects_model_before_conversion(cli_device, firmware, tmp_path):
+    from PIL import Image
+
+    firmware.model_id = 2895
+    path = tmp_path / "rt85.png"
+    Image.new("RGB", (320, 172), "red").save(path)
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, "screen", str(path), "--bank", "5"]) == 0
+    assert firmware.sent[0][1:4] == bytes([4, 1, 0])
+    assert len(firmware.sent) == 1966
+    firmware.sent.clear()
+    Image.new("RGB", (428, 142), "red").save(path)
+    assert cli.main([*prefix, "screen", str(path)]) != 0
+    assert not firmware.sent
+    gif = tmp_path / "rt85.gif"
+    Image.new("RGB", (2, 2), "red").save(
+        gif, save_all=True, append_images=[Image.new("RGB", (2, 2), "blue")], duration=80
+    )
+    assert cli.main([*prefix, "animation", str(gif), "--fit"]) == 0
+    assert len(firmware.sent) == 3932

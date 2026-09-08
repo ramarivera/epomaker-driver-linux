@@ -178,17 +178,13 @@ def execute(args):
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-    # Decode and validate entire local inputs before opening the device.
+    # Validate local inputs before writes. Display conversion needs read-only model identity.
     prepared = None
     if args.command == "system-info":
         if not 1 <= args.count <= 10000 or not 0.1 <= args.interval <= 3600:
             raise ValueError("count must be 1..10000 and interval 0.1..3600 seconds")
         prepared = system_info.Collector(disk=args.disk, interface=args.interface)
-    if args.command == "screen":
-        prepared = media.screen_image(args.path, fit=args.fit)
-    elif args.command == "animation":
-        prepared = media.screen_animation(args.path, fit=args.fit, delay_ms=args.delay_ms)
-    elif args.command == "macro":
+    if args.command == "macro":
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
         if not isinstance(value, dict) or set(value) != {"repeat", "events"}:
@@ -300,13 +296,21 @@ def execute(args):
         elif args.command == "macro":
             keyboard.write_macro(args.slot, prepared)
         elif args.command == "screen":
-            keyboard.upload_screen(prepared, (0, 0, 428, 142), frame=args.bank - 1)
+            model_id = keyboard.identify()["device_id"]
+            spec = media.display_spec(model_id)
+            prepared = media.screen_image(args.path, fit=args.fit, model_id=model_id)
+            keyboard.upload_screen(
+                prepared, (0, 0, spec["width"], spec["height"]), frame=args.bank - 1
+            )
         elif args.command == "display-language-toggle":
             keyboard.toggle_display_language()
         elif args.command == "factory-reset":
             return snapshot.factory_reset(keyboard, args.backup)
         elif args.command == "animation":
-            frames, delay = prepared
+            model_id = keyboard.identify()["device_id"]
+            frames, delay = media.screen_animation(
+                args.path, fit=args.fit, delay_ms=args.delay_ms, model_id=model_id
+            )
             keyboard.upload_animation(frames, delay)
             return {"ok": True, "frames": len(frames), "frame_delay_ms": delay}
         elif args.command == "debounce":

@@ -72,3 +72,28 @@ def test_animation_limits(tmp_path):
     images[0].save(path)
     with pytest.raises(ValueError, match="2..46"):
         screen_animation(path)
+
+
+def test_rt85_conversion_geometry_and_animation(tmp_path):
+    from epomaker_driver.media import screen_animation
+
+    path = tmp_path / "rt85.png"
+    image = Image.new("RGBA", (320, 172), (0, 0, 0, 0))
+    image.putpixel((0, 1), (255, 0, 0, 255))
+    image.putpixel((1, 0), (0, 255, 0, 255))
+    image.save(path)
+    pixels = screen_image(path, model_id=2895)
+    assert len(pixels) == 110080
+    assert pixels[:4] == bytes.fromhex("0000f800")
+    assert pixels[344:346] == bytes.fromhex("07e0")
+    with pytest.raises(ValueError, match="428x142"):
+        screen_image(path)
+    gif = tmp_path / "rt85.gif"
+    Image.new("RGB", (2, 2), "red").save(
+        gif, save_all=True, append_images=[Image.new("RGB", (2, 2), "blue")], duration=80
+    )
+    frames, delay = screen_animation(gif, fit=True, model_id=2895)
+    assert len(frames) == 2 and delay == 80
+    assert all(len(frame) == 110080 for frame in frames)
+    assert frames[0][:344] == bytes(344)  # letterbox side columns
+    assert frames[0][160 * 344 : 160 * 344 + 2] == bytes.fromhex("f800")

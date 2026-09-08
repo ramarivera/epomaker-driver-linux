@@ -5,7 +5,7 @@ Baseline: EPOMAKER Driver v4 3.2.22, Windows and macOS installers recorded in
 feature parity. It has not been achieved, and there is no defensible overall
 percentage until the inventory and weighting have been completed.
 
-The catalog contains 46 EPOMAKER models. Glyph and the [RT85 keymap core](rt85.md) are currently
+The catalog contains 46 EPOMAKER models. Glyph and the [RT85 CLI features](rt85.md) are currently
 enabled; neither has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
 
@@ -17,9 +17,9 @@ IDs do not establish that another model speaks the same protocol.
 | Key remapping | Glyph and RT85 key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Three Glyph / four RT85 matrices; active profile selection; Glyph configuration restore | Vendor export semantics, other models |
 | Lighting | Main and side modes; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
-| Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
+| Sleep and debounce | Glyph settings and RT85 sleep timers; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
-| Screen | Still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
+| Screen | Glyph and RT85 still-image and animation CLI, RGB565 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |

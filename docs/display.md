@@ -1,4 +1,4 @@
-# Glyph display images and animation
+# Glyph and RT85 display images and animation
 
 ```sh
 epomaker --device /dev/hidrawN screen still.png --fit --bank 5
@@ -7,9 +7,10 @@ epomaker --device /dev/hidrawN animation moving.gif --fit
 epomaker --device /dev/hidrawN animation moving.gif --fit --delay-ms 80
 ```
 
-Without `--fit`, frames must be exactly 428x142 pixels. With it, the image is scaled
+Without `--fit`, frames must be exactly 428×142 pixels for Glyph or 320×172 for RT85. With it, the image is scaled
 with preserved aspect ratio and black borders. Transparency is composited onto black.
-All frames are decoded, converted and validated before opening the HID device. GIF
+The CLI opens the selected HID device and reads its identity to choose the dimensions;
+all frames are then decoded, converted and validated before any display writes. GIF
 frames are composed sequentially using Pillow's disposal/transparency handling.
 
 ## Timing and memory evidence
@@ -70,3 +71,23 @@ The Linux toggle emits `27 01 00 00 00 00 00 d7`, then 56 zero bytes. No languag
 or reliable mapping from command values to an absolute language was found; therefore
 this is exposed as a toggle, not an English/Chinese setter. Repeating it may reverse
 the prior change. Confirm the resulting language on the physical display.
+
+
+## RT85 limits
+
+RT85 uses the same transfer layout with a 320×172 RGB565 display. Its identical
+6 MiB allocation and five still banks give 51 animation frames:
+
+```text
+floor((6*1024*1024 - 4096) / ((floor(320*172*2 / 4096) + 1)*4096)) - 5 = 51
+```
+
+Each full frame is 110,080 bytes in 1,966 chunks. `models.display_spec` derives both
+models' dimensions and frame limits from the catalog; media conversion and the
+high-level uploader use the same values. Python conversion functions default to
+Glyph for compatibility and accept `model_id=2895` for RT85. The CLI detects the
+model automatically. The graphical interface continues to support Glyph only.
+
+The memory formula comes from `memoryForEachFrame` / `maxImageFrameCount` in the
+macOS main bundle (pretty lines 110112–110148). RT85's date and language flags enable
+clock and language operations; system-information display remains Glyph-only.

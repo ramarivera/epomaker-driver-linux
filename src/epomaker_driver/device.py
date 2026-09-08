@@ -6,7 +6,7 @@ import datetime
 
 from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
-from .models import model_by_id
+from .models import display_spec, model_by_id
 
 
 class Keyboard:
@@ -27,20 +27,34 @@ class Keyboard:
             self.identify()
         if self.identity["device_id"] not in (2895, 3059):
             raise UnsupportedDevice(
-                "Configuration supports Glyph and RT85 keymaps/macros; other models are being migrated"
+                "Configuration supports Glyph and selected RT85 features; other models are being migrated"
             )
         if self.identity["is_boot"]:
             raise UnsupportedDevice("Device is in bootloader mode")
 
     def _check_commands(self, commands):
         self._supported()
-        # RT85 inherits the same key/Fn/macro protocol. Other features need their
-        # own model limits; see docs/rt85.md before expanding this allowlist.
+        # RT85 inherits this protocol but does not expose every shared operation.
+        # Display limits and the remaining capability gaps are in docs/rt85.md.
         if self.identity["device_id"] == 2895:
             for command in commands:
-                if command[0] not in (4, 10, 11, 16, 0x84, 0x8A, 0x8B, 0x90):
+                if command[0] not in (
+                    4,
+                    10,
+                    11,
+                    16,
+                    0x11,
+                    0x27,
+                    0x28,
+                    0x84,
+                    0x8A,
+                    0x8B,
+                    0x90,
+                    0x91,
+                    0xA5,
+                ):
                     raise UnsupportedDevice(
-                        "RT85 currently supports keymaps, Fn layers, macros and profiles"
+                        "RT85 currently supports keymaps, Fn layers, macros, profiles, sleep and display"
                     )
 
     def _profile_max(self):
@@ -72,7 +86,9 @@ class Keyboard:
                 "profiles": self.model["layer"],
                 "battery": self.transport.battery,
                 "online": self.transport.online,
-                "capabilities": ["keymap", "fn", "macro", "profile"],
+                "capabilities": ["keymap", "fn", "macro", "profile", "sleep", "display"],
+                "sleep": self.get_sleep(),
+                "display": display_spec(2895),
             }
         rate = self._query(codec.packet([0x83]), expected=0x83)[2]
         debounce = self._query(codec.packet([0x86]), expected=0x86)[1]
@@ -163,7 +179,17 @@ class Keyboard:
         if deep_bt < 10 or deep_dongle < 10:
             raise ValueError("deep sleep must be at least 10 seconds")
         self._write([codec.sleep_times(bt, dongle, deep_bt, deep_dongle)])
-        return self.get_sleep()
+        actual = self.get_sleep()
+        expected = dict(
+            zip(
+                ("bluetooth", "dongle", "deep_bluetooth", "deep_dongle"),
+                (bt, dongle, deep_bt, deep_dongle),
+                strict=True,
+            )
+        )
+        if actual != expected:
+            raise ProtocolError("sleep readback differs")
+        return actual
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0):
         self._supported()
@@ -279,20 +305,29 @@ class Keyboard:
 
     def upload_screen(self, pixels, bounds, *, frame=0, frames=1, delay=0, progress=None):
         # Prepare all data/metadata before the first device mutation.
-        prepare = codec.screen_prepare(len(pixels), bounds, frame, frames, delay)
+        self._supported()
+        spec = display_spec(self.identity["device_id"])
+        if frames > spec["max_frames"]:
+            raise ValueError("animation exceeds model display memory")
+        prepare = codec.screen_prepare(
+            len(pixels), bounds, frame, frames, delay, size=(spec["width"], spec["height"])
+        )
         if len(pixels) != (bounds[2] - bounds[0]) * (bounds[3] - bounds[1]) * 2:
             raise ValueError("RGB565 payload does not match screen bounds")
         chunks = list(codec.screen_chunks(pixels, frame, frames, delay))
         self._transfer_screen(prepare, chunks, progress)
 
     def upload_animation(self, frames, delay, *, progress=None):
-        from .media import MAX_ANIMATION_FRAMES
-
-        if not 2 <= len(frames) <= MAX_ANIMATION_FRAMES:
-            raise ValueError(f"animation must contain 2..{MAX_ANIMATION_FRAMES} frames")
-        if any(len(frame) != 428 * 142 * 2 for frame in frames):
-            raise ValueError("animation frames must be complete 428x142 RGB565 images")
-        prepare = codec.screen_prepare(len(frames[0]), (0, 0, 428, 142), 0, len(frames), delay)
+        self._supported()
+        spec = display_spec(self.identity["device_id"])
+        width, height, maximum = spec["width"], spec["height"], spec["max_frames"]
+        if not 2 <= len(frames) <= maximum:
+            raise ValueError(f"animation must contain 2..{maximum} frames")
+        if any(len(frame) != width * height * 2 for frame in frames):
+            raise ValueError(f"animation frames must be complete {width}x{height} RGB565 images")
+        prepare = codec.screen_prepare(
+            len(frames[0]), (0, 0, width, height), 0, len(frames), delay, size=(width, height)
+        )
         chunks = [
             chunk
             for index, frame in enumerate(frames)

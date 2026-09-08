@@ -35,3 +35,21 @@ def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
     if layer not in matrices:
         raise ValueError("unknown default matrix")
     return bytes(matrices[layer])
+
+
+def display_spec(device_id: int) -> dict:
+    """Migrated RGB565 display limits, derived from the installer catalog."""
+    if device_id not in (2895, 3059):
+        raise UnsupportedDevice("No migrated display protocol for this model")
+    screen = model_by_id(device_id)["other"]["screen"]
+    size = screen["size"]
+    width, height = size["w"], size["h"]
+    banks = len(screen["layer"])
+    # Vendor rounds to the next block even when exactly aligned; docs/display.md.
+    block_bytes = (width * height * 2 // 4096 + 1) * 4096
+    return {
+        "width": width,
+        "height": height,
+        "banks": banks,
+        "max_frames": (size["memorySize"] * 1024 * 1024 - 4096) // block_bytes - banks,
+    }

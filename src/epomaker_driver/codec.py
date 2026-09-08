@@ -164,14 +164,15 @@ def rgb565_column_major(rows):
     return bytes(result)
 
 
-def screen_prepare(data_length, bounds, frame=0, frames=1, delay=0, extra=0):
+def screen_prepare(data_length, bounds, frame=0, frames=1, delay=0, extra=0, *, size=(428, 142)):
     """0xa5 is a transfer handshake, NOT a read-only screen query."""
     bounded(data_length, 0xFFFFFFFF, "data length")
     if len(bounds) != 4:
         raise ValueError("bounds must be left,top,right,bottom")
     left, top, right, bottom = bounds
-    if not (0 <= left < right <= 428 and 0 <= top < bottom <= 142):
-        raise ValueError("bounds must fit the Glyph 428x142 display")
+    width, height = (bounded(v, 65535, "display dimension") for v in size)
+    if not (0 <= left < right <= width and 0 <= top < bottom <= height):
+        raise ValueError(f"bounds must fit the {width}x{height} display")
     for v in (frame, frames, delay, extra):
         bounded(v, 255, "frame metadata")
     if frames == 0 or frame >= (5 if frames == 1 else frames):
