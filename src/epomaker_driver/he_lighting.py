@@ -1,8 +1,8 @@
-"""HE60 lighting constraints; installer evidence: docs/he60-lite-research.md."""
+"""Magnetic lighting layouts; evidence: docs/he60-lite-research.md and docs/he75-v2.md."""
 
 from . import codec
 from .errors import ProtocolError, UnsupportedDevice
-from .models import RY5088_SIDE_IDS
+from .models import RY5088_EI_SIDE_IDS, RY5088_SIDE_IDS
 
 
 class HELightingMixin:
@@ -27,10 +27,13 @@ class HELightingMixin:
         if side:
             if self.expected_id not in RY5088_SIDE_IDS:
                 raise UnsupportedDevice("this HE model has no side-light layout")
-            if mode not in codec.SIDE_MODES:
+            ei_layout = self.expected_id in RY5088_EI_SIDE_IDS
+            allowed = ("off", "solid", "neon", "wave") if ei_layout else codec.SIDE_MODES
+            speed_max = 4 if ei_layout else 3
+            if mode not in allowed:
                 raise ValueError("unsupported HE side-lighting effect")
             codec.bounded(option, 0, "side effect option")
-            codec.bounded(speed, 0 if mode in ("off", "solid") else 3, "side speed")
+            codec.bounded(speed, 0 if mode in ("off", "solid") else speed_max, "side speed")
             if mode == "off" and brightness != 4:
                 raise ValueError("side off has no brightness control")
             if type(rainbow) is not bool:
@@ -45,7 +48,7 @@ class HELightingMixin:
                 option=option,
                 rainbow=rainbow,
                 side=True,
-                side_speed_max=3,
+                side_speed_max=speed_max,
                 normal=7,
                 dazzle=8,
             )

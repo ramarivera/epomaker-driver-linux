@@ -11,13 +11,15 @@ from .errors import UnsupportedDevice
 RY5088_PRODUCTS = {
     0x5029: (3662, 3664, 3746, 2762, 2883, 2465),
     0x502D: (2586, 2870),
-    0x5030: (3365, 3417, 4071, 3691, 3692, 3703, 2761, 2959),
+    0x5030: (3365, 3417, 3883, 4071, 3691, 3692, 3703, 2761, 2959),
+    0x5054: (3518,),
 }
 RY5088_IDS = tuple(mid for ids in RY5088_PRODUCTS.values() for mid in ids)
 RY5088_SWITCH_IDS = tuple(mid for mid in RY5088_IDS if mid != 3662)
-RY5088_SIDE_IDS = (2586, 2870, 3365, 3703, 2959)
+RY5088_SIDE_IDS = (2586, 2870, 3365, 3518, 3703, 3883, 2959)
+RY5088_EI_SIDE_IDS = (3518, 3883)
 # Wireless-capable models are currently enabled over USB only; docs/ry5088-wireless.md.
-RY5088_WIRELESS_IDS = (3365, 3417, 4071, 3692, 3703, 2761, 2959)
+RY5088_WIRELESS_IDS = (3365, 3417, 3518, 3883, 4071, 3692, 3703, 2761, 2959)
 HE_RF_IDS = (*RY5088_WIRELESS_IDS, 3759)
 HE_SLEEP_IDS = HE_RF_IDS
 

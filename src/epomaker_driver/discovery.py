@@ -137,6 +137,7 @@ def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
         0x5030,
         0x503A,
         0x5043,
+        0x5054,
         0x5056,
     ):
         r = reports.get(0)

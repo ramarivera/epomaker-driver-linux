@@ -69,7 +69,11 @@ magnetic configuration, main lighting, pictures, normal 24G/Bluetooth sleep
 timers, seven catalog switch types and three normal-layer knob bindings.
 Hardware remains unverified.
 
-All eighteen implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
+[HE75 V2](docs/he75-v2.md) adds IDs 3518 and 3883 with model-specific profile
+counts, four-effect `ei` side lighting, magnetic configuration, canonical switch
+codes, knob bindings and USB sleep settings. Hardware remains unverified.
+
+All twenty implemented magnetic IDs support a [timed USB calibration session](docs/calibration.md)
 with raw telemetry and cleanup on errors or Ctrl-C. Physical calibration results
 have not been verified.
 

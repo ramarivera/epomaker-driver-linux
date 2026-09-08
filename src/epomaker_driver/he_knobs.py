@@ -1,9 +1,13 @@
-"""HE65 V2 knob slots and vendor UI restrictions; docs/he65-v2.md."""
+"""Magnetic-family knob slots; UI restrictions: docs/he65-v2.md and docs/he75-v2.md."""
 
 
 def knob_slots(model_id):
     # Exact positions in the model's default matrix, matching advertised knobKeyCodes.
-    return {"volume-up": 90, "volume-down": 91, "mute": 92} if model_id == 3417 else {}
+    return {
+        3417: {"volume-up": 90, "volume-down": 91, "mute": 92},
+        3518: {"volume-up": 91, "volume-down": 90, "mute": 92},
+        3883: {"volume-up": 96, "volume-down": 97, "mute": 98},
+    }.get(model_id, {})
 
 
 def validate_knob_binding(model_id, slot, action, *, fn=False):

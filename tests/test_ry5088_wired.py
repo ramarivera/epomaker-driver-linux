@@ -100,7 +100,7 @@ def test_model_specific_snap_restoration_and_precision(model, product):
         (2870, 0x5030),
         (3691, 0x5029),
         (2550, 0x502D),
-        (3883, 0x5030),
+        (3613, 0x5054),
     ],
 )
 def test_wrong_pid_or_unmigrated_sibling_cannot_write(model, product):
@@ -110,7 +110,7 @@ def test_wrong_pid_or_unmigrated_sibling_cannot_write(model, product):
     assert fw.sent == []
 
 
-@pytest.mark.parametrize("pid", [0x502D, 0x5030])
+@pytest.mark.parametrize("pid", [0x502D, 0x5030, 0x5054])
 def test_new_products_need_exact_feature_collection(pid):
     report = Report(0, feature_bits=512, collections={Collection(0xFFFF, 2)})
     assert classify(3, 0x3151, pid, {0: report}) == ("usb", 0)

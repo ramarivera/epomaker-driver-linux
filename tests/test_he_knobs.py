@@ -1,6 +1,7 @@
 """Knob slots derived from the exact model matrix and UI exclusions."""
 
 import pytest
+from he_snapshot_firmware import snapshot_keyboard
 from test_h60 import _state
 from test_he import Firmware, keyboard
 
@@ -11,13 +12,13 @@ from epomaker_driver.he_settings import plan_update
 from epomaker_driver.models import data_file
 
 
-def test_knob_slot_map_matches_default_media_actions_and_status():
-    default = bytes(data_file("he60-matrices.json")["3417"]["defaultMatrix"])
-    for name, slot in knob_slots(3417).items():
+@pytest.mark.parametrize("model", [3417, 3518, 3883])
+def test_knob_slot_map_matches_default_media_actions_and_status(model):
+    default = bytes(data_file("he60-matrices.json")[str(model)]["defaultMatrix"])
+    for name, slot in knob_slots(model).items():
         assert default[slot * 4 : slot * 4 + 4] == actions.media(name)
-    assert keyboard(Firmware(model_id=3417), product=0x5030).status()["knob_slots"] == knob_slots(
-        3417
-    )
+    kb, _ = snapshot_keyboard(model)
+    assert kb.status()["knob_slots"] == knob_slots(model)
     assert knob_slots(3365) == {}
 
 

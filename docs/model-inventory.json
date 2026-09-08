@@ -15,8 +15,8 @@
   ],
   "counts": {
     "catalog_rows": 46,
-    "partial_backends": 34,
-    "catalog_only": 12,
+    "partial_backends": 36,
+    "catalog_only": 10,
     "hardware_verified": 0,
     "rows_with_loaders_in_both_installers": 45,
     "catalog_name_prefixes": {
@@ -28,9 +28,9 @@
       "yc3123": 5,
       "ry6602": 5
     },
-    "implemented_keyboard_rows": 29,
+    "implemented_keyboard_rows": 31,
     "implemented_mouse_rows": 5,
-    "magnetic_models_implemented": 18
+    "magnetic_models_implemented": 20
   },
   "models": [
     {
@@ -2002,9 +2002,9 @@
       "catalog_name": "ry5088_jc_gk8642gw_bmq_v1_3m_8k_8k",
       "vid": "0x3151",
       "pid": "0x5054",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -2102,15 +2102,89 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "backup",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "restore",
+        "rf-version",
+        "sleep",
+        "status",
+        "switch-type",
+        "side-lighting",
+        "knob-keymap"
+      ],
+      "backend_limits": {
+        "normal_profiles": 2,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": {
+          "bluetooth": [
+            60,
+            3600
+          ],
+          "dongle": [
+            60,
+            3600
+          ],
+          "deep_bluetooth": [
+            600,
+            3600
+          ],
+          "deep_dongle": "hidden; preserved unchanged"
+        },
+        "magnetic_step": "firmware-dependent generic bounds; no catalog travel override",
+        "axis_write": true,
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256,
+        "switch_types": {
+          "灭霸轴": 43,
+          "白星": 92,
+          "云玉磁轴": 93
+        },
+        "side_lighting": "ei: four effects (wave/neon/always-on/off); Wave/Neon speed 0–4; normal/dazzle flags 7/8",
+        "switch_display_names": {
+          "灭霸轴": "紫星轴"
+        },
+        "knob_slots": {
+          "volume-up": 91,
+          "volume-down": 90,
+          "mute": 92
+        },
+        "deep_sleep": "3518 exposes 600–3600 BT deep timer; 3883 preserves raw 16-bit words without catalog UI maximum"
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "model-backend"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -2125,7 +2199,8 @@
         "declared_matrix_bytes": 512,
         "declared_matrices_match_between_installers": true,
         "child_non_matrix_overrides": false
-      }
+      },
+      "notes": "Enabled partial USB backend; HE75 V2 side layout ei and two profiles; hardware remains unverified."
     },
     {
       "internal_id": 2550,
@@ -4296,9 +4371,9 @@
       "catalog_name": "ry5088_jc_cy_gk8652gw_3m_8k_8k",
       "vid": "0x3151",
       "pid": "0x5030",
-      "protocol_family": "ry5088",
-      "family_evidence": "name-prefix-only",
-      "implementation_status": "catalog-only",
+      "protocol_family": "ry5088-modern",
+      "family_evidence": "verified-backend-gates-and-research",
+      "implementation_status": "partial",
       "hardware_verified": false,
       "catalog_functional_descriptors": {
         "type": {
@@ -4403,15 +4478,91 @@
           }
         ]
       },
-      "backend_implemented_features": [],
-      "backend_limits": {},
+      "backend_implemented_features": [
+        "automatic-os",
+        "backup",
+        "calibration-session",
+        "calibration-telemetry",
+        "fn-keymap",
+        "identify",
+        "keymap",
+        "keymap-submodes",
+        "macros",
+        "magnetic-actuation",
+        "magnetic-axis-read",
+        "magnetic-modes",
+        "magnetic-read",
+        "magnetic-snap",
+        "magnetic-snap-clear",
+        "main-lighting",
+        "os-options",
+        "picture-read-write",
+        "picture-slot-edit",
+        "profile-selection",
+        "restore",
+        "rf-version",
+        "sleep",
+        "status",
+        "switch-type",
+        "side-lighting",
+        "knob-keymap"
+      ],
+      "backend_limits": {
+        "normal_profiles": 4,
+        "fn": "Windows/Mac; model-specific layer counts",
+        "pictures": {
+          "banks": 5,
+          "writable_rgb_slots": 126
+        },
+        "hardware_round_trips_verified": false,
+        "normal_submodes_per_profile": 4,
+        "backup": true,
+        "restore": "schema 7; same model and exact firmware versions; USB only",
+        "calibration": "timed USB session; physical result unverified",
+        "debounce": false,
+        "sleep": {
+          "bluetooth": [
+            0,
+            65535
+          ],
+          "dongle": [
+            0,
+            65535
+          ],
+          "deep_bluetooth": [
+            0,
+            65535
+          ],
+          "deep_dongle": "hidden; preserved unchanged"
+        },
+        "magnetic_step": "firmware-dependent generic bounds; travel 0.1–3.3 mm, step 0.01",
+        "axis_write": true,
+        "transport": "USB only; wireless connections not enabled",
+        "snapshot_macro_slots": 256,
+        "switch_types": {
+          "灭霸轴": 43,
+          "天霸轴": 62,
+          "精灵王轴": 44,
+          "芭比轴": 61,
+          "泰山轴": 86
+        },
+        "side_lighting": "ei: four effects (wave/neon/always-on/off); Wave/Neon speed 0–4; normal/dazzle flags 7/8",
+        "switch_display_names": {
+          "灭霸轴": "紫星轴"
+        },
+        "knob_slots": {
+          "volume-up": 96,
+          "volume-down": 97,
+          "mute": 98
+        },
+        "deep_sleep": "wire values 0–65535; catalog omits finite maximum"
+      },
       "remaining_domains": [
         "hardware-comparison",
         "firmware-management",
         "reconnect-and-monitoring",
         "vendor-online-services",
-        "graphical-interface",
-        "model-backend"
+        "graphical-interface"
       ],
       "installer_class_evidence": {
         "immediate_base_modules": {
@@ -4426,7 +4577,8 @@
         "declared_matrix_bytes": 512,
         "declared_matrices_match_between_installers": true,
         "child_non_matrix_overrides": false
-      }
+      },
+      "notes": "Enabled partial USB backend; HE75 V2 TMR side layout ei and four profiles; hardware remains unverified."
     },
     {
       "internal_id": 4071,

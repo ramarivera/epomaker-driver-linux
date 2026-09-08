@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import struct
+
 from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
@@ -142,9 +144,11 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             raise UnsupportedDevice("HE60 Lite identity is not supported")
 
     def _profile_max(self):
-        # Migrated RY5088 models have four ordinary profiles; HE60 Lite has two.
+        # Profile count is model-specific; HE75 V2 3518 and HE60 Lite have two.
         self._supported()
-        return 3 if self.expected_id in RY5088_IDS else 1
+        if self.expected_id in RY5088_IDS:
+            return self.model["layer"] - 1
+        return 1
 
     def _check_commands(self, commands):
         self._supported()
@@ -259,6 +263,9 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
             if self.expected_id in RY5088_SWITCH_IDS:
                 result["capabilities"].extend(("magnetic-axis-read", "switch-type"))
                 result["switch_types"] = model_switch_types(self.expected_id)
+                display_names = self.model.get("other", {}).get("specialSwitchDisplayName", {})
+                if display_names:
+                    result["switch_display_names"] = display_names
             slots = knob_slots(self.expected_id)
             if slots:
                 result["knob_slots"] = slots
@@ -308,11 +315,14 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
         if self.expected_id == 3759:
             if any(type(value) is not int or not 60 <= value <= 3600 for value in values):
                 raise ValueError("wireless HE60 sleep timers must be integers from 60 through 3600")
-        elif self.expected_id in (3365, 4071):
+        elif self.expected_id in (3365, 3518, 4071):
             # These models expose three public timers; keep the fourth wire word untouched below.
             validate_sleep_times(self.expected_id, (*values, None))
         elif self.expected_id == 3417:
             validate_sleep_times(self.expected_id, (bt, dongle, None, None))
+        elif self.expected_id == 3883:
+            if any(type(value) is not int or not 0 <= value <= 65535 for value in values):
+                raise ValueError("HE75 V2 TMR sleep timers must be integers from 0 through 65535")
         elif (
             any(type(value) is not int or not 0 <= value <= 64800 for value in values)
             or deep_bt < 10
@@ -323,7 +333,16 @@ class HEKeyboard(HECalibrationMixin, HESwitchMixin, HESnapMixin, HELightingMixin
 
         def operation():
             original = self._query(codec.packet([0x91]), expected=0x91)
-            command = bytearray(codec.sleep_times(bt, dongle, deep_bt or 0, deep_dongle or 0))
+            if self.expected_id == 3883:
+                command = bytearray(
+                    codec.packet(
+                        bytes([0x11])
+                        + bytes(7)
+                        + struct.pack("<4H", bt, dongle, deep_bt or 0, deep_dongle or 0)
+                    )
+                )
+            else:
+                command = bytearray(codec.sleep_times(bt, dongle, deep_bt or 0, deep_dongle or 0))
             if self.expected_id == 3417:
                 command[12:16] = original[12:16]
             else:
