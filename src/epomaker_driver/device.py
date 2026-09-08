@@ -40,6 +40,11 @@ class Keyboard:
             for command in commands:
                 if command[0] not in (
                     4,
+                    7,
+                    8,
+                    9,
+                    12,
+                    0x17,
                     10,
                     11,
                     16,
@@ -47,6 +52,11 @@ class Keyboard:
                     0x27,
                     0x28,
                     0x84,
+                    0x87,
+                    0x88,
+                    0x89,
+                    0x8C,
+                    0x97,
                     0x8A,
                     0x8B,
                     0x90,
@@ -54,7 +64,7 @@ class Keyboard:
                     0xA5,
                 ):
                     raise UnsupportedDevice(
-                        "RT85 currently supports keymaps, Fn layers, macros, profiles, sleep and display"
+                        "RT85 currently supports keymaps, Fn layers, macros, profiles, sleep, display, lighting and OS controls"
                     )
 
     def _profile_max(self):
@@ -86,7 +96,20 @@ class Keyboard:
                 "profiles": self.model["layer"],
                 "battery": self.transport.battery,
                 "online": self.transport.online,
-                "capabilities": ["keymap", "fn", "macro", "profile", "sleep", "display"],
+                "capabilities": [
+                    "keymap",
+                    "fn",
+                    "macro",
+                    "profile",
+                    "sleep",
+                    "display",
+                    "lighting",
+                    "os",
+                ],
+                "light": self.get_light(),
+                "side_light": self.get_light(side=True),
+                "options": self.get_options(),
+                "auto_os": self.get_auto_os(),
                 "sleep": self.get_sleep(),
                 "display": display_spec(2895),
             }
@@ -119,7 +142,7 @@ class Keyboard:
 
     def set_options(self, *, system=None, wasd_swap=None):
         if system is not None and system not in ("win", "mac"):
-            raise ValueError("Glyph exposes Windows and Mac system layers")
+            raise ValueError("Supported keyboards expose Windows and Mac system layers")
         if wasd_swap is not None and type(wasd_swap) is not bool:
             raise ValueError("wasd_swap must be boolean")
 
@@ -153,7 +176,7 @@ class Keyboard:
         matrix = bytes(matrix)
         if len(matrix) != 512:
             raise ValueError("Fn matrix must have 128 four-byte slots")
-        codec.bounded(os_mode, 1, "Glyph OS selector")
+        codec.bounded(os_mode, 1, "OS selector")
 
         def operation():
             previous = self.read_matrix(fn=True, os_mode=os_mode)
@@ -169,8 +192,20 @@ class Keyboard:
         self.transport.transaction(operation)
 
     def set_light(self, mode, **options):
-        self._write([codec.light(mode, **options)])
-        return self.get_light(side=options.get("side", False))
+        self._supported()
+        side = options.get("side", False)
+        speed_max = 3
+        if side and self.identity["device_id"] == 2895:
+            # RT85's Kt layout differs from Glyph's Q: docs/rt85.md.
+            if mode not in ("off", "solid", "breathing", "neon", "wave"):
+                raise ValueError("RT85 side lighting supports off, solid, breathing, neon and wave")
+            speed_max = 4 if mode == "wave" else 3
+        command = codec.light(mode, **options, side_speed_max=speed_max)
+        self._write([command])
+        actual = self.get_light(side=side)
+        if actual["raw"][1:8] != list(command[1:8]):
+            raise ProtocolError("lighting readback differs")
+        return actual
 
     def get_sleep(self):
         return codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))

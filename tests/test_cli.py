@@ -312,3 +312,19 @@ def test_rt85_display_detects_model_before_conversion(cli_device, firmware, tmp_
     )
     assert cli.main([*prefix, "animation", str(gif), "--fit"]) == 0
     assert len(firmware.sent) == 3932
+
+
+def test_rt85_lighting_and_os_cli(cli_device, firmware):
+    firmware.model_id = 2895
+    prefix = ["--device", cli_device.path]
+    for args in [
+        ["light", "wave", "--side", "--speed", "4"],
+        ["options", "--system", "mac"],
+        ["auto-os", "on"],
+        ["get-picture", "4"],
+    ]:
+        assert cli.main([*prefix, *args]) == 0
+    assert firmware.options[1] == 1 and firmware.auto_os
+    before = len(firmware.sent)
+    assert cli.main([*prefix, "light", "snake", "--side"]) != 0
+    assert len(firmware.sent) == before

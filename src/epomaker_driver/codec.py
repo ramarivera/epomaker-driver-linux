@@ -225,14 +225,24 @@ LIGHT_MODES = {
 SIDE_MODES = {"off": 0, "solid": 1, "breathing": 2, "neon": 3, "wave": 4, "snake": 5}
 
 
-def light(mode, *, rgb=0xFFFFFF, brightness=4, speed=0, option=0, rainbow=False, side=False):
+def light(
+    mode,
+    *,
+    rgb=0xFFFFFF,
+    brightness=4,
+    speed=0,
+    option=0,
+    rainbow=False,
+    side=False,
+    side_speed_max=3,
+):
     modes = SIDE_MODES if side else LIGHT_MODES
     if mode not in modes:
         raise ValueError("unsupported light mode")
     bounded(rgb, 0xFFFFFF, "rgb")
     bounded(brightness, 4, "brightness")
-    bounded(speed, 3 if side else 4, "speed")
-    bounded(option, 15, "option")
+    bounded(speed, bounded(side_speed_max, 4, "side speed maximum") if side else 4, "speed")
+    bounded(option, 4 if mode == "picture" else 15, "option")
     flags = (option << 4) | (8 if rainbow else 7)
     if mode == "picture":
         flags = option << 4
