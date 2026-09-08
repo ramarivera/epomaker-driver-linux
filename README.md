@@ -34,7 +34,22 @@ Device access may require [permissions](docs/hardware.md).
 .venv/bin/epomaker --device /dev/hidrawN backup ./backups/glyph.json
 # Read a physical-slot matrix; positions are not HID keycodes.
 .venv/bin/epomaker --device /dev/hidrawN matrix --profile 0
+# Upload a still PNG/JPEG; preserve aspect ratio with black borders.
+.venv/bin/epomaker --device /dev/hidrawN screen wallpaper.png --fit
+# Write a keyboard macro, then verify all 256 bytes by reading it back.
+.venv/bin/epomaker --device /dev/hidrawN macro 0 macro.json
+.venv/bin/epomaker --device /dev/hidrawN get-macro 0
 ```
+
+Macro JSON contains `repeat` and `events`. Each event has `hid_usage`, boolean `down`,
+and `delay_ms` (1–65535). For example:
+
+```json
+{"repeat":1,"events":[{"hid_usage":4,"down":true,"delay_ms":10},{"hid_usage":4,"down":false,"delay_ms":10}]}
+```
+
+Assigning a macro to a key is a separate remapping operation. Still images are converted
+to the display's column-major RGB565 format. Animated images are currently rejected.
 
 ## Test
 
@@ -46,6 +61,8 @@ Device access may require [permissions](docs/hardware.md).
 
 Tests use fake transports and packet fixtures. Unit-test coverage is not hardware validation
 or feature parity. See [migration status](docs/parity.md) and [protocol provenance](docs/provenance.md).
+The [Glyph protocol reference](docs/glyph-protocol.md) documents recovered packet layouts
+and unresolved behavior for contributors.
 
 Original implementation code is MIT-licensed. This project does not redistribute the vendor
 applications, native executables, bundled JavaScript, logos or UI assets.

@@ -18,8 +18,8 @@ IDs do not establish that another model speaks the same protocol.
 | Profiles | Three Glyph matrices; active profile selection | Full restore, vendor export semantics, other models |
 | Lighting | Main and side modes; custom picture encoding | Hardware comparison and interactive editor |
 | Sleep and debounce | Read/write APIs and CLI | Hardware limits and persistence |
-| Macros | Keyboard-event encoding, slots read/write | Mouse/motion events, recording, editor, assignment semantics |
-| Screen | RGB565 conversion, bounded frame transfer, clock sync | Image/GIF UI, playback and display settings, hardware comparison |
+| Macros | Keyboard-event JSON CLI, encoding, slots read/write | Mouse/motion events, recording, editor, assignment semantics |
+| Screen | Still-image CLI, RGB565 conversion, bounded frame transfer, clock sync | Image/GIF UI, playback and display settings, hardware comparison |
 | Backups | Key/Fn maps, lighting and sleep; atomic private files | Macro bodies, pixels, full restore |
 | Receiver routing | Research only | F6/F7/FC/FE transport and paired-device handling |
 | Other keyboard families | Catalog only | Older YC3121 and model-specific protocols |

@@ -111,6 +111,8 @@ def clock_command(year, month, day, hour, minute, second):
 
 
 def macro_keyboard_event(hid_usage, down, delay_ms):
+    if type(down) is not bool:
+        raise ValueError("down must be a boolean")
     bounded(hid_usage, 239, "hid usage")
     if hid_usage < 4:
         raise ValueError("keyboard HID usage must be at least 4")
@@ -306,6 +308,11 @@ def fn_single(slot, action, *, layer=0, os_mode=0):
 
 def macro_data(repeat, events):
     bounded(repeat, 65535, "repeat count")
+    if not isinstance(events, list) or any(
+        not isinstance(event, dict) or set(event) != {"hid_usage", "down", "delay_ms"}
+        for event in events
+    ):
+        raise ValueError("events must be a list of hid_usage/down/delay_ms objects")
     result = struct.pack("<H", repeat) + b"".join(macro_keyboard_event(**event) for event in events)
     if len(result) > 256:
         raise ValueError("macro exceeds 256-byte storage")

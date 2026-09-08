@@ -79,3 +79,45 @@ def test_compressed_import(tmp_path, capsys):
     path.write_bytes(profiles.encode({"name": "example", "unknown": True}))
     assert cli.main(["inspect-profile", str(path)]) == 0
     assert json.loads(capsys.readouterr().out)["unknown"]
+
+
+def test_macro_write_and_read(cli_device, firmware, tmp_path, capsys):
+    path = tmp_path / "macro.json"
+    path.write_text(
+        json.dumps(
+            {
+                "repeat": 1,
+                "events": [
+                    {"hid_usage": 4, "down": True, "delay_ms": 10},
+                    {"hid_usage": 4, "down": False, "delay_ms": 300},
+                ],
+            }
+        )
+    )
+    prefix = ["--device", cli_device.path]
+    assert cli.main([*prefix, "macro", "3", str(path)]) == 0
+    capsys.readouterr()
+    assert cli.main([*prefix, "get-macro", "3"]) == 0
+    data = bytes.fromhex(json.loads(capsys.readouterr().out)["data"])
+    assert data[:8] == bytes.fromhex("0100048a04002c01")
+    before = list(firmware.sent)
+    for value in (
+        {},
+        {"repeat": 1, "events": [{}]},
+        {"repeat": 1, "events": [{"hid_usage": 4, "down": "false", "delay_ms": 10}]},
+    ):
+        path.write_text(json.dumps(value))
+        assert cli.main([*prefix, "macro", "3", str(path)]) == 1
+        assert "ValueError" in capsys.readouterr().err
+        assert firmware.sent == before
+
+
+def test_screen_cli(cli_device, firmware, tmp_path):
+    from PIL import Image
+
+    path = tmp_path / "screen.png"
+    Image.new("RGB", (428, 142), "red").save(path)
+    assert cli.main(["--device", cli_device.path, "screen", str(path)]) == 0
+    chunks = [p for p in firmware.sent if p[0] == 0x25]
+    assert len(chunks) == 2171
+    assert sum(p[6] for p in chunks) == 121552

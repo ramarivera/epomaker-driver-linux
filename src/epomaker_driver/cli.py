@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, codec, profiles
+from . import __version__, codec, media, profiles
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError
@@ -54,6 +54,13 @@ def parser():
     key.add_argument("--os-mode", type=int, default=0)
     commands.add_parser("profile").add_argument("index", type=int)
     commands.add_parser("debounce").add_argument("milliseconds", type=int)
+    commands.add_parser("get-macro").add_argument("slot", type=int)
+    macro = commands.add_parser("macro", help="write a keyboard-event JSON macro with readback")
+    macro.add_argument("slot", type=int)
+    macro.add_argument("path", type=Path)
+    screen = commands.add_parser("screen", help="upload a still image to the Glyph display")
+    screen.add_argument("path", type=Path)
+    screen.add_argument("--fit", action="store_true")
     backup = commands.add_parser("backup")
     backup.add_argument("path", type=Path)
     backup.add_argument("--overwrite", action="store_true")
@@ -79,6 +86,16 @@ def execute(args):
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+    # Decode and validate entire local inputs before opening the device.
+    prepared = None
+    if args.command == "screen":
+        prepared = media.screen_image(args.path, fit=args.fit)
+    elif args.command == "macro":
+        with args.path.open("rb") as stream:
+            value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        if not isinstance(value, dict) or set(value) != {"repeat", "events"}:
+            raise ValueError("macro must contain exactly repeat and events")
+        prepared = codec.macro_data(value["repeat"], value["events"])
     with Transport.open(select_device(args.device)) as transport:
         keyboard = Keyboard(transport)
         if args.command == "identify":
@@ -114,6 +131,12 @@ def execute(args):
             )
         if args.command == "profile":
             keyboard.set_profile(args.index)
+        elif args.command == "get-macro":
+            return {"slot": args.slot, "data": keyboard.read_macro(args.slot).hex()}
+        elif args.command == "macro":
+            keyboard.write_macro(args.slot, prepared)
+        elif args.command == "screen":
+            keyboard.upload_screen(prepared, (0, 0, 428, 142))
         elif args.command == "debounce":
             keyboard.set_debounce(args.milliseconds)
         elif args.command == "clock":
