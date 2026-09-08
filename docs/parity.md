@@ -8,7 +8,7 @@ percentage until the inventory and weighting have been completed.
 The catalog contains 46 EPOMAKER models. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
 enabled, plus [five RY6602 models](ry6602.md) with core configuration support.
 [Two older YC3121 models](yc3121.md), RT100 and Dynatab75X-UK, additionally have
-USB keymap/profile/macro/lighting/sleep/debounce/automatic-OS configuration. Ten models have
+USB keymap/profile/macro/lighting/custom-picture/sleep/debounce/automatic-OS configuration. Ten models have
 some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
@@ -20,14 +20,14 @@ IDs do not establish that another model speaks the same protocol.
 | Model identification | Internal firmware ID and bootloader gate | Other protocol families |
 | Key remapping | Glyph, RT85, RT75 and five RY6602 models' key/Fn slots, named keyboard/media/mouse/macro bindings, matrix decoding, readback checks | Remaining action types and other families |
 | Profiles | Per-model three/four matrices; active profile selection; model-checked configuration restore for eight migrated models | Vendor export semantics, other models |
-| Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing | Hardware comparison and model-specific capabilities |
+| Lighting | Glyph/RT85 main and side modes, RT75 main modes, RY6602 model-specific modes and color flags; five custom pictures with readback and per-slot editing; RT100/Dynatab75X-UK custom picture index 0 with readback and per-slot editing | Hardware comparison and model-specific capabilities |
 | Sleep and debounce | Glyph settings, RT85 sleep timers, RT75 sleep/debounce, RY6602 three-timer configuration; sleep readback checks | Hardware limits and persistence |
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph, RT85, RT75 and three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, language toggle and clock sync | Remaining display settings, hardware comparison |
 | Backups | Eight migrated models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; recovery copies and readback | Unreferenced macros and screen pixels |
 | OS controls | Glyph, RT85 and RT75 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
-| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps, profiles, macros, sleep, debounce and automatic OS selection | RT100/Dynatab75X-UK Fn, custom RGB pictures, screens and recovery; other model-specific protocols |
+| Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps, profiles, macros, sleep, debounce, automatic OS selection and custom picture index 0 | RT100/Dynatab75X-UK Fn, screens and recovery; other model-specific protocols |
 | Mice | Research only | DPI, buttons, sensors, lighting, polling and other vendor controls |
 | Device lifecycle | Disconnect errors | Reconnect, background monitoring, battery UI |
 | System-information display | Linux CPU, memory, disk, network and temperature collection; bounded foreground refresh | Background integration, more sensor selection and physical display comparison |

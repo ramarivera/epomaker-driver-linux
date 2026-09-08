@@ -122,7 +122,7 @@ def parser():
     animation.add_argument("--fit", action="store_true")
     animation.add_argument("--delay-ms", type=int)
     commands.add_parser("get-picture").add_argument("index", type=int)
-    picture = commands.add_parser("picture", help="write 126 RGB slot colors from JSON")
+    picture = commands.add_parser("picture", help="write model-sized RGB slot colors from JSON")
     picture.add_argument("index", type=int)
     picture.add_argument("path", type=Path)
     picture.add_argument("--activate", action="store_true")
@@ -199,13 +199,13 @@ def execute(args):
     elif args.command == "picture":
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-        colors = value.get("colors")
+        colors = value.get("colors") if isinstance(value, dict) else None
         if (
             not isinstance(colors, list)
-            or len(colors) != 126
+            or len(colors) not in (126, 128)
             or any(not isinstance(color, str) or len(color) != 6 for color in colors)
         ):
-            raise ValueError("colors must contain exactly 126 six-digit RGB hex strings")
+            raise ValueError("colors must contain exactly 126 or 128 six-digit RGB hex strings")
         prepared = b"".join(
             codec.bounded(int(color, 16), 0xFFFFFF, "rgb").to_bytes(3, "big") for color in colors
         )
@@ -245,7 +245,7 @@ def execute(args):
             return {"sent": args.count, "last_sample": values}
         if args.command == "get-picture":
             colors = keyboard.read_picture(args.index)
-            return {"colors": [colors[i : i + 3].hex() for i in range(0, 378, 3)]}
+            return {"colors": [colors[i : i + 3].hex() for i in range(0, len(colors), 3)]}
         if args.command == "picture":
             keyboard.write_picture(prepared, args.index)
             if args.activate:

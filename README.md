@@ -25,8 +25,9 @@ Max also support RGB24 still images and animations. All five have configuration
 backup, restore and reset with recovery copies.
 
 [Older YC3121 support](docs/yc3121.md) adds RT100 and Dynatab75X-UK over USB:
-normal keymaps, three profiles, macros, main lighting, sleep timers, debounce and automatic OS selection.
-Their Fn layers, custom RGB pictures, screens and recovery remain unfinished.
+normal keymaps, three profiles, macros, main lighting, one writable custom RGB picture,
+sleep timers, debounce and automatic OS selection. Their Fn layers, screens and recovery
+remain unfinished.
 
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
@@ -70,7 +71,7 @@ Device access may require [permissions](docs/hardware.md).
 # Write a keyboard macro, then verify all 256 bytes by reading it back.
 .venv/bin/epomaker --device /dev/hidrawN macro 0 macro.json
 .venv/bin/epomaker --device /dev/hidrawN get-macro 0
-# Export a custom RGB picture as 126 six-digit color strings.
+# Export a custom RGB picture as model-sized six-digit color strings (126 or 128 slots).
 .venv/bin/epomaker --device /dev/hidrawN get-picture 0 > colors.json
 # Import and activate that picture, or change one physical RGB slot.
 .venv/bin/epomaker --device /dev/hidrawN picture 0 colors.json --activate

@@ -21,6 +21,7 @@ class Firmware:
         self.macro_pending = bytearray(280)
         self.timers = bytes.fromhex("7800f0000807100e")
         self.debounce = 10
+        self.picture = bytearray(384)
         self.light = bytearray(64)
         self.light[:8] = bytes.fromhex("8701050407123456")
         self.auto_os = False
@@ -50,6 +51,9 @@ class Firmware:
         elif op == 0x8B:
             assert p[3:7] == bytes(4)
             raw[:] = self.macros[p[1]][p[2] * 64 : (p[2] + 1) * 64]
+        elif op == 0x8C:
+            assert p[1] == 0 and p[3:7] == bytes(4)
+            raw[:] = self.picture[p[2] * 64 : (p[2] + 1) * 64]
         elif op == 0x87:
             raw[:] = self.light
         elif op == 0x92:
@@ -69,6 +73,11 @@ class Firmware:
                 self.macro_pending[p[2] * 56 : (p[2] + 1) * 56] = p[8:64]
                 if p[4] == 1:
                     self.macros[p[1]][:] = self.macro_pending[:256]
+            elif op == 0x0C:
+                assert p[1:4] == bytes([0, 128, 1]) and p[5:7] == bytes(2)
+                start = p[4] * 56
+                size = min(56, 384 - start)
+                self.picture[start : start + size] = p[8 : 8 + size]
             elif op == 7:
                 self.light[:] = p
                 self.light[0] = 0x87
@@ -400,3 +409,70 @@ def test_lighting_readback_and_unknown_values(legacy):
     fw.ignore_writes = False
     assert keyboard.set_light("picture", option=2)["option"] == 2
     assert keyboard.set_light("wave", option=3, speed=0, brightness=0)["brightness"] == 0
+
+
+def test_picture_full_length_and_edit(legacy):
+    keyboard, fw = legacy
+    colors = bytes(range(256)) + bytes(range(128))
+    keyboard.write_picture(colors)
+    assert keyboard.read_picture() == colors
+    writes = [p for p in fw.commands if p[0] == 12]
+    assert len(writes) == 7 and writes[-1][-8:] == bytes(8)
+    assert [p[4] for p in writes] == list(range(7))
+    keyboard.set_picture_key(0, 127, 0xFFFFFF)
+    assert keyboard.read_picture() == colors[:-3] + b"\xff\xff\xff"
+    keyboard.set_picture_key(0, 0, 0)
+    assert keyboard.read_picture()[3:-3] == colors[3:-3]
+    keyboard.write_picture(bytes(384))
+    assert keyboard.read_picture() == bytes(384)
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda k: k.read_picture(1),
+        lambda k: k.write_picture(bytes(384), 2),
+        lambda k: k.write_picture(bytes(378)),
+        lambda k: k.set_picture_key(0, 128, 0),
+        lambda k: k.set_picture_key(0, 0, 0x1000000),
+    ],
+)
+def test_picture_bounds(legacy, operation):
+    keyboard, fw = legacy
+    with pytest.raises(ValueError):
+        operation(keyboard)
+    assert fw.commands == []
+
+
+def test_picture_readback_failure(legacy, monkeypatch):
+    keyboard, fw = legacy
+    fw.ignore_writes = True
+    with pytest.raises(ProtocolError, match="picture readback differs"):
+        keyboard.write_picture(bytes([4]) * 384)
+    exchange = keyboard.transport.exchange
+
+    def partial(command, **kwargs):
+        data = exchange(command, **kwargs)
+        return data[:20] if command[0] == 0x8C else data
+
+    monkeypatch.setattr(keyboard.transport, "exchange", partial)
+    with pytest.raises(ProtocolError, match="picture page"):
+        keyboard.read_picture()
+
+
+def test_picture_cli(legacy, monkeypatch, tmp_path, capsys):
+    keyboard, fw = legacy
+    info = DeviceInfo("/dev/hidraw99", "YC3121", 3, 0x3151, 0x4015, b"", "usb", 0)
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: Transport(fw, "usb", sleep=lambda _: None))
+    path = tmp_path / "picture.json"
+    path.write_text(json.dumps({"colors": ["abcdef"] * 128}))
+    prefix = ["--device", info.path]
+    assert cli.main([*prefix, "picture", "0", str(path), "--activate"]) == 0
+    capsys.readouterr()
+    assert cli.main([*prefix, "picture-key", "0", "127", "123456"]) == 0
+    capsys.readouterr()
+    assert cli.main([*prefix, "get-picture", "0"]) == 0
+    colors = json.loads(capsys.readouterr().out)["colors"]
+    assert len(colors) == 128 and colors[-1] == "123456" and colors[0] == "abcdef"
+    assert fw.light[1] == 13 and fw.light[4] == 0

@@ -165,7 +165,13 @@ def test_picture_cli(cli_device, firmware, tmp_path, capsys, activate):
     if activate:
         assert firmware.light[1] == 13 and firmware.light[4] == 0x40
     before = list(firmware.sent)
-    for invalid in ({}, {"colors": ["ffffff"]}, {"colors": [3] * 126}):
+    for invalid in (
+        [],
+        {},
+        {"colors": ["ffffff"]},
+        {"colors": [3] * 126},
+        {"colors": ["abcdef"] * 128},
+    ):
         path.write_text(json.dumps(invalid))
         assert cli.main(args) == 1
         assert firmware.sent == before

@@ -18,6 +18,9 @@ COMMANDS = frozenset(
         "bind-media",
         "bind-mouse",
         "bind-macro",
+        "get-picture",
+        "picture",
+        "picture-key",
         "get-light",
         "light",
         "get-macro",
@@ -184,6 +187,54 @@ class LegacyKeyboard:
             self.transport.sleep(0.5)
             if self.read_macro(slot) != data:
                 raise ProtocolError("macro readback differs")
+
+        self.transport.transaction(operation)
+
+    def read_picture(self, picture=0):
+        codec.bounded(picture, 0, "YC3121 writable picture index")
+        self._supported()
+
+        def operation():
+            pages = []
+            for page in range(6):
+                raw = self.transport.exchange(codec.packet([0x8C, 0, page]))
+                if len(raw) != 64:
+                    raise ProtocolError(f"incomplete YC3121 picture page {page}")
+                pages.append(raw)
+            return b"".join(pages)
+
+        return self.transport.transaction(operation)
+
+    def write_picture(self, colors, picture=0):
+        codec.bounded(picture, 0, "YC3121 writable picture index")
+        colors = bytes(colors)
+        if len(colors) != 384:
+            raise ValueError("YC3121 picture requires 128 RGB triples")
+        commands = [
+            codec.packet(
+                bytes([0x0C, 0, 0x80, 1, page, 0, 0, 0]) + colors[page * 56 : (page + 1) * 56]
+            )
+            for page in range(7)
+        ]
+        self._supported()
+
+        def operation():
+            for command in commands:
+                self.transport.send(command)
+            self.transport.sleep(0.5)
+            if self.read_picture(picture) != colors:
+                raise ProtocolError("picture readback differs")
+
+        self.transport.transaction(operation)
+
+    def set_picture_key(self, picture, slot, rgb):
+        codec.bounded(slot, 127, "RGB slot")
+        codec.bounded(rgb, 0xFFFFFF, "rgb")
+
+        def operation():
+            colors = bytearray(self.read_picture(picture))
+            colors[slot * 3 : slot * 3 + 3] = rgb.to_bytes(3, "big")
+            self.write_picture(colors, picture)
 
         self.transport.transaction(operation)
 
