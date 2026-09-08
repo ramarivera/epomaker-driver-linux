@@ -43,7 +43,16 @@ def ry(request, firmware):
 def test_usb_core_roundtrip(ry, firmware):
     status = ry.status()
     assert status["profiles"] == (4 if firmware.model_id == 3858 else 3)
-    assert status["capabilities"] == ["keymap", "fn", "macro", "profile", "debounce", "os", "sleep"]
+    assert status["capabilities"] == [
+        "keymap",
+        "fn",
+        "macro",
+        "profile",
+        "debounce",
+        "os",
+        "sleep",
+        "lighting",
+    ]
     last = status["profiles"] - 1
     before = ry.read_matrix(0)
     ry.set_profile(last)
@@ -81,7 +90,7 @@ def test_fn_and_os_controls(ry, firmware, os_mode):
 @pytest.mark.parametrize(
     "operation",
     [
-        lambda k: k.set_light("solid"),
+        lambda k: k.set_light("solid", side=True),
         lambda k: k.upload_screen(bytes(2), (0, 0, 1, 1)),
         lambda k: snapshot.capture(k),
         lambda k: k._write([codec.packet([4]), codec.packet([1])]),
@@ -151,3 +160,67 @@ def test_sleep_detects_hidden_field_mutation(ry, firmware):
     with pytest.raises(ProtocolError, match="sleep readback"):
         ry.set_sleep(600, 600, 600)
     assert len(firmware.sent) == 1
+
+
+@pytest.mark.parametrize("mode", [m for m in codec.LIGHT_MODES if m != "off"])
+@pytest.mark.parametrize("rainbow", [False, True])
+def test_lighting_model_flags_and_readback(ry, firmware, mode, rainbow):
+    normal, dazzle = (8, 7) if firmware.model_id in (3573, 3674) else (7, 8)
+    value = ry.set_light(mode, rgb=0x123456, speed=3, brightness=2, rainbow=rainbow)
+    flag = dazzle if rainbow else normal
+    if mode in ("picture", "screen"):
+        flag = 0
+    elif mode == "music":
+        flag = 0 if rainbow else 4
+    command = firmware.sent[-1]
+    assert command[0:5] == bytes([7, codec.LIGHT_MODES[mode], 1, 2, flag])
+    assert value["mode"] == mode and value["speed"] == 3
+    if mode not in ("picture", "screen"):
+        assert value["rainbow"] is rainbow
+
+
+@pytest.mark.parametrize("mode", ["wave", "snake", "breathing", "off"])
+def test_side_effects_only_on_declared_models(ry, firmware, mode):
+    if firmware.model_id in (3858, 3633):
+        with pytest.raises(UnsupportedDevice):
+            ry.set_light(mode, side=True)
+        with pytest.raises(UnsupportedDevice):
+            ry.get_light(side=True)
+        assert not firmware.sent
+        return
+    value = ry.set_light(mode, side=True, rainbow=True, speed=3)
+    assert value["mode"] == mode and value["rainbow"]
+    assert firmware.sent[-1][4] == (7 if firmware.model_id in (3573, 3674) else 8)
+    before = len(firmware.sent)
+    with pytest.raises(ValueError):
+        ry.set_light(mode, side=True, speed=4)
+    assert len(firmware.sent) == before
+
+
+def test_model_preset_palette(ry, firmware):
+    palettes = {
+        3573: [16711680, 65280, 255, 16733440, 7799039, 16776960, 16777215],
+        3674: [16711680, 65280, 255, 16776960, 16732250, 65535, 16777215],
+    }
+    expected = palettes.get(
+        firmware.model_id, [0xFF0000, 0xFF8000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF]
+    )
+    for index, rgb in enumerate(expected):
+        firmware.light[1] = 1
+        firmware.light[4] = index
+        assert ry.get_light()["rgb"] == rgb
+
+
+def test_rgb_pictures_and_rejected_main_off(ry, firmware):
+    colors = bytes(i % 256 for i in range(378))
+    ry.write_picture(colors, 4)
+    assert ry.read_picture(4) == colors
+    ry.set_picture_key(4, 125, 0xABCDEF)
+    assert ry.read_picture(4)[375:] == bytes.fromhex("abcdef")
+    ry.set_light("picture", option=4)
+    assert firmware.light[4] == 64
+    before = len(firmware.sent)
+    with pytest.raises(UnsupportedDevice):
+        ry.set_light("off")
+    assert len(firmware.sent) == before
+    assert ry.set_light("solid", brightness=0)["brightness"] == 0

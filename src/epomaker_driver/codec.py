@@ -222,6 +222,7 @@ LIGHT_MODES = {
     "screen": 21,
     "music": 22,
 }
+DEFAULT_LIGHT_PALETTE = (0xFF0000, 0xFF8000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF)
 SIDE_MODES = {"off": 0, "solid": 1, "breathing": 2, "neon": 3, "wave": 4, "snake": 5}
 
 
@@ -235,6 +236,8 @@ def light(
     rainbow=False,
     side=False,
     side_speed_max=3,
+    normal=7,
+    dazzle=8,
 ):
     modes = SIDE_MODES if side else LIGHT_MODES
     if mode not in modes:
@@ -243,7 +246,7 @@ def light(
     bounded(brightness, 4, "brightness")
     bounded(speed, bounded(side_speed_max, 4, "side speed maximum") if side else 4, "speed")
     bounded(option, 4 if mode == "picture" else 15, "option")
-    flags = (option << 4) | (8 if rainbow else 7)
+    flags = (option << 4) | bounded(dazzle if rainbow else normal, 15, "color flag")
     if mode == "picture":
         flags = option << 4
     elif mode == "music":
@@ -271,7 +274,7 @@ def light(
     )
 
 
-def parse_light(data, *, side=False):
+def parse_light(data, *, side=False, dazzle=8, palette=DEFAULT_LIGHT_PALETTE):
     from .errors import ProtocolError
 
     if len(data) != 64 or data[0] != (0x88 if side else 0x87):
@@ -280,7 +283,6 @@ def parse_light(data, *, side=False):
     mode = next((k for k, v in modes.items() if v == data[1]), "unknown")
     rgb = int.from_bytes(data[5:8], "big")
     color_mode = data[4] & 15
-    palette = [0xFF0000, 0xFF8000, 0xFFFF00, 0x00FF00, 0x00FFFF, 0x0000FF, 0xFF00FF]
     if color_mode < len(palette):
         rgb = palette[color_mode]
     if rgb == 0xFAFFFA:
@@ -292,7 +294,7 @@ def parse_light(data, *, side=False):
         "brightness": data[3],
         "speed": data[2] if side else 4 - data[2],
         "option": data[4] >> 4,
-        "rainbow": color_mode == (0 if mode == "music" else 8),
+        "rainbow": color_mode == (0 if mode == "music" else dazzle),
         "raw": list(data),
     }
 

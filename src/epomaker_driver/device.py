@@ -6,7 +6,14 @@ import datetime
 
 from . import codec
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
-from .models import RY6602_IDS, display_spec, model_by_id, validate_sleep_times
+from .models import (
+    RY6602_IDS,
+    RY6602_SIDE_IDS,
+    display_spec,
+    light_encoding,
+    model_by_id,
+    validate_sleep_times,
+)
 
 
 class Keyboard:
@@ -102,6 +109,10 @@ class Keyboard:
 
         if self.identity["device_id"] in RY6602_IDS:
             allowed = (
+                7,
+                12,
+                0x87,
+                0x8C,
                 4,
                 6,
                 9,
@@ -119,9 +130,11 @@ class Keyboard:
                 0x91,
                 0x97,
             )
+            if self.identity["device_id"] in RY6602_SIDE_IDS:
+                allowed += (8, 0x88)
             if any(command[0] not in allowed for command in commands):
                 raise UnsupportedDevice(
-                    "RY6602 supports keymaps, Fn, macros, profiles, sleep, debounce and OS controls"
+                    "RY6602 supports keymaps, Fn, macros, profiles, sleep, lighting, debounce and OS controls"
                 )
 
     def _profile_max(self):
@@ -153,7 +166,20 @@ class Keyboard:
                 "profiles": self.model["layer"],
                 "battery": self.transport.battery,
                 "online": self.transport.online,
-                "capabilities": ["keymap", "fn", "macro", "profile", "debounce", "os", "sleep"],
+                "capabilities": [
+                    "keymap",
+                    "fn",
+                    "macro",
+                    "profile",
+                    "debounce",
+                    "os",
+                    "sleep",
+                    "lighting",
+                ],
+                "light": self.get_light(),
+                "side_light": self.get_light(side=True)
+                if self.identity["device_id"] in RY6602_SIDE_IDS
+                else None,
                 "sleep": self.get_sleep(),
                 "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
                 "options": self.get_options(),
@@ -226,7 +252,9 @@ class Keyboard:
 
     def get_light(self, *, side=False):
         opcode = 0x88 if side else 0x87
-        return codec.parse_light(self._query(codec.packet([opcode]), expected=opcode), side=side)
+        raw = self._query(codec.packet([opcode]), expected=opcode)
+        _, dazzle, palette = light_encoding(self.identity["device_id"])
+        return codec.parse_light(raw, side=side, dazzle=dazzle, palette=palette)
 
     def get_options(self):
         raw = self._query(codec.packet([0x89]), expected=0x89)
@@ -299,7 +327,25 @@ class Keyboard:
             if mode not in ("off", "solid", "breathing", "neon", "wave"):
                 raise ValueError("RT85 side lighting supports off, solid, breathing, neon and wave")
             speed_max = 4 if mode == "wave" else 3
-        command = codec.light(mode, **options, side_speed_max=speed_max)
+        if self.identity["device_id"] in RY6602_IDS:
+            if side:
+                if self.identity["device_id"] not in RY6602_SIDE_IDS or mode not in (
+                    "wave",
+                    "snake",
+                    "breathing",
+                    "off",
+                ):
+                    raise UnsupportedDevice(
+                        "RY6602 side layout is absent or does not expose this effect"
+                    )
+            elif mode == "off":
+                raise UnsupportedDevice(
+                    "RY6602 main layout has no explicit off mode; use brightness zero"
+                )
+        normal, dazzle, _ = light_encoding(self.identity["device_id"])
+        command = codec.light(
+            mode, **options, side_speed_max=speed_max, normal=normal, dazzle=dazzle
+        )
         self._write([command])
         actual = self.get_light(side=side)
         if actual["raw"][1:8] != list(command[1:8]):

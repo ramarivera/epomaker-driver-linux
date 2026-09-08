@@ -9,6 +9,7 @@ from .errors import UnsupportedDevice
 
 # Explicitly migrated RY6602 models; see docs/ry6602.md.
 RY6602_IDS = (3858, 3633, 3673, 3573, 3674)
+RY6602_SIDE_IDS = (3673, 3573, 3674)
 
 
 def data_file(name: str):
@@ -78,3 +79,16 @@ def validate_sleep_times(model_id: int, values):
         bounded(value, limits["max"], "sleep seconds")
         if value < limits["min"]:
             raise ValueError(f"{connection} {kind} must be at least {limits['min']} seconds")
+
+
+def light_encoding(model_id: int):
+    """Normal/rainbow flags and readback palette; installer overrides: docs/ry6602.md."""
+    from .codec import DEFAULT_LIGHT_PALETTE
+
+    palettes = {
+        3573: (16711680, 65280, 255, 16733440, 7799039, 16776960, 16777215),
+        3674: (16711680, 65280, 255, 16776960, 16732250, 65535, 16777215),
+    }
+    if model_id in palettes:
+        return 8, 7, palettes[model_id]
+    return 7, 8, DEFAULT_LIGHT_PALETTE
