@@ -5,6 +5,7 @@ from __future__ import annotations
 from . import codec
 from .device import Keyboard
 from .errors import ProtocolError, UnsupportedDevice
+from .he_settings import plan_update
 from .magnetic import (
     assemble_pages,
     decode_field,
@@ -32,9 +33,10 @@ COMMANDS = frozenset(
         "macro",
         "profile",
         "get-magnetic",
+        "magnetic-key",
     )
 )
-OPCODES = frozenset((0x04, 0x0A, 0x0B, 0x10, 0x80, 0x84, 0x8A, 0x8B, 0x8F, 0x90, 0xE5))
+OPCODES = frozenset((0x04, 0x0A, 0x0B, 0x10, 0x65, 0x80, 0x84, 0x8A, 0x8B, 0x8F, 0x90, 0xE5))
 
 
 class HEKeyboard(Keyboard):
@@ -137,7 +139,15 @@ class HEKeyboard(Keyboard):
                 "profile": profile,
                 "profiles": 2,
                 "versions": {"usb": usb, "rf": rf},
-                "capabilities": ["keymap", "fn", "macro", "profile", "submodes", "magnetic-read"],
+                "capabilities": [
+                    "keymap",
+                    "fn",
+                    "macro",
+                    "profile",
+                    "submodes",
+                    "magnetic-read",
+                    "magnetic-actuation",
+                ],
                 "submodes": 4,
             }
 
@@ -226,3 +236,48 @@ class HEKeyboard(Keyboard):
             for page in range({128: 2, 256: 4, 512: 8}[length])
         ]
         return assemble_pages(pages, length=length)
+
+    def set_magnetic(self, slot, patch):
+        """Patch actuation/rapid-trigger settings and verify complete read fields.
+
+        The planner owns model limits and commit ordering. See
+        docs/he60-lite-research.md; this does not switch the key's base mode.
+        """
+        codec.bounded(slot, 127, "slot")
+
+        def operation():
+            state = self.get_magnetic()
+            # Read inactive RT values only when the patch needs them; ordinary
+            # travel changes need not depend on an inactive field being readable.
+            if isinstance(patch, dict) and (
+                patch.get("fire") is True or "rapid_press" in patch or "rapid_lift" in patch
+            ):
+                for field in (2, 3):
+                    if str(field) not in state["fields"]:
+                        state["fields"][str(field)] = self._read_field(field, 256).hex()
+            plan = plan_update(self.expected_id, slot, patch, state)
+            before = self._query(codec.packet([0x84]), expected=0x84)[1]
+            if before != state["profile"]:
+                raise ProtocolError("active profile changed before magnetic write")
+            if not plan["commands"]:
+                return {"changed": False, "profile": before, "slot": state["slots"][slot]}
+            self._write(plan["commands"])
+            actual_fields = {
+                field: self._read_field(int(field), len(bytes.fromhex(expected))).hex()
+                for field, expected in plan["expected_fields"].items()
+            }
+            after = self._query(codec.packet([0x84]), expected=0x84)[1]
+            if after != before:
+                raise ProtocolError(
+                    "active profile changed during magnetic write; state may be partial"
+                )
+            if actual_fields != plan["expected_fields"]:
+                raise ProtocolError("magnetic readback differs; state may be partial")
+            modes = list(bytes.fromhex(actual_fields["7"]))
+            return {
+                "changed": True,
+                "profile": before,
+                "slot": self._decode_slots(actual_fields, modes, state["multiplier"])[slot],
+            }
+
+        return self.transport.transaction(operation)

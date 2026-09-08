@@ -7,7 +7,8 @@ Both now have partial USB backend support; neither has hardware validation.
 
 The CLI supports identity/status, two normal profiles with submodes 0–3,
 one Fn layer for each of Windows and Mac, raw/semantic macro reads and writes,
-active profile selection, and magnetic-parameter reads. `--profile` selects a
+active profile selection, magnetic-parameter reads and actuation/rapid-trigger
+updates. `--profile` selects a
 normal profile; for `--fn` it must be 0, and `--os-mode` selects Windows (0) or
 Mac (1). Fn commands do not accept a nonzero submode. For example, after
 selecting the actual command collection from `epomaker discover`:
@@ -19,9 +20,54 @@ epomaker --device /dev/hidrawN get-magnetic
 ```
 
 Magnetic reads describe the current profile and retain raw field bytes and
-unknown mode values. These reads are not a complete restorable backup. Setting
-magnetic parameters, calibration, lighting/settings, recovery and firmware
-upgrades remain outside this backend's current operation gate.
+unknown mode values. These reads are not a complete restorable backup.
+Magnetic mode switching, dynamic/MT edits, snap pairing, calibration,
+lighting/settings, recovery and firmware upgrades remain outside this backend's
+current operation gate.
+
+## Actuation and rapid-trigger updates
+
+`magnetic-key` patches one physical matrix slot in the current device state:
+
+```sh
+epomaker --device /dev/hidrawN magnetic-key 9 --travel 1.2 --deadzone 0.3
+epomaker --device /dev/hidrawN magnetic-key 9 --fire --rapid-press 0.2 --rapid-lift 0.2
+epomaker --device /dev/hidrawN magnetic-key 9 --no-fire
+```
+
+Travel, lift, dead zone and top dead zone may be changed for an existing normal
+or snap-mode key. Rapid-trigger thresholds and `--fire`/`--no-fire` apply to
+every recognized existing mode and preserve its lower seven mode bits. This
+command does not convert the key to another base mode or change a snap partner.
+Unknown mode values are readable but are rejected for writes.
+
+All numeric inputs use 0.1 mm steps. The UI setters, rather than just the static
+catalog, establish these bounds:
+
+| Setting | Allowed range |
+| --- | --- |
+| Travel | 0.1–3.3 mm; nonzero main firmware below `0300` uses a 4 mm maximum |
+| Lift | At least 0.1 mm and at most the travel maximum minus the resulting dead zone |
+| Dead zone | 0–1 mm; main firmware below `0300`, including unavailable version, allows 0–4 mm |
+| Top dead zone | 0–1 mm, only when USB or RF firmware is at least `0400` |
+| Rapid press/lift | 0.1–2 mm, requiring rapid trigger to be enabled after the patch |
+
+The main UI version is RF when present, otherwise USB, otherwise zero. Evidence
+is in macOS main pretty lines 105586–105589 (`getMainControlVersion`),
+107169–107180 (selected travel maximum), 107725–107915 (limits and steps),
+108098–108151 (press/lift setters). The static catalog's travel minimum of zero
+does not override the UI setter's 0.1 mm minimum. The wire multiplier remains
+the independently documented 10/100/200 conversion; it is not the input step.
+
+`src/epomaker_driver/he_settings.py` validates the patch and plans commands from
+raw field bytes. Omitted values and other slots are preserved. Before enabling
+rapid trigger, the backend reads inactive thresholds; invalid stored values
+must be replaced explicitly with valid `--rapid-press` and `--rapid-lift` values.
+A no-op emits no write. Mode updates precede changed parameters and only the
+last command carries the commit bit. `src/epomaker_driver/he.py` checks the
+profile before writing, reads back complete involved field arrays, and detects
+profile changes, lost writes or modifications to neighboring slots. A failed
+transfer can leave partial state; this is not an atomic hardware transaction.
 
 | Fact | Internal ID 3759 | Internal ID 3727 |
 | --- | --- | --- |

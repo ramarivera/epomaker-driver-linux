@@ -54,6 +54,13 @@ def parser():
     commands.add_parser(
         "get-magnetic", help="read HE60 magnetic parameters for the current profile"
     )
+    magnetic = commands.add_parser(
+        "magnetic-key", help="update HE60 actuation/rapid-trigger settings"
+    )
+    magnetic.add_argument("slot", type=int)
+    for name in ("travel", "lift", "deadzone", "top-deadzone", "rapid-press", "rapid-lift"):
+        magnetic.add_argument("--" + name, type=float)
+    magnetic.add_argument("--fire", action=argparse.BooleanOptionalAction, default=None)
     commands.add_parser(
         "factory-reset", help="save recovery snapshot, then reset keyboard configuration"
     ).add_argument("--backup", type=Path, required=True)
@@ -200,6 +207,22 @@ def execute(args):
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
     # Validate local inputs before writes. Display conversion needs read-only model identity.
     prepared = None
+    if args.command == "magnetic-key":
+        prepared = {
+            name: getattr(args, name)
+            for name in (
+                "travel",
+                "lift",
+                "deadzone",
+                "top_deadzone",
+                "rapid_press",
+                "rapid_lift",
+                "fire",
+            )
+            if getattr(args, name) is not None
+        }
+        if not prepared:
+            raise ValueError("choose at least one magnetic setting")
     if args.command == "system-info":
         if not 1 <= args.count <= 10000 or not 0.1 <= args.interval <= 3600:
             raise ValueError("count must be 1..10000 and interval 0.1..3600 seconds")
@@ -234,7 +257,9 @@ def execute(args):
     is_he = device.product_id in HE_PRODUCTS
     if is_he and args.command not in HE_COMMANDS:
         raise UnsupportedDevice("This HE60 Lite command has not been migrated yet")
-    if not is_he and (args.command == "get-magnetic" or getattr(args, "submode", 0)):
+    if not is_he and (
+        args.command in ("get-magnetic", "magnetic-key") or getattr(args, "submode", 0)
+    ):
         raise UnsupportedDevice("Magnetic controls and keymap submodes require HE60 Lite")
     matrix_options = {"mode": getattr(args, "submode", 0)} if is_he else {}
     if (
@@ -279,6 +304,8 @@ def execute(args):
             return keyboard.status()
         if args.command == "get-magnetic":
             return keyboard.get_magnetic()
+        if args.command == "magnetic-key":
+            return keyboard.set_magnetic(args.slot, prepared)
         if args.command == "system-info":
             for index in range(args.count):
                 if index:

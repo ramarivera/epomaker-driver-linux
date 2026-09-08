@@ -4,7 +4,8 @@ This is a pure codec description derived from the shared modern base in the
 macOS `623d2d52.js` and Windows `17dc9c62.js` bundles. Their entire contents
 match after imported chunk filenames are normalized. This codec performs no
 device access. The [HE60 backend](he60-lite-research.md) now uses its bulk
-read and decoding functions; magnetic-setting writes remain codec-only.
+read, decoding and ordered-write functions for actuation and rapid-trigger
+updates. Mode switching, dynamic/MT edits and snap pairing remain unintegrated.
 
 The multi-key read command is packetized as `e5 field 01 page` and the
 corresponding write command as `65 field 00 key-index commit 00 00 00`, with

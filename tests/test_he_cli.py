@@ -78,7 +78,10 @@ def test_he_unmigrated_command_rejects_before_open(he_cli, monkeypatch, capsys):
     assert not calls
 
 
-@pytest.mark.parametrize("command", [["get-magnetic"], ["matrix", "--submode", "1"]])
+@pytest.mark.parametrize(
+    "command",
+    [["get-magnetic"], ["matrix", "--submode", "1"], ["magnetic-key", "0", "--travel", "1.2"]],
+)
 def test_non_he_rejects_magnetic_commands_before_open(command, monkeypatch, capsys):
     info = DeviceInfo("/dev/hidraw1", "RT100 PRO", 3, 0x3151, 0x5002, b"", "usb", 0)
     monkeypatch.setattr(cli, "discover", lambda: [info])

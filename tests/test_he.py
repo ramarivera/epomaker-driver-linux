@@ -22,6 +22,8 @@ class Firmware:
         self.short_pages = False
         self.mismatch_key = False
         self.change_profile_on_read = False
+        self.drop_magnetic_write = False
+        self.corrupt_magnetic_neighbor = False
         self.macros = {slot: bytes(256) for slot in range(256)}
         self.matrices = {
             (profile, mode): bytes([profile, mode]) * 256
@@ -80,7 +82,18 @@ class Firmware:
 
     def send(self, command):
         self.sent.append(command)
-        if command[0] == 0x04:
+        if command[0] == 0x65:
+            assert command[2] == 0 and command[5:7] == bytes(2)
+            assert (sum(command[:8]) & 255) == 255
+            field, slot = command[1], command[3]
+            width = 1 if field in (7, 251) else 2
+            data = bytearray(self.fields[field])
+            if not self.drop_magnetic_write:
+                data[slot * width : (slot + 1) * width] = command[8 : 8 + width]
+            if self.corrupt_magnetic_neighbor:
+                data[((slot + 1) % 128) * width] ^= 1
+            self.fields[field] = bytes(data)
+        elif command[0] == 0x04:
             self.profile = command[1]
         elif command[0] == 0x0A:
             profile = command[1]
@@ -396,3 +409,168 @@ def test_he_cli_through_usb(monkeypatch, capsys, model, product):
     assert json.loads(capsys.readouterr().out)["slots"][9] == [0, 0, 5, 0]
     assert cli.main([*prefix, "get-magnetic"]) == 0
     assert len(json.loads(capsys.readouterr().out)["slots"]) == 128
+
+
+@pytest.mark.parametrize(("model", "product"), [(3727, 0x502C), (3759, 0x502E)])
+def test_he_actuation_write_preserves_other_slots(model, product):
+    fw = Firmware(model_id=model)
+    # Both fixtures support top dead zone, with scales 100 and 200 respectively.
+    before = fw.fields.copy()
+    kb = keyboard(fw, product=product)
+    result = kb.set_magnetic(1, {"travel": 1.2, "deadzone": 0.3, "top_deadzone": 0.4})
+    assert result["changed"]
+    assert result["slot"]["travel"] == 1.2
+    assert result["slot"]["deadzone"] == 0.3
+    assert result["slot"]["top_deadzone"] == 0.4
+    multiplier = 100 if model == 3727 else 200
+    for field, value, width in (
+        (0, 12 * multiplier // 10, 2),
+        (6, 3 * multiplier // 10, 2),
+        (251, 4 * multiplier // 10, 1),
+    ):
+        expected = bytearray(before[field])
+        expected[width : 2 * width] = value.to_bytes(width, "little")
+        before[field] = bytes(expected)
+    assert fw.fields == before
+    writes = [command for command in fw.sent if command[0] == 0x65]
+    assert [command[1] for command in writes] == [0, 6, 251]
+    assert [command[4] for command in writes] == [0, 0, 1]
+    sent = len(fw.sent)
+    assert not kb.set_magnetic(1, {"travel": 1.2})["changed"]
+    assert len(fw.sent) == sent
+
+
+def test_he_enable_and_disable_rapid_trigger_preserves_thresholds():
+    fw = Firmware(model_id=3759)
+    kb = keyboard(fw, product=0x502E)
+    result = kb.set_magnetic(1, {"fire": True, "rapid_press": 0.2, "rapid_lift": 0.3})
+    assert result["slot"]["raw_mode"] == 0x80
+    assert result["slot"]["rapid_press"] == 0.2
+    assert result["slot"]["rapid_lift"] == 0.3
+    writes = [command for command in fw.sent if command[0] == 0x65]
+    assert [command[1] for command in writes] == [7, 2, 3]
+    assert [command[4] for command in writes] == [0, 0, 1]
+    before = fw.fields.copy()
+    result = kb.set_magnetic(1, {"fire": False})
+    assert not result["slot"]["fire"]
+    assert fw.fields[2] == before[2] and fw.fields[3] == before[3]
+
+
+@pytest.mark.parametrize("flag", ["drop_magnetic_write", "corrupt_magnetic_neighbor"])
+def test_he_magnetic_readback_detects_lost_or_unrelated_writes(flag):
+    fw = Firmware()
+    setattr(fw, flag, True)
+    with pytest.raises(ProtocolError, match="readback differs"):
+        keyboard(fw).set_magnetic(1, {"travel": 1.2})
+
+
+@pytest.mark.parametrize(
+    "patch",
+    [
+        {"travel": -1},
+        {"travel": 1.25},
+        {"fire": False, "rapid_press": 0.2},
+        {"top_deadzone": 2},
+        {},
+    ],
+)
+def test_he_invalid_magnetic_patch_never_writes(patch):
+    fw = Firmware()
+    with pytest.raises(ValueError):
+        keyboard(fw).set_magnetic(1, patch)
+    assert not fw.sent
+
+
+def test_he_cli_magnetic_write(monkeypatch, capsys):
+    fw = Firmware(model_id=3759)
+    info = DeviceInfo(
+        "/dev/hidraw60",
+        "HE60 Lite",
+        3,
+        0x3151,
+        0x502E,
+        bytes.fromhex("06ffff0902a10175089540b102c0"),
+        "usb",
+        0,
+    )
+    monkeypatch.setattr(cli, "discover", lambda: [info])
+    monkeypatch.setattr(cli.Transport, "open", lambda _: keyboard(fw, product=0x502E).transport)
+    assert (
+        cli.main(
+            [
+                "--device",
+                info.path,
+                "magnetic-key",
+                "1",
+                "--fire",
+                "--rapid-press",
+                "0.2",
+                "--rapid-lift",
+                "0.2",
+            ]
+        )
+        == 0
+    )
+    result = json.loads(capsys.readouterr().out)
+    assert result["changed"] and result["slot"]["fire"]
+    sent = len(fw.sent)
+    assert cli.main(["--device", info.path, "magnetic-key", "1"]) == 1
+    assert "choose at least one" in capsys.readouterr().err
+    assert len(fw.sent) == sent
+
+
+@pytest.mark.parametrize("change_at", [3, 4])
+def test_he_magnetic_profile_race_before_or_after_write(monkeypatch, change_at):
+    fw = Firmware()
+    exchange = fw.exchange
+    count = 0
+
+    def raced(command):
+        nonlocal count
+        if command[0] == 0x84:
+            count += 1
+            if count == change_at:
+                fw.profile = 1
+        return exchange(command)
+
+    monkeypatch.setattr(fw, "exchange", raced)
+    with pytest.raises(ProtocolError, match="profile changed"):
+        keyboard(fw).set_magnetic(1, {"travel": 1.2})
+    assert bool(fw.sent) is (change_at == 4)
+
+
+def test_he_inactive_rapid_fields_are_read_only_when_needed():
+    fw = Firmware(model_id=3759)
+    fw.fields[7] = bytes(128)
+    fw.fields[2] = b"\x28\x00" * 128  # 0.2 mm at scale 200.
+    fw.fields[3] = b"\x3c\x00" * 128  # 0.3 mm at scale 200.
+    kb = keyboard(fw, product=0x502E)
+    kb.set_magnetic(1, {"travel": 1.2})
+    assert not any(c[0] == 0xE5 and c[1] in (2, 3) for c in fw.query_log)
+    fw.query_log.clear()
+    result = kb.set_magnetic(1, {"fire": True})
+    assert result["slot"]["rapid_press"] == 0.2
+    assert result["slot"]["rapid_lift"] == 0.3
+    assert [c[1] for c in fw.sent if c[0] == 0x65][-1] == 7
+    for field in (2, 3):
+        assert [c[3] for c in fw.query_log if c[0] == 0xE5 and c[1] == field] == list(range(4)) * 2
+
+
+def test_he_magnetic_send_failure_stops_sequence(monkeypatch):
+    fw = Firmware()
+    original_send = fw.send
+    count = 0
+
+    def fail_second(command):
+        nonlocal count
+        if command[0] == 0x65:
+            count += 1
+            if count == 2:
+                raise OSError("simulated failure")
+        original_send(command)
+
+    monkeypatch.setattr(fw, "send", fail_second)
+    with pytest.raises(OSError, match="simulated failure"):
+        keyboard(fw).set_magnetic(1, {"travel": 1.2, "deadzone": 0.3, "top_deadzone": 0.4})
+    assert count == 2
+    assert [c[1] for c in fw.sent if c[0] == 0x65] == [0]
