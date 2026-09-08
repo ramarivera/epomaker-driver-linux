@@ -1,5 +1,9 @@
 # Hardware validation
 
+Before any protocol command, the opened file descriptor is checked with Linux HID
+identity and report-descriptor ioctls against discovery. A changed identity or
+collection closes the handle and requires rediscovery.
+
 No configuration feature is hardware-verified yet. The connected Glyph's Bluetooth descriptor
 matches report 6 with 65-byte input/output payloads, VID/PID 3151:5004, usage page FF55/usage 0202.
 The current user's `/dev/hidraw3` is root-only, so live command validation has not run.

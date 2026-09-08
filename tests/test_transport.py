@@ -177,6 +177,39 @@ def test_open_errors_and_close(monkeypatch):
         io.write(b"x")
 
 
+@pytest.mark.parametrize("failure", [None, "identity", "size", "descriptor"])
+def test_open_revalidates_actual_device(monkeypatch, descriptor, failure):
+    import struct
+
+    info = DeviceInfo("/dev/hidraw9", "Glyph", 5, 0x3151, 0x5004, descriptor, "bluetooth", 6)
+    monkeypatch.setattr(os, "open", lambda *_: 123)
+    closed = []
+    monkeypatch.setattr(os, "close", closed.append)
+
+    def ioctl(fd, code, buffer, mutate):
+        assert fd == 123 and mutate
+        if code == 0x80084803:
+            buffer[:] = struct.pack("=IHH", 5, 0x3151, 0 if failure == "identity" else 0x5004)
+        elif code == 0x80044801:
+            buffer[:] = struct.pack("=I", 4096 if failure == "size" else len(descriptor))
+        elif code == 0x90044802:
+            buffer[4 : 4 + len(descriptor)] = descriptor
+            if failure == "descriptor":
+                buffer[4] ^= 1
+        else:
+            pytest.fail(f"unexpected ioctl {code:x}")
+        return 0
+
+    monkeypatch.setattr("fcntl.ioctl", ioctl)
+    if failure:
+        with pytest.raises(DeviceUnavailable, match="changed"):
+            Transport.open(info)
+    else:
+        with Transport.open(info) as transport:
+            assert transport.kind == "bluetooth"
+    assert closed == [123]
+
+
 def test_output_io(monkeypatch):
     io = HidrawIO.__new__(HidrawIO)
     io.fd = 123

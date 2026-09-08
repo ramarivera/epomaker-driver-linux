@@ -10,6 +10,7 @@ import errno
 import fcntl
 import os
 import select
+import struct
 import threading
 import time
 from collections.abc import Callable
@@ -42,6 +43,23 @@ class HidrawIO:
         if self.fd >= 0:
             os.close(self.fd)
             self.fd = -1
+
+    def verify(self, device: DeviceInfo):
+        """Verify the opened node, since hidraw numbers can change after discovery."""
+        self._check()
+        info = bytearray(8)
+        fcntl.ioctl(self.fd, 0x80084803, info, True)  # HIDIOCGRAWINFO
+        if struct.unpack("=IHH", info) != (device.bus, device.vendor_id, device.product_id):
+            raise DeviceUnavailable("device identity changed after discovery; discover again")
+        size = bytearray(4)
+        fcntl.ioctl(self.fd, 0x80044801, size, True)  # HIDIOCGRDESCSIZE
+        length = struct.unpack("=I", size)[0]
+        if not 0 < length < 4096 or length != len(device.descriptor):
+            raise DeviceUnavailable("device descriptor size changed after discovery")
+        descriptor = bytearray(size) + bytearray(4096)
+        fcntl.ioctl(self.fd, 0x90044802, descriptor, True)  # HIDIOCGRDESC
+        if descriptor[4 : 4 + length] != device.descriptor:
+            raise DeviceUnavailable("device command collection changed after discovery")
 
     def _check(self):
         if self.fd < 0:
@@ -107,7 +125,13 @@ class Transport:
     def open(cls, device: DeviceInfo):
         if device.command_transport not in ("usb", "bluetooth"):
             raise DeviceUnavailable("not a supported command collection")
-        return cls(HidrawIO(device.path), device.command_transport)
+        io = HidrawIO(device.path)
+        try:
+            io.verify(device)
+        except Exception:
+            io.close()
+            raise
+        return cls(io, device.command_transport)
 
     def close(self):
         with self._lock:
