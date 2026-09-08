@@ -25,9 +25,9 @@ class Keyboard:
     def _supported(self):
         if self.identity is None:
             self.identify()
-        if self.identity["device_id"] not in (2895, 3059):
+        if self.identity["device_id"] not in (2895, 3059, 3223):
             raise UnsupportedDevice(
-                "Configuration supports Glyph and selected RT85 features; other models are being migrated"
+                "Configuration supports Glyph and selected RT85/RT75 features; other models are being migrated"
             )
         if self.identity["is_boot"]:
             raise UnsupportedDevice("Device is in bootloader mode")
@@ -67,6 +67,31 @@ class Keyboard:
                     raise UnsupportedDevice(
                         "RT85 currently supports keymaps, Fn layers, macros, profiles, sleep, display, lighting and OS controls"
                     )
+
+        if self.identity["device_id"] == 3223:
+            # RT75 display/light metadata differs; migrated operations: docs/rt75.md.
+            allowed = (
+                4,
+                6,
+                9,
+                10,
+                11,
+                16,
+                0x11,
+                0x17,
+                0x84,
+                0x86,
+                0x89,
+                0x8A,
+                0x8B,
+                0x90,
+                0x91,
+                0x97,
+            )
+            if any(command[0] not in allowed for command in commands):
+                raise UnsupportedDevice(
+                    "RT75 currently supports keymaps, Fn, macros, profiles, sleep, debounce and OS controls"
+                )
 
     def _profile_max(self):
         self._supported()
@@ -113,6 +138,20 @@ class Keyboard:
                 "auto_os": self.get_auto_os(),
                 "sleep": self.get_sleep(),
                 "display": display_spec(2895),
+            }
+        if self.identity["device_id"] == 3223:
+            return {
+                "identity": self.identity,
+                "model": self.model["displayName"],
+                "profile": profile,
+                "profiles": self.model["layer"],
+                "battery": self.transport.battery,
+                "online": self.transport.online,
+                "capabilities": ["keymap", "fn", "macro", "profile", "sleep", "debounce", "os"],
+                "debounce": self._query(codec.packet([0x86]), expected=0x86)[1],
+                "sleep": self.get_sleep(),
+                "options": self.get_options(),
+                "auto_os": self.get_auto_os(),
             }
         rate = self._query(codec.packet([0x83]), expected=0x83)[2]
         debounce = self._query(codec.packet([0x86]), expected=0x86)[1]
@@ -212,8 +251,17 @@ class Keyboard:
         return codec.parse_sleep(self._query(codec.packet([0x91]), expected=0x91))
 
     def set_sleep(self, bt, dongle, deep_bt, deep_dongle):
-        if deep_bt < 10 or deep_dongle < 10:
-            raise ValueError("deep sleep must be at least 10 seconds")
+        self._supported()
+        for value, connection, kind in (
+            (bt, "sleepBT", "sleep"),
+            (dongle, "sleep24", "sleep"),
+            (deep_bt, "sleepBT", "deep"),
+            (deep_dongle, "sleep24", "deep"),
+        ):
+            limits = self.model["other"][connection][kind]
+            codec.bounded(value, limits["max"], "sleep seconds")
+            if value < limits["min"]:
+                raise ValueError(f"{connection} {kind} must be at least {limits['min']} seconds")
         self._write([codec.sleep_times(bt, dongle, deep_bt, deep_dongle)])
         actual = self.get_sleep()
         expected = dict(

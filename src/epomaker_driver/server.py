@@ -78,7 +78,7 @@ class Controller:
                 identity = keyboard.identify()
                 if identity["device_id"] != 3059:
                     raise UnsupportedDevice(
-                        "The graphical interface currently supports Glyph; use the CLI for RT85"
+                        "The graphical interface currently supports Glyph; use the CLI for RT85/RT75"
                     )
             except Exception:
                 transport.close()

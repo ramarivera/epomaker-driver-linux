@@ -14,6 +14,9 @@ profiles, Windows/Mac Fn layers, macros, sleep timers, its 320×172 display,
 main/side lighting, custom RGB pictures, OS options, snapshots and factory reset
 with a recovery copy. Its graphical interface remains unfinished.
 
+[RT75 core support](docs/rt75.md) adds three profiles, both Fn layers, macros,
+sleep timers, debounce and OS options through the CLI.
+
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
 

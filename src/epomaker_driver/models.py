@@ -28,7 +28,7 @@ def glyph_matrix(layer="defaultMatrix") -> bytes:
 
 
 def default_matrix(device_id: int, layer="defaultMatrix") -> bytes:
-    names = {3059: "glyph", 2895: "rt85"}
+    names = {3059: "glyph", 2895: "rt85", 3223: "rt75"}
     if device_id not in names:
         raise UnsupportedDevice("No migrated default matrices for this model")
     matrices = data_file(f"{names[device_id]}-matrices.json")

@@ -349,3 +349,20 @@ def test_rt85_backup_restore_reset_cli(cli_device, firmware, tmp_path):
     assert firmware.profile == 3
     assert cli.main([*prefix, "factory-reset", "--backup", str(tmp_path / "reset.json")]) == 0
     assert firmware.sent[-1][0] == 1
+
+
+def test_rt75_core_cli(cli_device, firmware):
+    firmware.model_id = 3223
+    prefix = ["--device", cli_device.path]
+    for args in [
+        ["profile", "2"],
+        ["debounce", "10"],
+        ["sleep", "60", "120", "600", "1200"],
+        ["status"],
+        ["key", "9", "00000500", "--fn", "--os-mode", "1"],
+    ]:
+        assert cli.main([*prefix, *args]) == 0
+    assert firmware.profile == 2 and firmware.fn[1][36:40] == bytes([0, 0, 5, 0])
+    before = len(firmware.sent)
+    assert cli.main([*prefix, "sleep", "0", "120", "600", "1200"]) != 0
+    assert len(firmware.sent) == before

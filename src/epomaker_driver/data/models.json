@@ -1735,7 +1735,7 @@
     },
     "vidHex": "0x3151",
     "pidHex": "0x5002",
-    "implementation": "catalogued",
+    "implementation": "rt75-core",
     "hardware_verified": false
   },
   {
