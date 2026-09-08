@@ -139,13 +139,11 @@ test("macro edit and readback; invalid import preserves the editor", async ({
   await expect(
     page.getByLabel("Event 2 direction", { exact: true }),
   ).toHaveValue("false");
-  await page
-    .getByLabel("Import JSON", { exact: true })
-    .setInputFiles({
-      name: "bad.json",
-      mimeType: "application/json",
-      buffer: Buffer.from('{"repeat":1,"events":[null]}'),
-    });
+  await page.getByLabel("Import JSON", { exact: true }).setInputFiles({
+    name: "bad.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"repeat":1,"events":[null]}'),
+  });
   await expect(page.getByRole("alert")).toContainText(
     "each event must be an object",
   );
@@ -159,16 +157,14 @@ test("display image upload, clock, backup download and verified restore", async 
 }) => {
   await connect(page);
   await nav(page, "Display");
-  await page
-    .getByLabel("Image file", { exact: true })
-    .setInputFiles({
-      name: "pixel.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aPioAAAAASUVORK5CYII=",
-        "base64",
-      ),
-    });
+  await page.getByLabel("Image file", { exact: true }).setInputFiles({
+    name: "pixel.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aPioAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
   await page
     .getByRole("button", { name: "Upload to display", exact: true })
     .click();
