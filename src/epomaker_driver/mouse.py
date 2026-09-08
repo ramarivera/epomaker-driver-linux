@@ -16,6 +16,7 @@ COMMANDS = frozenset(
         "mouse-dpi",
         "mouse-rate",
         "get-mouse-settings",
+        "mouse-setting",
     )
 )
 
@@ -205,6 +206,62 @@ class Mouse:
     def settings(self):
         return mouse_codec.aggregate(self._query([0x9F], 0x9F))
 
+    def setting_options(self):
+        """Vendor mouse UI capabilities, separate from keyboard catalog flags."""
+        self._supported()
+        lod = {
+            "PAW3950": ["0.7", "1", "2"],
+            "PAW3955": ["0.7", "1", "2"],
+            "PAW3395": ["1", "2"],
+        }.get(self.model["sensor"], [])
+        other = self.model.get("other", {})
+        version = format(self.identity["usb_version"] or 0, "x")
+        # Vendor Number(version.toString(16)): hex letters become NaN, not a version.
+        low_latency = bool(
+            other.get("lowLatency") and version.isdecimal() and int(version) > other["lowLatency"]
+        )
+        return {
+            "lod_mm": lod,
+            "low_latency": low_latency,
+            "sleep_bt": not other.get("noShowBT", False),
+        }
+
+    def _setting_supported(self, name, value=None):
+        options = self.setting_options()
+        if name == "lod":
+            if not options["lod_mm"]:
+                raise UnsupportedDevice("this mouse sensor has no vendor LOD selector")
+            if value is not None:
+                codec.bounded(value, len(options["lod_mm"]) - 1, "LOD index")
+        if name in ("low_latency", "sleep_bt") and not options[name]:
+            raise UnsupportedDevice(f"{name} is unavailable for this mouse/firmware")
+
+    def get_setting(self, name):
+        command = mouse_codec.setting_query(name)
+        self._setting_supported(name)
+        return mouse_codec.parse_setting(
+            name, self.transport.exchange(command, expected=command[0])
+        )
+
+    def set_setting(self, name, value):
+        command = mouse_codec.setting_command(name, value)
+
+        def operation():
+            self.identify()
+            self._setting_supported(name, value)
+            profile = self.get_profile()
+            before = self.get_setting(name)
+            if self.get_profile() != profile:
+                raise ProtocolError("mouse profile changed before setting write")
+            if before != value:
+                self._write(command)
+            actual = self.get_setting(name)
+            if actual != value or self.get_profile() != profile:
+                raise ProtocolError("mouse setting/profile readback differs")
+            return {"setting": name, "value": actual, "profile": profile}
+
+        return self.transport.transaction(operation)
+
     def status(self):
         def operation():
             identity = self.identify()
@@ -216,6 +273,7 @@ class Mouse:
                 "dpi": self.get_dpi(profile),
                 "matrix": self.read_matrix(profile).hex(),
                 "capabilities": sorted(COMMANDS),
+                "setting_options": self.setting_options(),
                 "hardware_verified": False,
             }
             if self.get_profile() != profile:

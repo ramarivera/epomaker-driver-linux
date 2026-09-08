@@ -304,7 +304,10 @@
         "dpi-read",
         "dpi-edit",
         "report-rate",
-        "aggregate-settings-read"
+        "aggregate-settings-read",
+        "mouse-sleep-debounce-scroll",
+        "mouse-line-wave-correction",
+        "mouse-lod"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -327,7 +330,7 @@
         "mouse-semantic-actions",
         "mouse-macros",
         "mouse-lighting",
-        "mouse-settings-writes",
+        "mouse-motion-sync-fps-controls",
         "configuration-recovery",
         "wireless-transports"
       ]
@@ -421,7 +424,9 @@
         "dpi-read",
         "dpi-edit",
         "report-rate",
-        "aggregate-settings-read"
+        "aggregate-settings-read",
+        "mouse-sleep-debounce-scroll",
+        "mouse-line-wave-correction"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -444,7 +449,7 @@
         "mouse-semantic-actions",
         "mouse-macros",
         "mouse-lighting",
-        "mouse-settings-writes",
+        "mouse-motion-sync-fps-controls",
         "configuration-recovery",
         "wireless-transports"
       ]
@@ -538,7 +543,10 @@
         "dpi-read",
         "dpi-edit",
         "report-rate",
-        "aggregate-settings-read"
+        "aggregate-settings-read",
+        "mouse-sleep-debounce-scroll",
+        "mouse-line-wave-correction",
+        "mouse-lod"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -561,7 +569,7 @@
         "mouse-semantic-actions",
         "mouse-macros",
         "mouse-lighting",
-        "mouse-settings-writes",
+        "mouse-motion-sync-fps-controls",
         "configuration-recovery",
         "wireless-transports"
       ]
@@ -657,7 +665,11 @@
         "dpi-read",
         "dpi-edit",
         "report-rate",
-        "aggregate-settings-read"
+        "aggregate-settings-read",
+        "mouse-sleep-debounce-scroll",
+        "mouse-line-wave-correction",
+        "mouse-lod",
+        "mouse-low-latency-firmware-gated"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -680,7 +692,7 @@
         "mouse-semantic-actions",
         "mouse-macros",
         "mouse-lighting",
-        "mouse-settings-writes",
+        "mouse-motion-sync-fps-controls",
         "configuration-recovery",
         "wireless-transports"
       ]
@@ -793,7 +805,10 @@
         "dpi-read",
         "dpi-edit",
         "report-rate",
-        "aggregate-settings-read"
+        "aggregate-settings-read",
+        "mouse-sleep-debounce-scroll",
+        "mouse-line-wave-correction",
+        "mouse-low-latency-firmware-gated"
       ],
       "backend_limits": {
         "transport": "USB only; report 0 feature payload 64 bytes on ffff:2",
@@ -816,7 +831,7 @@
         "mouse-semantic-actions",
         "mouse-macros",
         "mouse-lighting",
-        "mouse-settings-writes",
+        "mouse-motion-sync-fps-controls",
         "configuration-recovery",
         "wireless-transports"
       ]

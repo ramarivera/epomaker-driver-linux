@@ -2,13 +2,17 @@ import pytest
 
 from epomaker_driver import codec
 from epomaker_driver.mouse_codec import (
+    SETTINGS,
     aggregate,
     dpi,
     dpi_command,
     identity,
     parse_rate,
+    parse_setting,
     profile_command,
     rate_command,
+    setting_command,
+    setting_query,
 )
 
 
@@ -146,3 +150,95 @@ def test_rate_command_rejects_unknown_or_noninteger_rate(hz):
 def test_parse_rate_rejects_wrong_opcode():
     with pytest.raises(ValueError):
         parse_rate(bytes(64))
+
+
+@pytest.mark.parametrize(
+    ("name", "get_opcode", "set_opcode", "value"),
+    [
+        ("debounce", 0x84, 0x04, 10),
+        ("scroll_up_time", 0x85, 0x05, 255),
+        ("sleep_24", 0x86, 0x06, 0x1234),
+        ("sleep_bt", 0x87, 0x07, 0xFEDC),
+        ("lod", 0x91, 0x11, 2),
+        ("line_repair", 0x92, 0x12, True),
+        ("wave_repair", 0x93, 0x13, False),
+        ("low_latency", 0x8C, 0x0C, 1),
+    ],
+)
+def test_scalar_settings_have_exact_query_write_and_parse_wire_values(
+    name, get_opcode, set_opcode, value
+):
+    query = setting_query(name)
+    command = setting_command(name, value)
+    assert query == codec.packet([get_opcode])
+    expected = [set_opcode]
+    if name in {"sleep_24", "sleep_bt"}:
+        expected.extend((value & 255, value >> 8))
+    else:
+        expected.append(int(value))
+    assert command == codec.packet(expected)
+    response = bytearray(64)
+    response[0] = get_opcode
+    if name in {"sleep_24", "sleep_bt"}:
+        response[1:3] = int(value).to_bytes(2, "little")
+    else:
+        response[1] = int(value)
+    assert parse_setting(name, response) == value
+    assert command[7] == (255 - sum(command[:7])) & 255
+
+
+@pytest.mark.parametrize("name", list(SETTINGS))
+@pytest.mark.parametrize("raw", [b"", bytes(63), bytes(65), None, "not bytes"])
+def test_scalar_parsers_reject_wrong_length_or_type(name, raw):
+    with pytest.raises(ValueError):
+        parse_setting(name, raw)
+
+
+@pytest.mark.parametrize("name", ["debounce", "scroll_up_time", "sleep_24", "sleep_bt", "lod"])
+def test_scalar_parsers_reject_wrong_opcode(name):
+    raw = bytearray(64)
+    raw[0] = 0xFF
+    with pytest.raises(ValueError):
+        parse_setting(name, raw)
+
+
+@pytest.mark.parametrize(
+    ("name", "values"),
+    [
+        ("debounce", [True, False, 0, 11, 1.0, -1]),
+        ("scroll_up_time", [True, False, 0, 256, 1.0, -1]),
+        ("sleep_24", [True, -1, 65536, 1.0]),
+        ("sleep_bt", [True, -1, 65536, 1.0]),
+        ("lod", [True, -1, 3, 1.0]),
+        ("low_latency", [True, -1, 2, 1.0]),
+    ],
+)
+def test_scalar_commands_reject_invalid_numeric_values(name, values):
+    for value in values:
+        with pytest.raises(ValueError):
+            setting_command(name, value)
+
+
+@pytest.mark.parametrize("name", ["line_repair", "wave_repair"])
+@pytest.mark.parametrize("value", [0, 1, 2, None, 1.0, "true"])
+def test_boolean_scalar_commands_require_actual_bool(name, value):
+    with pytest.raises(ValueError):
+        setting_command(name, value)
+
+
+def test_scalar_setting_names_are_strict():
+    with pytest.raises(ValueError):
+        setting_query("sleep")
+    with pytest.raises(ValueError):
+        setting_command("sleep", 1)
+    with pytest.raises(ValueError):
+        parse_setting("sleep", bytes(64))
+
+
+@pytest.mark.parametrize("name", ["line_repair", "wave_repair"])
+def test_boolean_scalar_parser_rejects_unknown_flag(name):
+    raw = bytearray(64)
+    raw[0] = SETTINGS[name][0]
+    raw[1] = 2
+    with pytest.raises(ValueError):
+        parse_setting(name, raw)

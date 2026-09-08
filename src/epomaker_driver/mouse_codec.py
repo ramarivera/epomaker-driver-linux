@@ -7,6 +7,19 @@ from .codec import packet
 _RATES = {125: 8, 250: 4, 500: 2, 1000: 1, 2000: 132, 4000: 130, 8000: 129}
 _RATE_CODES = {code: rate for rate, code in _RATES.items()}
 
+# Scalar wire evidence: docs/ch585-protocol.md; Mac 5d75ced3.js / Win 78e397ff.js.
+# Model and firmware gates belong in the backend.
+SETTINGS = {
+    "debounce": (0x84, 0x04, 1, 10, "uint8"),
+    "scroll_up_time": (0x85, 0x05, 1, 255, "uint8"),
+    "sleep_24": (0x86, 0x06, 2, 0xFFFF, "uint16"),
+    "sleep_bt": (0x87, 0x07, 2, 0xFFFF, "uint16"),
+    "lod": (0x91, 0x11, 1, 2, "uint8"),
+    "line_repair": (0x92, 0x12, 1, 1, "bool"),
+    "wave_repair": (0x93, 0x13, 1, 1, "bool"),
+    "low_latency": (0x8C, 0x0C, 1, 1, "uint8"),
+}
+
 
 def _raw64(raw, name):
     if isinstance(raw, int):
@@ -24,6 +37,60 @@ def _uint(value, maximum, name):
     if type(value) is not int or not 0 <= value <= maximum:
         raise ValueError(f"{name} must be an integer in 0..{maximum}")
     return value
+
+
+def _setting(name):
+    try:
+        return SETTINGS[name]
+    except KeyError as error:
+        raise ValueError(f"unknown mouse setting: {name}") from error
+
+
+def setting_query(name):
+    """Return the 64-byte query packet for a named scalar setting."""
+
+    get_opcode, _set_opcode, _width, _maximum, _kind = _setting(name)
+    return packet([get_opcode])
+
+
+def setting_command(name, value):
+    """Encode one scalar setting write, with no model-specific coercion."""
+
+    _get_opcode, set_opcode, width, maximum, kind = _setting(name)
+    if kind == "bool":
+        if type(value) is not bool:
+            raise ValueError(f"{name} must be a boolean")
+        numeric = int(value)
+    else:
+        numeric = _uint(value, maximum, name)
+        if name == "debounce" and numeric < 1:
+            raise ValueError("debounce must be in 1..10")
+        if name == "scroll_up_time" and numeric < 1:
+            raise ValueError("scroll_up_time must be in 1..255")
+    payload = [set_opcode, numeric]
+    if width == 2:
+        payload = [set_opcode, numeric & 0xFF, numeric >> 8]
+    return packet(payload)
+
+
+def parse_setting(name, raw):
+    """Decode one 64-byte scalar response without normalizing unknown flags."""
+
+    get_opcode, _set_opcode, width, _maximum, kind = _setting(name)
+    value = _raw64(raw, f"{name} response")
+    if value[0] != get_opcode:
+        raise ValueError(f"expected a 0x{get_opcode:02x} {name} response")
+    if width == 2:
+        numeric = int.from_bytes(value[1:3], "little")
+    else:
+        numeric = value[1]
+    if kind == "bool":
+        if numeric not in (0, 1):
+            raise ValueError(f"{name} response has an invalid boolean value")
+        return bool(numeric)
+    # Reads preserve the device's raw byte, even if it is outside the UI's
+    # write range; this permits a bounded repair write by the backend.
+    return numeric
 
 
 def identity(raw):

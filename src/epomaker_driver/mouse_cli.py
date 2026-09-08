@@ -1,7 +1,14 @@
 """CH585 command-line dispatch, separate from keyboard action encodings."""
 
+from . import mouse_codec
+
 
 def parsers(commands):
+    setting = commands.add_parser("mouse-setting", help="read or set one mouse setting")
+    setting.add_argument("setting", choices=tuple(mouse_codec.SETTINGS))
+    setting.add_argument(
+        "value", nargs="?", type=int, help="integer value; boolean controls use 0/1"
+    )
     commands.add_parser(
         "get-mouse-settings", help="read mouse sensor, sleep and report-rate settings"
     )
@@ -48,4 +55,13 @@ def run(mouse, args):
         return mouse.set_rate(args.rate)
     if args.command == "get-mouse-settings":
         return mouse.settings()
+    if args.command == "mouse-setting":
+        if args.value is None:
+            return {"setting": args.setting, "value": mouse.get_setting(args.setting)}
+        value = args.value
+        if args.setting in ("line_repair", "wave_repair"):
+            if value not in (0, 1):
+                raise ValueError("mouse boolean settings require 0 or 1")
+            value = bool(value)
+        return mouse.set_setting(args.setting, value)
     raise ValueError("unsupported mouse command")

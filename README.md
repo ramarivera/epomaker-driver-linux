@@ -64,7 +64,8 @@ A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report i
 and hardware-validation status separately. No model is hardware-verified yet.
 
 [Five CH585 mice](docs/ch585-protocol.md) now support USB identification, eight
-profiles, raw button mappings, DPI-level editing and report-rate selection.
+profiles, raw button mappings, DPI-level editing, report-rate selection, sleep/
+debounce/scroll timing and model-gated sensor settings.
 Mouse commands use their own protocol and are rejected on keyboards.
 
 ## Run

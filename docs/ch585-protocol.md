@@ -3,7 +3,7 @@
 This document records the independently derived wire facts for the five
 catalogued EPOMAKER mouse models that load `CommonMSCH585`: IDs 3961, 3303,
 3304, 3929, and 3919. The Linux backend implements USB identification, status, eight profiles, raw
-button mapping, DPI-level editing and report-rate selection. This is not a
+button mapping, DPI-level editing, report-rate selection and model-gated mouse settings. This is not a
 claim of hardware validation. The catalog marks all five
 `hardware_verified: false`.
 
@@ -41,6 +41,8 @@ and receives with 10 ms delays.
 | DPI levels | `0x90` (144) | `0x10` | request/set byte 1 is level group (values above 7 become 0); byte 2 is current level; byte 3 is count; eight X uint16 values at 8–23, eight Y uint16 values at 24–39, eight RGB triplets at 40–63 |
 | report rate | `0x88` (136) | `0x08` | encoded rate at byte 1; values map 125/250/500/1000/2000/4000/8000 Hz to 8/4/2/1/132/130/129 |
 | debounce | `0x84` (132) | `0x04` | value at byte 1 |
+| scroll-up timing | `0x85` (133) | `0x05` | milliseconds at byte 1 |
+| button low latency | `0x8c` (140) | `0x0c` | 0 stable, 1 extreme at byte 1 |
 | 2.4 GHz sleep | `0x86` (134) | `0x06` | little-endian uint16 at bytes 1–2 |
 | Bluetooth sleep | `0x87` (135) | `0x07` | little-endian uint16 at bytes 1–2 |
 | silent height | `0x91` (145) | `0x11` | value at byte 1 |
@@ -134,10 +136,56 @@ payload, or the returned rate. A wrong internal ID, wrong product, unsupported
 transport, profile mismatch or readback corruption fails explicitly. Physical
 hardware behavior is unverified.
 
+## Mouse settings UI and Linux API
+
+The dedicated mouse settings component is Mac `31e2c64a.js` / Windows
+`9d2b128f.js`. It does not use the shared keyboard sleep/debounce capability
+predicates. Debounce is available when the loaded value is numeric; the CH585
+aggregate parser supplies it for all five models. Sleep24 is unconditional and
+Bluetooth sleep is hidden only by `other.noShowBT` (absent in all five rows).
+
+`mouse-setting NAME` reads one setting; append an integer to change it:
+
+| Name | Accepted writes | Model/firmware gate |
+|---|---|---|
+| `debounce` | 1–10 ms | All five |
+| `scroll_up_time` | 1–255 ms | All five |
+| `sleep_24`, `sleep_bt` | 0–65535 seconds, zero disables | All five; configured over USB |
+| `lod` | Zero-based selector index | PAW3950/3955: 0=0.7 mm, 1=1 mm, 2=2 mm; PAW3395: 0=1 mm, 1=2 mm; absent on PAW3311/3315 |
+| `line_repair`, `wave_repair` | CLI 0/1, Python bool | All five |
+| `low_latency` | 0 stable, 1 extreme | EM3 PRO firmware display >799; EM3 >99 |
+
+Low-latency gating matches the vendor expression
+`threshold < Number(usbVersion.toString(16))`: raw version `0x0800` becomes
+800, not 2048. Unknown versions or hex digits containing a–f do not pass the
+gate. The thresholds are UI availability rules, not values sent to the mouse.
+The LOD list and correction gates come from `getLiftOffDistance` and
+`getMoveCorrection` in the two main bundles. The UI has no separate motion-sync
+or FPS-20000 switch here; wireless true-8K explicitly requires a 2.4 GHz connection.
+
+Examples:
+
+```text
+epomaker --device /dev/hidrawN mouse-setting debounce 4
+epomaker --device /dev/hidrawN mouse-setting sleep_bt 600
+epomaker --device /dev/hidrawN mouse-setting lod 1
+epomaker --device /dev/hidrawN mouse-setting line_repair 1
+```
+
+The Python API is `Mouse.get_setting(name)` / `Mouse.set_setting(name, value)`.
+`status.setting_options` reports LOD labels and firmware-gated availability.
+Writes use individual setters rather than rewriting the aggregate record.
+Each mutation reidentifies the model, checks its gate, captures the active
+profile, reads the current value, skips unchanged writes, and verifies the
+setting and active profile afterward. Numeric reads preserve unknown current
+values; writes enforce UI bounds. Malformed boolean replies fail explicitly.
+Simulated USB tests cover all five models, timer boundaries, unrelated-setting
+preservation, dropped writes, profile races, identity changes and version gates.
+No physical device writes have been performed.
+
 ## Remaining work
 
-Macro and semantic action editing, lighting writes, sensor/sleep/debounce
-writes, battery interpretation, backup/restore, reset, firmware upgrades,
-Bluetooth/receiver routing and GUI integration are unfinished. The `lowLatency`
-catalog values are preserved as metadata, not interpreted as byte-valued settings.
+Macro and semantic action editing, lighting writes, motion-sync/FPS controls,
+battery interpretation, backup/restore, reset, firmware upgrades,
+Bluetooth/receiver routing and GUI integration are unfinished.
 The PAN1080/PAN1080-8K mouse families require separate protocol implementations.
