@@ -1,4 +1,4 @@
-"""Pure HE60 Lite magnetic actuation write planner.
+"""Pure magnetic actuation planner; model bounds documented in docs/ry5088-h60.md.
 
 This module only validates state and constructs packets; it never talks to HID.
 """
@@ -39,12 +39,12 @@ def _number(value, name):
     return result
 
 
-def _aligned(value, *, minimum, maximum, name):
+def _aligned(value, *, minimum, maximum, name, step=0.1):
     value = _number(value, name)
     if value < Decimal(str(minimum)) or value > Decimal(str(maximum)):
         raise ValueError(f"{name} is outside supported range")
-    if (value * 10) % 1:
-        raise ValueError(f"{name} must use 0.1 increments")
+    if (value / Decimal(str(step))) % 1:
+        raise ValueError(f"{name} must use {step} increments")
     return float(value)
 
 
@@ -97,7 +97,7 @@ def _state_versions(state):
 
 
 def plan_update(model_id, slot, patch, state):
-    if type(model_id) is not int or model_id not in (3727, 3759):
+    if type(model_id) is not int or model_id not in (3662, 3727, 3759):
         raise ValueError("unsupported HE model")
     if type(slot) is not int or not 0 <= slot <= 127:
         raise ValueError("slot must be 0..127")
@@ -111,6 +111,12 @@ def plan_update(model_id, slot, patch, state):
     usb, rf, multiplier = _state_versions(state)
     effective_version = rf if rf is not None else usb if usb is not None else 0
     max_travel = 4 if 0 < effective_version < 0x300 else 3.3
+    if model_id == 3662:
+        step = 0.1 if effective_version < 0x300 else 0.01 if effective_version < 0x500 else 0.005
+    else:
+        step = 0.1
+    rapid_min = step
+    rapid_max = 2.5 if model_id == 3662 and effective_version < 0x300 else 2
     modes = state.get("modes")
     if (
         not isinstance(modes, list)
@@ -141,14 +147,23 @@ def plan_update(model_id, slot, patch, state):
     for name, field in _PATCH_FIELDS.items():
         if name not in patch:
             continue
-        maximum = max_travel if name in ("travel", "lift") else 2 if name.startswith("rapid") else 1
+        maximum = (
+            max_travel
+            if name in ("travel", "lift")
+            else rapid_max
+            if name.startswith("rapid")
+            else 1
+        )
         if name == "deadzone" and effective_version < 0x300:
             maximum = 4
         values[field] = _aligned(
             patch[name],
-            minimum=0.1 if name in ("travel", "lift", "rapid_press", "rapid_lift") else 0,
+            minimum=(
+                0.1 if name in ("travel", "lift") else rapid_min if name.startswith("rapid") else 0
+            ),
             maximum=maximum,
             name=name,
+            step=step,
         )
     if (new_fire and not fire) or ("rapid_press" in patch or "rapid_lift" in patch):
         for field in (2, 3):
@@ -159,7 +174,7 @@ def plan_update(model_id, slot, patch, state):
                 resulting = decode_field(
                     field, key_field(fields[field], slot, field=field), multiplier=multiplier
                 )
-            if not 0.1 <= resulting <= 2:
+            if not rapid_min <= resulting <= rapid_max:
                 raise ValueError("provide valid rapid_press and rapid_lift when enabling fire")
     if "lift" in patch:
         deadzone = values.get(

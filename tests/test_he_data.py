@@ -8,6 +8,12 @@ DATA = json.loads(
 NAMES = ("defaultMatrix", "defaultFnMatrix", "defaultFnMacMatrix")
 DECLARED_NAMES = NAMES + ("defaultFnMACMatrix",)
 HASHES = {
+    ("3662", "defaultMatrix"): "30d1b547a456ff9f9d06d98033b7b6d29a65bf1482873e5f4f26ac9a5757dd99",
+    ("3662", "defaultFnMatrix"): "637b38cf9607445d548d8859f0fe969e168e891a2e11e7faa34b28ecfe7c3e47",
+    (
+        "3662",
+        "defaultFnMacMatrix",
+    ): "e9f96a2bd42521911c0accbc97c5e4635357a00a9d0ae4619bb2fce4d9c8debe",
     ("3727", "defaultMatrix"): "9eb8b1bea7207b96fdea519efb7a1e7cdd5fed70b4623ed4a79eeca3763c892a",
     ("3727", "defaultFnMatrix"): "8ef17515ac1cad0af713a997982db0f4cfce94edc34a58e2467048ee89be93b4",
     (
@@ -32,7 +38,7 @@ def _slots(matrix):
 
 
 def test_matrix_schema_lengths_and_byte_values():
-    assert set(DATA) == {"3727", "3759"}
+    assert set(DATA) == {"3662", "3727", "3759"}
     for model in DATA.values():
         assert set(model) == set(NAMES) | (
             {"defaultFnMACMatrix"} if model is DATA["3759"] else set()

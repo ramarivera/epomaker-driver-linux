@@ -43,9 +43,10 @@ class Firmware:
         self.light[0] = 0x87
         self.pictures = {index: bytes([index]) * 378 for index in range(5)}
         self.macros = {slot: bytes(256) for slot in range(256)}
+        profile_count = 4 if model_id == 3662 else 2
         self.matrices = {
             (profile, mode): bytes([profile, mode]) * 256
-            for profile in range(2)
+            for profile in range(profile_count)
             for mode in range(4)
         }
         self.fn = {(layer, os): bytes([layer, os]) * 256 for layer in range(2) for os in range(2)}
@@ -222,6 +223,30 @@ def keyboard(firmware, product=0x502C):
     return HEKeyboard(Transport(USB(), "usb", sleep=lambda _: None), product_id=product)
 
 
+def test_h60_uses_four_profiles_and_five_picture_banks():
+    fw = Firmware(model_id=3662)
+    fw.matrices.update(
+        {(profile, mode): bytes([profile, mode]) * 256 for profile in (2, 3) for mode in range(4)}
+    )
+    kb = keyboard(fw, product=0x5029)
+    assert kb.identify()["device_id"] == 3662
+    assert kb.read_matrix(profile=3, mode=3)[:2] == b"\x03\x03"
+    kb.set_profile(3)
+    assert kb.write_picture(bytes([0x11, 0x22, 0x33]) * 126, picture=4) is None
+    status = kb.status()
+    assert status["profiles"] == 4
+    assert status["picture_banks"] == 5
+    assert "magnetic-read" in status["capabilities"]
+
+
+def test_h60_same_pid_sibling_is_rejected_before_writes():
+    fw = Firmware(model_id=3664)
+    kb = keyboard(fw, product=0x5029)
+    with pytest.raises(UnsupportedDevice, match="internal ID"):
+        kb.identify()
+    assert fw.sent == []
+
+
 def test_he_identity_and_matrix_submodes_use_usb():
     fw = Firmware()
     kb = keyboard(fw)
@@ -391,7 +416,7 @@ def test_he_magnetic_profile_change_is_rejected():
         kb.get_magnetic()
 
 
-@pytest.mark.parametrize("product,model", [(0x502C, 3727), (0x502E, 3759)])
+@pytest.mark.parametrize("product,model", [(0x5029, 3662), (0x502C, 3727), (0x502E, 3759)])
 @pytest.mark.parametrize("profile", [0, 1])
 @pytest.mark.parametrize(
     "definition",
@@ -440,7 +465,7 @@ def test_he_magnetic_mode_usb_roundtrip(product, model, profile, definition):
         assert [command[6] for command in writes[:4]] == [0, 1, 2, 3]
         assert [command[5] for command in writes[:4]] == [0, 0, 0, 1]
         assert writes[4] == codec.packet([0x65, 7, 0, 5, 0, 0, 0, 0, 2])
-        dynamic_raw = 70 if model == 3727 else 140
+        dynamic_raw = 70 if model in (3662, 3727) else 140
         assert writes[5] == codec.packet([0x65, 4, 0, 5, 0, 0, 0, 0, dynamic_raw, 0])
         assert writes[6] == codec.packet([0x65, 8, 0, 5, 1, 0, 0, 0, 1, 2, 3, 4])
     assert fw.fields[0][:10] == before_fields[0][:10]

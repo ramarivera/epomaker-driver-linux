@@ -33,17 +33,25 @@ def validate_definition(definition):
     allowed = {"mode", "actions", "fire", "rapid_press", "rapid_lift"}
     if "fire" in definition and type(definition["fire"]) is not bool:
         raise ValueError("fire must be boolean")
+    # Preflight accepts the union of supported models; plan_update applies
+    # the selected model and firmware limits before any device write.
     for name in ("rapid_press", "rapid_lift"):
         if name in definition:
-            _aligned(definition[name], minimum=0.1, maximum=2, name=name)
+            _aligned(definition[name], minimum=0.005, maximum=2.5, name=name, step=0.005)
     if mode == "normal":
         allowed |= {"travel", "lift", "deadzone", "top_deadzone"}
         for name in ("travel", "lift", "deadzone"):
             _aligned(
-                definition.get(name), minimum=0 if name == "deadzone" else 0.1, maximum=4, name=name
+                definition.get(name),
+                minimum=0 if name == "deadzone" else 0.1,
+                maximum=4,
+                name=name,
+                step=0.005,
             )
         if "top_deadzone" in definition:
-            _aligned(definition["top_deadzone"], minimum=0, maximum=1, name="top_deadzone")
+            _aligned(
+                definition["top_deadzone"], minimum=0, maximum=1, name="top_deadzone", step=0.005
+            )
     elif mode == "dks":
         allowed |= {"dynamic_travel", "trigger_modes"}
         dynamic = _number(definition.get("dynamic_travel"), "dynamic_travel")

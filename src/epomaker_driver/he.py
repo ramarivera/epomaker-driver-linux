@@ -1,4 +1,4 @@
-"""Read-capable HE60 Lite magnetic keyboard backend."""
+"""Modern magnetic keyboard backend; see docs/he60-lite-research.md and docs/ry5088-h60.md."""
 
 from __future__ import annotations
 
@@ -20,7 +20,9 @@ from .magnetic import (
 from .models import model_by_id
 from .versions import parse_version, version_request
 
-HE_PRODUCTS = {0x502C: 3727, 0x502E: 3759}
+# The RY5088 H60 uses the same USB PID as several catalog siblings.  The
+# internal identity check below is therefore mandatory before any operation.
+HE_PRODUCTS = {0x5029: 3662, 0x502C: 3727, 0x502E: 3759}
 COMMANDS = frozenset(
     (
         "identify",
@@ -112,6 +114,11 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
         if self.identity["device_id"] != self.expected_id or self.identity["is_boot"]:
             raise UnsupportedDevice("HE60 Lite identity is not supported")
 
+    def _profile_max(self):
+        # RY5088 H60 advertises four ordinary profiles; HE60 Lite has two.
+        self._supported()
+        return 3 if self.expected_id == 3662 else 1
+
     def _check_commands(self, commands):
         self._supported()
         if any(command[0] not in OPCODES for command in commands):
@@ -125,7 +132,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
 
     def read_matrix(self, profile=0, *, fn=False, os_mode=0, mode=0):
         self._supported()
-        codec.bounded(profile, 1, "profile")
+        codec.bounded(profile, self._profile_max(), "profile")
         if fn:
             if profile != 0 or mode != 0:
                 raise ValueError("Fn reads use layer 0 and submode 0")
@@ -139,7 +146,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                 command = (
                     codec.fn_read(profile, page, os_mode)
                     if fn
-                    else codec.key_matrix_read(profile, page, mode, profile_max=1)
+                    else codec.key_matrix_read(profile, page, mode, profile_max=self._profile_max())
                 )
                 response = self.transport.exchange(command)
                 if len(response) != 64:
@@ -162,7 +169,9 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
             command = (
                 codec.fn_single(slot, action, layer=profile, os_mode=os_mode)
                 if fn
-                else codec.single_key(profile, slot, action, mode=mode, profile_max=1)
+                else codec.single_key(
+                    profile, slot, action, mode=mode, profile_max=self._profile_max()
+                )
             )
             self._write([command])
             actual = self.read_matrix(profile, fn=fn, os_mode=os_mode, mode=mode)[
@@ -198,7 +207,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                 "identity": self.identity,
                 "model": self.model["displayName"],
                 "profile": profile,
-                "profiles": 2,
+                "profiles": self._profile_max() + 1,
                 "versions": {"usb": usb, "rf": rf},
                 "capabilities": capabilities,
                 "submodes": 4,
@@ -211,7 +220,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
             if self.expected_id == 3727:
                 result["capabilities"].append("debounce")
                 result["debounce"] = self._query(codec.packet([0x86]), expected=0x86)[1]
-            else:
+            elif self.expected_id == 3759:
                 result["capabilities"].append("sleep")
                 result["sleep"] = self.get_sleep()
             return result
@@ -369,7 +378,7 @@ class HEKeyboard(HESnapMixin, HELightingMixin, Keyboard):
                     slot,
                     bytes.fromhex(definition["actions"][submode]),
                     mode=submode,
-                    profile_max=1,
+                    profile_max=self._profile_max(),
                     commit=index == len(changed_actions) - 1,
                 )
                 for index, submode in enumerate(changed_actions)

@@ -87,7 +87,7 @@ def test_non_he_rejects_magnetic_commands_before_open(command, monkeypatch, caps
     monkeypatch.setattr(cli, "discover", lambda: [info])
     monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
     assert cli.main(["--device", info.path, *command]) == 1
-    assert "require HE60 Lite" in capsys.readouterr().err
+    assert "require a supported magnetic keyboard" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("product", [0x502C, 0x502E])
@@ -148,4 +148,4 @@ def test_magnetic_mode_non_he_before_open(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(cli, "discover", lambda: [info])
     monkeypatch.setattr(cli.Transport, "open", lambda _: pytest.fail("must reject before open"))
     assert cli.main(["--device", info.path, "magnetic-mode", "1", str(path)]) == 1
-    assert "require HE60 Lite" in capsys.readouterr().err
+    assert "require a supported magnetic keyboard" in capsys.readouterr().err

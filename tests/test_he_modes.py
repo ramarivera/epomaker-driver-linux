@@ -98,7 +98,7 @@ def test_dks_dynamic_travel_uses_hundredth_millimeter_precision():
         },
         {"mode": "mt", "actions": ["00000400", "00000500"], "mt_time": 9},
         {"mode": "mt", "actions": ["00000400", "00000500"], "mt_time": 1001},
-        {"mode": "tgl_hold", "actions": ["00000400"], "rapid_lift": 2.1},
+        {"mode": "tgl_hold", "actions": ["00000400"], "rapid_lift": 2.51},
     ],
 )
 def test_validate_rejects_mode_field_boundaries(definition):

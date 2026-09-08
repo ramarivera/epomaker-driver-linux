@@ -80,7 +80,7 @@ class HESnapMixin:
                         slot,
                         actions[submode],
                         mode=submode,
-                        profile_max=1,
+                        profile_max=self._profile_max(),
                         commit=index == len(changed) - 1,
                     )
                     for index, submode in enumerate(changed)

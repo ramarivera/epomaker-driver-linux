@@ -45,6 +45,12 @@ Debounce is wired-only; three sleep timers are wireless-only. Magnetic mode
 definitions include DKS, tap/hold and toggle actions, plus reciprocal snap
 pairing and removal. Calibration and complete HE60 recovery are still being migrated.
 
+[RY5088 H60 support](docs/ry5088-h60.md) adds internal ID 3662 over USB:
+four profiles with four normal submodes each, Windows/Mac Fn maps, macros,
+OS controls, main lighting and five custom pictures. Magnetic controls use
+firmware-dependent 0.1, 0.01 or 0.005 mm steps. Same-PID sibling models remain
+gated pending their own capability migration.
+
 A catalog entry is not a support claim. The 46 EPOMAKER catalog entries report implementation
 and hardware-validation status separately. No model is hardware-verified yet.
 

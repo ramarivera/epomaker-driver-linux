@@ -14,7 +14,9 @@ USB keymap/profile/macro/lighting/custom-picture/sleep/debounce/automatic-OS con
 three-profile matrices and five-bank RGB565 display workflow.
 [Both HE60 Lite variants](he60-lite-research.md) add two profiles with four
 normal submodes each, Fn maps, macros, magnetic reads/actuation updates, OS controls,
-main lighting and custom pictures, plus model-gated debounce/sleep. Thirteen
+main lighting and custom pictures, plus model-gated debounce/sleep.
+[H60](ry5088-h60.md) additionally migrates the first RY5088 model with four
+profiles and firmware-dependent magnetic precision. Fourteen
 models have some backend support; their feature coverage differs substantially.
 None has been verified against physical hardware. Shared vendor/product
 IDs do not establish that another model speaks the same protocol.
@@ -31,7 +33,7 @@ IDs do not establish that another model speaks the same protocol.
 | Macros | Keyboard/mouse/motion JSON editing, semantic decoding, raw export, playback bindings and verified readback | Recording, ambiguous legacy motion timing and hardware comparison |
 | Screen | Glyph, RT85, RT75, RT100, Dynatab75X-UK and RT100 PRO, plus three RY6602 screens: still-image and animation CLI, RGB565/RGB24 conversion, memory limits, bounded transfer, five still banks, model-gated language/system-info and clock sync | Hardware comparison and remaining display settings |
 | Backups | Nine modern models' key/Fn maps, referenced macros, lighting, custom RGB pictures, sleep, debounce, OS options; RT100/Dynatab schema 6 recovery with physical Fn layer 0 and atomic pre-restore copies | HE60 state, unreferenced macros, screen pixels, and YC3121 manual OS options/OS-specific Fn banks |
-| Magnetic keyboards | HE60 magnetic-field reads, per-key actuation/rapid-trigger writes with complete-field readback, firmware-dependent scaling, normal/DKS/MT/toggle mode definitions and reciprocal snap pairing/removal with action readback, raw mode preservation and four submodes per profile | Calibration, recovery and hardware comparison |
+| Magnetic keyboards | HE60 Lite and H60 magnetic-field reads, per-key actuation/rapid-trigger writes with complete-field readback, firmware-dependent scaling, normal/DKS/MT/toggle mode definitions and reciprocal snap pairing/removal with action readback, raw mode preservation and four submodes per profile | Calibration, recovery and hardware comparison |
 | OS controls | Glyph, RT85, RT75 and HE60 Windows/Mac selection, automatic selection, WASD swap with unrelated bytes preserved | Hardware behavior and other model capabilities |
 | Receiver routing | Internal F6/F7/FC adapter, shared keyboard/mouse routing, status and bounded readiness; simulated integration tests | Verified descriptors, discovery integration, physical round trips, pairing and monitoring |
 | Other keyboard families | RY6602 core key/Fn/macro, profile and OS controls; two older YC3121 models with normal maps and migrated Fn layer 0 addressing, profiles, macros, sleep, debounce, automatic OS selection, custom picture index 0 and display workflows; RT100 PRO full modern YC3123 backend | OS-specific YC3121 Fn banks and recovery; other model-specific protocols |

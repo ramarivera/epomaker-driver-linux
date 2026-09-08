@@ -35,6 +35,15 @@ def test_exact_travel_command_and_expected_whole_array():
     assert bytes.fromhex(result["expected_fields"]["0"])[:2] == (210).to_bytes(2, "little")
 
 
+def test_h60_uses_precision_step_from_firmware_version():
+    current = state(usb=0x400, travel=2.0)
+    result = plan_update(3662, 0, {"travel": 2.02}, current)
+    assert result["changed_fields"] == [0]
+    assert bytes.fromhex(result["expected_fields"]["0"])[:2] == (202).to_bytes(2, "little")
+    with pytest.raises(ValueError):
+        plan_update(3759, 0, {"travel": 2.01}, current)
+
+
 def test_noop_preserves_all_fields_and_emits_no_commands():
     current = state()
     result = plan_update(3727, 0, {"travel": 2.0}, current)

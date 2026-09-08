@@ -53,24 +53,24 @@ def parser():
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     commands.add_parser(
-        "get-magnetic", help="read HE60 magnetic parameters for the current profile"
+        "get-magnetic", help="read supported magnetic-keyboard parameters for the current profile"
     )
     magnetic = commands.add_parser(
-        "magnetic-key", help="update HE60 actuation/rapid-trigger settings"
+        "magnetic-key", help="update magnetic actuation/rapid-trigger settings"
     )
     magnetic.add_argument("slot", type=int)
     for name in ("travel", "lift", "deadzone", "top-deadzone", "rapid-press", "rapid-lift"):
         magnetic.add_argument("--" + name, type=float)
     magnetic.add_argument("--fire", action=argparse.BooleanOptionalAction, default=None)
     magnetic_mode = commands.add_parser(
-        "magnetic-mode", help="install HE60 magnetic mode, actions and parameters from JSON"
+        "magnetic-mode", help="install magnetic mode, actions and parameters from JSON"
     )
     magnetic_mode.add_argument("slot", type=int)
     magnetic_mode.add_argument("path", type=Path)
-    snap = commands.add_parser("snap", help="pair two HE60 physical key slots")
+    snap = commands.add_parser("snap", help="pair two physical key slots")
     snap.add_argument("first", type=int)
     snap.add_argument("second", type=int)
-    commands.add_parser("snap-clear", help="remove both sides of an HE60 snap pair").add_argument(
+    commands.add_parser("snap-clear", help="remove both sides of a snap pair").add_argument(
         "slot", type=int
     )
     commands.add_parser(
@@ -273,12 +273,14 @@ def execute(args):
     device = select_device(args.device)
     is_he = device.product_id in HE_PRODUCTS
     if is_he and args.command not in HE_COMMANDS:
-        raise UnsupportedDevice("This HE60 Lite command has not been migrated yet")
+        raise UnsupportedDevice("This magnetic-keyboard command has not been migrated yet")
     if not is_he and (
         args.command in ("get-magnetic", "magnetic-key", "magnetic-mode", "snap", "snap-clear")
         or getattr(args, "submode", 0)
     ):
-        raise UnsupportedDevice("Magnetic controls and keymap submodes require HE60 Lite")
+        raise UnsupportedDevice(
+            "Magnetic controls and keymap submodes require a supported magnetic keyboard"
+        )
     matrix_options = {"mode": getattr(args, "submode", 0)} if is_he else {}
     if (
         args.command == "restore"
