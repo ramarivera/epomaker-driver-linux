@@ -962,7 +962,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3692,
@@ -1072,7 +1086,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3703,
@@ -1185,7 +1213,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3662,
@@ -1271,7 +1313,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3664,
@@ -1367,7 +1423,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3613,
@@ -1485,7 +1555,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3518,
@@ -1602,7 +1686,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2550,
@@ -1811,7 +1909,20 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2586,
@@ -1898,7 +2009,20 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2761,
@@ -2008,7 +2132,20 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2465,
@@ -2103,7 +2240,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2762,
@@ -2198,7 +2349,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2870,
@@ -2286,7 +2451,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2284,
@@ -2512,7 +2691,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2883,
@@ -2607,7 +2800,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3365,
@@ -2727,7 +2934,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3417,
@@ -2839,7 +3060,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 2376,
@@ -2984,7 +3219,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3746,
@@ -3098,7 +3347,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 3883,
@@ -3222,7 +3485,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 4071,
@@ -3350,7 +3627,21 @@
         "vendor-online-services",
         "graphical-interface",
         "model-backend"
-      ]
+      ],
+      "installer_class_evidence": {
+        "immediate_base_modules": {
+          "mac": "623d2d52.js",
+          "windows": "17dc9c62.js"
+        },
+        "declared_matrix_fields": [
+          "defaultMatrix",
+          "defaultFnMatrix",
+          "defaultFnMacMatrix"
+        ],
+        "declared_matrix_bytes": 512,
+        "declared_matrices_match_between_installers": true,
+        "child_non_matrix_overrides": false
+      }
     },
     {
       "internal_id": 1723,

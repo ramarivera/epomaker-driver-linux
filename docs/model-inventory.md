@@ -66,6 +66,16 @@ next candidates; it does not justify routing their IDs directly into the existin
 two-profile backend. Profile addressing, magnetic parameters, capability gates,
 matrix data and discovery need model-specific validation before enablement.
 
+The same direct base inheritance and absence of child method overrides hold for
+all 21 resolved RY5088 rows. Each declared matrix is 512 bytes and matches its
+Windows counterpart byte for byte; the JSON records these checks in
+`installer_class_evidence`. IDs 2520, 2586 and 2761 declare only normal and Fn
+matrices, so their Fn-Mac defaults require tracing the inherited value. The other
+18 rows declare all three matrices. None of these 21 children uses the separate
+`7bb580fe.js` precision-extension superclass found elsewhere in the installer.
+This establishes shared command ancestry, while model-specific catalog options
+still govern which operations and limits should be exposed.
+
 Other catalog groups include seven mice, two dongles, one PAN1086 entry and
 additional YC3121/YC3123 entries. Their functional metadata is preserved in the
 JSON, but DPI, sensor, polling, receiver and magnetic behavior require separate
