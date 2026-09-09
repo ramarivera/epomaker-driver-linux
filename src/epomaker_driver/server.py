@@ -15,6 +15,7 @@ from urllib.parse import unquote, urlsplit
 from . import actions, codec, macros, media, snapshot, system_info
 from .device import Keyboard
 from .discovery import discover
+from .display_library import DisplayLibrary
 from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
 from .macro_library import MacroLibrary
 from .models import glyph_matrix
@@ -25,10 +26,17 @@ MAX_BODY = 20 * 1024 * 1024
 
 class Controller:
     def __init__(
-        self, backup_dir, *, library_dir=None, discovery=discover, transport_factory=Transport.open
+        self,
+        backup_dir,
+        *,
+        library_dir=None,
+        assets_dir=None,
+        discovery=discover,
+        transport_factory=Transport.open,
     ):
         self.backup_dir = Path(backup_dir)
         self.library = MacroLibrary(library_dir or self.backup_dir / "macro-library")
+        self.display_library = DisplayLibrary(assets_dir or self.backup_dir / "display-assets")
         self.discovery, self.transport_factory = discovery, transport_factory
         self.keyboard = None
         self.identity = None
@@ -87,6 +95,16 @@ class Controller:
             )
         if operation == "macro_library_delete":
             return self.library.delete(data.get("id"), data.get("revision"))
+        if operation == "display_library":
+            return {"entries": self.display_library.list()}
+        if operation == "display_asset_save":
+            return self.display_library.save(
+                data.get("name"), data.get("kind"), data.get("delay_ms"), data.get("content")
+            )
+        if operation == "display_asset_get":
+            return self.display_library.get(data.get("id"))
+        if operation == "display_asset_delete":
+            return self.display_library.delete(data.get("id"))
         if operation == "display_prepare":
             encoded = data.get("content")
             if not isinstance(encoded, str) or not encoded:
@@ -316,6 +334,7 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/catalog",
                 "/api/connection",
                 "/api/macro_library",
+                "/api/display_library",
             ):
                 self._reply(404, {"error": "unknown endpoint"})
                 return
@@ -344,6 +363,9 @@ class Handler(BaseHTTPRequestHandler):
             "/api/macro_library_save",
             "/api/macro_library_delete",
             "/api/display_prepare",
+            "/api/display_asset_save",
+            "/api/display_asset_get",
+            "/api/display_asset_delete",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return

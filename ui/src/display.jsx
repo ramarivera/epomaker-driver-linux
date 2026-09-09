@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { api, base64File } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
+import DisplayLibrary from "./display-library";
 export default function Display({ connected, transport, busy, run }) {
+  const fileInput = useRef(null);
+  const [sourceName, setSourceName] = useState("");
   const [file, setFile] = useState(null),
     [prepared, setPrepared] = useState(null),
     [kind, setKind] = useState("screen"),
@@ -15,11 +18,13 @@ export default function Display({ connected, transport, busy, run }) {
           <Field label="Image file">
             <input
               type="file"
+              ref={fileInput}
               accept="image/png,image/jpeg,image/gif,image/webp"
               disabled={busy}
               onChange={(e) => {
                 const file = e.target.files[0];
                 setFile(file || null);
+                setSourceName(file?.name || "");
                 setPrepared(null);
                 if (file)
                   setKind(file.type === "image/gif" ? "animation" : "screen");
@@ -68,6 +73,7 @@ export default function Display({ connected, transport, busy, run }) {
             </Field>
           )}
         </div>
+        {sourceName && <p>Source: {sourceName}</p>}
         <div className="display-preview">
           {prepared ? (
             <img
@@ -147,6 +153,22 @@ export default function Display({ connected, transport, busy, run }) {
           </Button>
         </div>
       </Panel>
+      <DisplayLibrary
+        prepared={prepared}
+        busy={busy}
+        run={run}
+        onLoad={(asset) => {
+          setPrepared(asset);
+          setKind(asset.kind);
+          setDelay(asset.delay_ms === null ? "" : String(asset.delay_ms));
+          const bytes = Uint8Array.from(atob(asset.content), (character) =>
+            character.charCodeAt(0),
+          );
+          setFile(new File([bytes], asset.name));
+          setSourceName(asset.name);
+          if (fileInput.current) fileInput.current.value = "";
+        }}
+      />
       <Panel title="Clock and system information">
         <p className="muted">
           Send the current local time or a sample of this computer’s statistics.

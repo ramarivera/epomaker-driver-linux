@@ -31,7 +31,8 @@ This follows the vendor UI gate, documented in
 [the display workflow audit](releases/glyph-display-workflow-audit.md). Single-frame
 still uploads are not given that restriction. Inputs remain locked during either
 operation. The graphical file limit is 14 MiB; normal server request limits also
-apply. Retained asset libraries and screen-image backup remain open work.
+apply. The [local asset library](glyph-display-assets.md) retains original files
+for reuse. Screen-image integration into device backup remains open work.
 
 The offline API is `POST /api/display_prepare` with `content` (base64 image),
 `kind` (`screen` or `animation`) and optional `delay_ms`. It returns `width`,

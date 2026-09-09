@@ -655,12 +655,19 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/display.jsx"
+        "ui/src/display.jsx",
+        "docs/glyph-display-assets.md",
+        "src/epomaker_driver/display_library.py",
+        "ui/src/display-library.jsx"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_display_library.py",
+        "tests/test_display_library_cli.py",
+        "ui/tests/display-library.spec.js"
+      ],
+      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Canvas/frame editing, screen clear, physical bank behavior and transport verification remain open."
     },
     {
       "id": "G09.4",
