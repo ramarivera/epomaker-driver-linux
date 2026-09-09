@@ -20,7 +20,7 @@ test("records physical modifier and key, previews, validates, saves and reads ba
     .getByRole("button", { name: "Start recording", exact: true })
     .click();
   const pad = page.getByRole("textbox", {
-    name: "Keyboard capture pad",
+    name: "Recording area",
     exact: true,
   });
   await expect(pad).toBeFocused();
@@ -34,7 +34,7 @@ test("records physical modifier and key, previews, validates, saves and reads ba
   await page
     .getByRole("button", { name: "Use recording", exact: true })
     .click();
-  await expect(page.getByText(/Preview: 4 keyboard actions/)).toBeVisible();
+  await expect(page.getByText(/Preview: 4 actions/)).toBeVisible();
   await page
     .getByRole("button", { name: "Replace editor with recording", exact: true })
     .click();
@@ -64,7 +64,7 @@ test("cancel preserves the editor and blur releases held keys", async ({
     .getByRole("button", { name: "Start recording", exact: true })
     .click();
   const pad = page.getByRole("textbox", {
-    name: "Keyboard capture pad",
+    name: "Recording area",
     exact: true,
   });
   await expect(pad).toBeFocused();
@@ -92,7 +92,7 @@ async function startCapture(page) {
     .getByRole("button", { name: "Start recording", exact: true })
     .click();
   await expect(
-    page.getByRole("textbox", { name: "Keyboard capture pad", exact: true }),
+    page.getByRole("textbox", { name: "Recording area", exact: true }),
   ).toBeFocused();
 }
 async function acceptCapture(page) {
@@ -197,7 +197,7 @@ test("unknown physical codes cannot silently become an accepted macro", async ({
   await startCapture(page);
   await page.keyboard.press("a");
   await page
-    .getByRole("textbox", { name: "Keyboard capture pad", exact: true })
+    .getByRole("textbox", { name: "Recording area", exact: true })
     .dispatchEvent("keydown", { code: "Unidentified", key: "Unidentified" });
   await page.keyboard.press("Escape");
   await expect(page.getByRole("alert")).toContainText(

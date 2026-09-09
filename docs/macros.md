@@ -64,13 +64,16 @@ and mouse action table, documented in [the protocol reference](glyph-protocol.md
 Physical-device playback acceptance remains unverified.
 
 
-## Focused keyboard recording
+## Focused input recording
 
-The Macro page records keyboard events only while its capture pad is focused.
+The Macro page records keyboard events and mouse-button presses in its focused
+capture pad. It supports left, right, middle, back and forward buttons. Releases
+for buttons pressed inside the pad are tracked even when released outside it.
 Start a recording, type the sequence, then stop or press Escape. Losing focus also
 stops capture. Escape is reserved for leaving recording; add an Escape action in
 the editor when needed. Browser/OS-reserved shortcuts and keys not delivered as
-keyboard events cannot be captured. Mouse events remain editable manually.
+keyboard events cannot be captured. Pointer movement remains editable manually; continuous motion and wheel capture
+are not included.
 
 A recording creates a separate draft. Review and explicitly replace the editor to
 use it; cancel/discard preserves the existing macro. Saving to a device and assigning
@@ -81,7 +84,7 @@ delays are reported instead of silently altering the saved editor sequence.
 Measured timing records the interval between accepted actions on the preceding
 action. Fixed timing uses the selected interval (1–65535 ms). Measured recordings
 end with a 50 ms trailing delay; fixed recordings end with the selected delay.
-Repeated keydown events are ignored. Held keys receive generated release actions
+Repeated keydown events are ignored. Held keys and mouse buttons receive generated release actions
 when recording stops; review these actions before accepting the draft.
 
 Vendor evidence: Windows `fd19495c.js` and macOS `918febcc.js` append each new
@@ -91,7 +94,15 @@ Adapters pair each action with the following delay when calling `macroEventToByt
 Thus a sequence is action A, gap A-to-B, action B, trailing delay. This source
 convention does not establish physical firmware playback timing.
 
-The vendor rejects unmatched held keys and saturates long gaps; this recorder
+The vendor rejects unmatched held inputs and saturates long gaps; this recorder
 instead adds explicit releases and rejects unrepresentable timing. These are
 intentional recording-workflow differences, not claims of verified device behavior.
 Source files belong to [the pinned installer baseline](source-releases.json).
+
+
+The same vendor recorder chunks install only `keydown`, `keyup`, `mousedown` and
+`mouseup` listeners (around byte offsets 21520–21860 in both Windows `fd19495c.js`
+and macOS `918febcc.js`). They contain no `mousemove` or `wheel` recording listener.
+This identifies the audited recorder path; it is not proof that no other vendor
+workflow can configure motion. Existing explicit motion events retain the long
+16-bit delay encoding described above.

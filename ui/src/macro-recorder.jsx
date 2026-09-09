@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { Button } from "./controls";
 
@@ -105,6 +105,20 @@ const KEY_NAMES = Object.fromEntries(
     code.replace(/^(Key|Digit)/, "").replace(/([a-z])([A-Z])/g, "$1 $2"),
   ]),
 );
+const MOUSE_BUTTONS = {
+  0: "left",
+  1: "middle",
+  2: "right",
+  3: "back",
+  4: "forward",
+};
+const MOUSE_BUTTON_NAMES = {
+  left: "Left mouse button",
+  right: "Right mouse button",
+  middle: "Middle mouse button",
+  back: "Back mouse button",
+  forward: "Forward mouse button",
+};
 export const hidUsageForCode = (code) =>
   Object.hasOwn(HID_BY_CODE, code) ? HID_BY_CODE[code] : null;
 export const encodedBytes = (events) =>
@@ -156,13 +170,11 @@ export default function MacroRecorder({
           delayMode === "fixed" ? fixedDelay : Math.max(MIN_DELAY, delay);
       }
     }
-    const releases = [...heldRef.current.values()]
-      .reverse()
-      .map((hid_usage) => ({
-        hid_usage,
-        down: false,
-        delay_ms: delayMode === "fixed" ? fixedDelay : MIN_DELAY,
-      }));
+    const releases = [...heldRef.current.values()].reverse().map((held) => ({
+      ...held.payload,
+      down: false,
+      delay_ms: delayMode === "fixed" ? fixedDelay : MIN_DELAY,
+    }));
     setGeneratedReleases(releases.length);
     if (releases.length) {
       releases[releases.length - 1].delay_ms =
@@ -268,7 +280,7 @@ export default function MacroRecorder({
     }
     event.preventDefault();
     if (down) {
-      if (heldRef.current.has(event.code)) return;
+      if (heldRef.current.has(`key:${event.code}`)) return;
       if (
         append(
           {
@@ -279,8 +291,8 @@ export default function MacroRecorder({
           event.timeStamp,
         )
       )
-        heldRef.current.set(event.code, hid_usage);
-    } else if (heldRef.current.has(event.code)) {
+        heldRef.current.set(`key:${event.code}`, { payload: { hid_usage } });
+    } else if (heldRef.current.has(`key:${event.code}`)) {
       if (
         append(
           {
@@ -291,9 +303,61 @@ export default function MacroRecorder({
           event.timeStamp,
         )
       )
-        heldRef.current.delete(event.code);
+        heldRef.current.delete(`key:${event.code}`);
     }
   };
+  const handleMouse = (event, down) => {
+    if (!recording) return;
+    const button = MOUSE_BUTTONS[event.button];
+    event.preventDefault();
+    if (!button) {
+      setError(
+        `Unsupported mouse button “${event.button}”; it was not recorded.`,
+      );
+      return;
+    }
+    const heldKey = `mouse:${button}`;
+    if (down) {
+      if (heldRef.current.has(heldKey)) return;
+      if (
+        append(
+          {
+            type: "mouse_button",
+            button,
+            down: true,
+            delay_ms: delayMode === "fixed" ? fixedDelay : 50,
+          },
+          event.timeStamp,
+        )
+      )
+        heldRef.current.set(heldKey, {
+          payload: { type: "mouse_button", button },
+        });
+    } else if (heldRef.current.has(heldKey)) {
+      if (
+        append(
+          {
+            type: "mouse_button",
+            button,
+            down: false,
+            delay_ms: delayMode === "fixed" ? fixedDelay : 50,
+          },
+          event.timeStamp,
+        )
+      )
+        heldRef.current.delete(heldKey);
+    }
+  };
+  useEffect(() => {
+    if (!recording) return undefined;
+    const releaseOutsidePad = (event) => {
+      const button = MOUSE_BUTTONS[event.button];
+      if (button && heldRef.current.has(`mouse:${button}`))
+        handleMouse(event, false);
+    };
+    window.addEventListener("mouseup", releaseOutsidePad, true);
+    return () => window.removeEventListener("mouseup", releaseOutsidePad, true);
+  }, [recording]);
   const useDraft = async () => {
     if (
       busy ||
@@ -320,13 +384,19 @@ export default function MacroRecorder({
   };
   return (
     <div className="macro-recorder">
-      <h3>Record keyboard sequence</h3>
+      <h3>Record input sequence</h3>
       <p className="muted">
         App-local capture only. Browser and OS-reserved shortcuts may be
         unavailable.
       </p>
       <p className="muted">
-        Escape stops recording; add Escape manually in the editor if needed.
+        Type or click here to record keys and mouse buttons: left, right,
+        middle, back and forward. Escape stops recording; releases outside this
+        area are tracked for buttons already held here.
+      </p>
+      <p className="muted">
+        Movement and scrolling are not recorded. Add movement or Escape events
+        in the editor when needed.
       </p>
       <div className="fields compact">
         <label>
@@ -361,15 +431,19 @@ export default function MacroRecorder({
         className={`macro-capture-pad${recording ? " recording" : ""}`}
         tabIndex={0}
         role="textbox"
-        aria-label="Keyboard capture pad"
+        aria-label="Recording area"
         aria-readonly="true"
         onKeyDown={(event) => handleKey(event, true)}
         onKeyUp={(event) => handleKey(event, false)}
+        onMouseDown={(event) => handleMouse(event, true)}
+        onMouseUp={(event) => handleMouse(event, false)}
+        onContextMenu={(event) => recording && event.preventDefault()}
+        onAuxClick={(event) => recording && event.preventDefault()}
         onBlur={() => recording && stop()}
       >
         {recording
-          ? "Recording… type here, then stop"
-          : "Focus here to capture physical keys"}
+          ? "Recording… type or click here, then stop"
+          : "Focus here to capture keyboard or mouse input"}
       </div>
       <div className="apply-row">
         {!recording ? (
@@ -430,11 +504,14 @@ export default function MacroRecorder({
       )}
       {preview && (
         <div className="macro-preview">
-          <strong>Preview: {preview.events.length} keyboard actions</strong>
+          <strong>Preview: {preview.events.length} actions</strong>
           <ol>
             {preview.events.map((event, index) => (
               <li key={index}>
-                {event.down ? "Press" : "Release"} {KEY_NAMES[event.hid_usage]}{" "}
+                {event.down ? "Press" : "Release"}{" "}
+                {event.type === "mouse_button"
+                  ? MOUSE_BUTTON_NAMES[event.button]
+                  : KEY_NAMES[event.hid_usage]}{" "}
                 · {event.delay_ms} ms
               </li>
             ))}

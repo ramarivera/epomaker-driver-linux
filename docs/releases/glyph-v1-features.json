@@ -396,9 +396,11 @@
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "ui/tests/macro-recording.spec.js",
-        "tests/test_macros.py"
+        "tests/test_macros.py",
+        "ui/tests/mouse-recording.spec.js",
+        "ui/tests/mouse-recorder-boundaries.spec.js"
       ],
-      "notes": "Focused keyboard recording supports measured/fixed timing and validated draft replacement. Mouse capture, reserved-key workflow comparison and physical playback verification remain open."
+      "notes": "Focused keyboard and mouse-button recording support measured/fixed timing and validated draft replacement. Reserved-key workflow comparison and physical playback verification remain open. Audited vendor recorder has no continuous-motion or wheel listener."
     },
     {
       "id": "G06.1",
