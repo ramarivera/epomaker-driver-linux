@@ -748,12 +748,18 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/system-info.md",
+        "src/epomaker_driver/system_info_refresh.py",
+        "ui/src/system-info-refresh.jsx"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_system_info_refresh.py",
+        "ui/tests/system-info-refresh.spec.js"
+      ],
+      "notes": "Explicit server-owned refresh survives app navigation and stops on disconnect, replacement, reset, restore, shutdown or sampling/transport error. No autostart or suspend/resume integration; vendor lifecycle comparison and physical display verification remain open."
     },
     {
       "id": "G11.1",

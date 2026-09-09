@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { api, base64File } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
 import DisplayLibrary from "./display-library";
+import SystemInfoRefresh from "./system-info-refresh";
 export default function Display({ connected, transport, busy, run }) {
   const fileInput = useRef(null);
   const [sourceName, setSourceName] = useState("");
@@ -195,6 +196,7 @@ export default function Display({ connected, transport, busy, run }) {
           </Button>
         </div>
       </Panel>
+      <SystemInfoRefresh connected={connected} busy={busy} run={run} />
       <Panel title="Display language">
         <p className="muted">
           Switch between the keyboard’s English and Chinese display text. The

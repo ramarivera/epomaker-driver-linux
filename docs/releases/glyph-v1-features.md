@@ -48,7 +48,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G10.1 | Clock synchronization and physical display | partial | expected |
 | G10.2 | Display language toggle | partial | expected |
 | G10.3 | Host statistics/system information | partial | expected |
-| G10.4 | Background refresh, suspend, and lifecycle updates | missing | expected |
+| G10.4 | Background refresh, suspend, and lifecycle updates | partial | expected |
 | G11.1 | Backup managed keyboard state | partial | expected |
 | G11.2 | Preserve unreferenced macro slots | implemented | expected |
 | G11.3 | Vendor snapshot import/export | missing | expected |

@@ -1,5 +1,29 @@
 # Host statistics on the Glyph display
 
+The app's Display page has **Continuous system information** controls. Connect a
+Glyph, select an interval from 1 to 3,600 seconds, a disk path and optionally a
+network interface, then start refresh. The server collects the first sample
+immediately and waits the selected interval after each send. The panel reports
+the sample count, last CPU/temperature values, warnings and any stopping error.
+
+Refresh continues across page navigation and browser closure while the server
+runs. Explicit stop, disconnect, connection replacement, factory reset, backup
+restore and server shutdown stop it. A collection or transport error also stops
+it, without automatic retries. Reconnecting does not restart it. This installs
+no daemon and adds no automatic startup or suspend/resume integration; those
+lifecycle workflows and physical display results remain unverified.
+
+The authenticated server API exposes `GET /api/system_info_refresh`,
+`POST /api/system_info_refresh_start` with `interval`, optional `disk` (default
+`/`) and optional `interface` (default null), and
+`POST /api/system_info_refresh_stop` with an empty object. Status contains
+`running`, `interval`, `disk`, `interface`, `samples`, `last_sample` and `error`.
+Only one refresh loop can run per server. Implementation lives in
+`src/epomaker_driver/system_info_refresh.py`; the app controls live in
+`ui/src/system-info-refresh.jsx`.
+
+The command-line alternative:
+
 ```sh
 # Inspect one sample without opening the keyboard.
 epomaker host-info

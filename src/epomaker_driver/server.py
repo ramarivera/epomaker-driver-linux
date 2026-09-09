@@ -19,6 +19,7 @@ from .display_library import DisplayLibrary
 from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
 from .macro_library import MacroLibrary
 from .models import glyph_matrix
+from .system_info_refresh import SystemInfoRefresh
 from .transport import Transport
 
 MAX_BODY = 20 * 1024 * 1024
@@ -33,6 +34,7 @@ class Controller:
         assets_dir=None,
         discovery=discover,
         transport_factory=Transport.open,
+        collector_factory=system_info.Collector,
     ):
         self.backup_dir = Path(backup_dir)
         self.library = MacroLibrary(library_dir or self.backup_dir / "macro-library")
@@ -41,9 +43,11 @@ class Controller:
         self.keyboard = None
         self.identity = None
         self.lock = threading.RLock()
+        self.system_info_refresh = SystemInfoRefresh(self, collector_factory)
 
     def close(self):
         with self.lock:
+            self.system_info_refresh.stop()
             if self.keyboard is not None:
                 self.keyboard.transport.close()
                 self.keyboard = None
@@ -54,6 +58,20 @@ class Controller:
             return self._call(operation, data)
 
     def _call(self, operation, data):
+        if operation == "system_info_refresh":
+            return self.system_info_refresh.status()
+        if operation == "system_info_refresh_start":
+            keyboard = self.keyboard
+            if keyboard is None or self.identity is None or self.identity.get("device_id") != 3059:
+                raise DeviceUnavailable("connect a Glyph keyboard first")
+            return self.system_info_refresh.start(
+                keyboard,
+                data.get("interval"),
+                data.get("disk", "/"),
+                data.get("interface"),
+            )
+        if operation == "system_info_refresh_stop":
+            return self.system_info_refresh.stop()
         if operation == "devices":
             return [device.public_dict() for device in self.discovery() if device.command_transport]
         if operation == "catalog":
@@ -122,6 +140,7 @@ class Controller:
                 delay_ms=data.get("delay_ms"),
             )
         if operation == "connect":
+            self.system_info_refresh.stop()
             info = next(
                 (d for d in self.discovery() if d.path == data.get("path") and d.command_transport),
                 None,
@@ -147,6 +166,7 @@ class Controller:
             self.keyboard, self.identity = keyboard, identity
             return identity
         if operation == "disconnect":
+            self.system_info_refresh.stop()
             self.close()
             return {"ok": True}
         if operation == "connection":
@@ -190,6 +210,7 @@ class Controller:
             raise ValueError("unknown operation")
         kind = data.get("kind")
         if kind == "factory_reset":
+            self.system_info_refresh.stop()
             backup = self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
             try:
                 # Re-identify immediately before the destructive operation; a
@@ -265,6 +286,7 @@ class Controller:
         elif kind == "auto_os":
             keyboard.set_auto_os(data["enabled"])
         elif kind == "restore":
+            self.system_info_refresh.stop()
             return snapshot.restore(
                 keyboard, data["value"], self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
             )
@@ -341,6 +363,7 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/connection",
                 "/api/macro_library",
                 "/api/display_library",
+                "/api/system_info_refresh",
             ):
                 self._reply(404, {"error": "unknown endpoint"})
                 return
@@ -374,6 +397,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/display_asset_export",
             "/api/display_asset_import",
             "/api/display_asset_delete",
+            "/api/system_info_refresh_start",
+            "/api/system_info_refresh_stop",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return
