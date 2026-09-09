@@ -4,6 +4,7 @@ import { api, download } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
 import MacroRecorder from "./macro-recorder";
 import MacroLibrary from "./macro-library";
+import MacroEventPicker from "./macro-event-picker";
 const makeEvent = (type) =>
   type === "mouse_move"
     ? { type, dx: 0, dy: 0, delay_ms: 10 }
@@ -14,11 +15,59 @@ export default function MacrosEditor({ connected, busy, run }) {
   const [recorderValidating, setRecorderValidating] = useState(false);
   const [recorderPending, setRecorderPending] = useState(false);
   const [libraryWorking, setLibraryWorking] = useState(false);
+  const [picker, setPicker] = useState(null);
   const [slot, setSlot] = useState(0),
     [value, setValue] = useState({ repeat: 1, events: [] }),
     [kind, setKind] = useState("keyboard"),
     [rawSnapshot, setRawSnapshot] = useState(null),
     [warning, setWarning] = useState("");
+  const editorLocked =
+    picker !== null ||
+    busy ||
+    recorderPending ||
+    recorderValidating ||
+    libraryWorking;
+  const applyPicker = async (captured) => {
+    const nextEvents = [...value.events];
+    if (picker.pair) {
+      const press =
+        captured.type === "keyboard"
+          ? {
+              hid_usage: captured.hid_usage,
+              down: true,
+              delay_ms: captured.delay_ms,
+            }
+          : {
+              type: "mouse_button",
+              button: captured.button,
+              down: true,
+              delay_ms: captured.delay_ms,
+            };
+      const release = { ...press, down: false };
+      nextEvents.push(press, release);
+    } else {
+      const original = value.events[picker.index];
+      nextEvents[picker.index] =
+        captured.type === "keyboard"
+          ? {
+              hid_usage: captured.hid_usage,
+              down: original.down,
+              delay_ms: original.delay_ms,
+            }
+          : {
+              type: "mouse_button",
+              button: captured.button,
+              down: original.down,
+              delay_ms: original.delay_ms,
+            };
+    }
+    const validated = await api("validate_macro", {
+      value: { ...value, events: nextEvents },
+    });
+    setValue(validated);
+    setWarning("");
+    setPicker(null);
+  };
   const setEvent = (i, field, v) =>
     setValue({
       ...value,
@@ -47,7 +96,8 @@ export default function MacrosEditor({ connected, busy, run }) {
             busy ||
             recorderPending ||
             recorderValidating ||
-            libraryWorking
+            libraryWorking ||
+            picker !== null
           }
           onClick={() =>
             run(async () => {
@@ -66,7 +116,11 @@ export default function MacrosEditor({ connected, busy, run }) {
         </Button>
         <Button
           disabled={
-            busy || recorderPending || recorderValidating || libraryWorking
+            busy ||
+            recorderPending ||
+            recorderValidating ||
+            libraryWorking ||
+            picker !== null
           }
           onClick={() => {
             setValue({ repeat: 1, events: [] });
@@ -81,7 +135,11 @@ export default function MacrosEditor({ connected, busy, run }) {
             type="file"
             accept=".json"
             disabled={
-              busy || recorderPending || recorderValidating || libraryWorking
+              busy ||
+              recorderPending ||
+              recorderValidating ||
+              libraryWorking ||
+              picker !== null
             }
             onChange={(e) => {
               const file = e.target.files[0];
@@ -119,7 +177,7 @@ export default function MacrosEditor({ connected, busy, run }) {
       )}
       <MacroLibrary
         value={value}
-        busy={busy}
+        busy={busy || picker !== null}
         recorderPending={recorderPending || recorderValidating}
         onWorkingChange={setLibraryWorking}
         onLoad={(loaded) => {
@@ -131,7 +189,7 @@ export default function MacrosEditor({ connected, busy, run }) {
       {value && (
         <>
           <MacroRecorder
-            busy={busy || libraryWorking}
+            busy={busy || libraryWorking || picker !== null}
             onValidatingChange={setRecorderValidating}
             onPendingChange={setRecorderPending}
             onUse={(recorded) => {
@@ -140,203 +198,237 @@ export default function MacrosEditor({ connected, busy, run }) {
               setWarning("");
             }}
           />
-          <div className="fields">
-            <Field label="Repeat count">
-              <input
-                type="number"
-                min="0"
-                max="65535"
-                value={value.repeat}
-                onChange={(e) =>
-                  setValue({ ...value, repeat: Number(e.target.value) })
-                }
-              />
-            </Field>
-            <Field label="New event">
-              <Select
-                value={kind}
-                options={["keyboard", "mouse_button", "mouse_move"].map((k) => [
-                  k,
-                  titleCase(k.replaceAll("_", "-")),
-                ])}
-                onChange={(e) => setKind(e.target.value)}
-              />
-            </Field>
-            <Button
-              onClick={() =>
-                setValue({
-                  ...value,
-                  events: [...value.events, makeEvent(kind)],
-                })
-              }
-            >
-              Add event
-            </Button>
-          </div>
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Event</th>
-                  <th>Action</th>
-                  <th>Delay (ms)</th>
-                  <th>Order</th>
-                </tr>
-              </thead>
-              <tbody>
-                {value.events.map((event, i) => {
-                  const type = event.type || "keyboard";
-                  return (
-                    <tr key={i}>
-                      <td>{titleCase(type.replaceAll("_", "-"))}</td>
-                      <td>
-                        {type === "mouse_move" ? (
-                          <div className="fields compact">
-                            <input
-                              aria-label={`Event ${i + 1} X movement`}
-                              type="number"
-                              min="-128"
-                              max="127"
-                              value={event.dx}
-                              onChange={(e) =>
-                                setEvent(i, "dx", Number(e.target.value))
-                              }
-                            />
-                            <input
-                              aria-label={`Event ${i + 1} Y movement`}
-                              type="number"
-                              min="-128"
-                              max="127"
-                              value={event.dy}
-                              onChange={(e) =>
-                                setEvent(i, "dy", Number(e.target.value))
-                              }
-                            />
-                          </div>
-                        ) : (
-                          <div className="fields compact">
-                            {type === "keyboard" ? (
-                              <input
-                                aria-label={`Event ${i + 1} key usage`}
-                                type="number"
-                                min="4"
-                                max="239"
-                                value={event.hid_usage}
-                                onChange={(e) =>
-                                  setEvent(
-                                    i,
-                                    "hid_usage",
-                                    Number(e.target.value),
-                                  )
-                                }
-                              />
-                            ) : (
-                              <Select
-                                aria-label={`Event ${i + 1} mouse button`}
-                                value={event.button}
-                                options={[
-                                  "left",
-                                  "right",
-                                  "middle",
-                                  "back",
-                                  "forward",
-                                ]}
-                                onChange={(e) =>
-                                  setEvent(i, "button", e.target.value)
-                                }
-                              />
-                            )}
-                            <Select
-                              aria-label={`Event ${i + 1} direction`}
-                              value={String(event.down)}
-                              options={[
-                                ["true", "Press"],
-                                ["false", "Release"],
-                              ]}
-                              onChange={(e) =>
-                                setEvent(i, "down", e.target.value === "true")
-                              }
-                            />
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <input
-                          aria-label={`Event ${i + 1} delay`}
-                          type="number"
-                          min="1"
-                          max="65535"
-                          value={event.delay_ms}
-                          onChange={(e) =>
-                            setEvent(i, "delay_ms", Number(e.target.value))
-                          }
-                        />
-                      </td>
-                      <td className="row-actions">
-                        <button
-                          title="Move up"
-                          aria-label={`Move event ${i + 1} up`}
-                          disabled={i === 0}
-                          onClick={() => move(i, -1)}
-                        >
-                          <ArrowUp size={16} />
-                        </button>
-                        <button
-                          title="Move down"
-                          aria-label={`Move event ${i + 1} down`}
-                          disabled={i === value.events.length - 1}
-                          onClick={() => move(i, 1)}
-                        >
-                          <ArrowDown size={16} />
-                        </button>
-                        <button
-                          title="Remove event"
-                          aria-label={`Remove event ${i + 1}`}
-                          onClick={() =>
-                            setValue({
-                              ...value,
-                              events: value.events.filter((_, j) => i !== j),
-                            })
-                          }
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {!value.events.length && (
-            <p className="muted">
-              Add keyboard or mouse events to create a sequence.
-            </p>
+          {picker && (
+            <MacroEventPicker
+              eventIndex={picker.index + 1}
+              pair={picker.pair}
+              onApply={applyPicker}
+              onCancel={() => setPicker(null)}
+            />
           )}
-          <div className="apply-row">
-            <Button
-              primary
-              disabled={
-                !connected ||
-                busy ||
-                recorderPending ||
-                recorderValidating ||
-                libraryWorking
-              }
-              onClick={() =>
-                run(
-                  () => api("write", { kind: "macro", slot, value }),
-                  "Macro readback verified.",
-                )
-              }
-            >
-              Save macro
-            </Button>
-            <Button onClick={() => download(`macro-${slot}.json`, value)}>
-              Export JSON
-            </Button>
-            <span className="muted">Assign this slot to a key in Keymap.</span>
-          </div>
+          <fieldset
+            disabled={picker !== null}
+            style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
+          >
+            <div className="fields">
+              <Field label="Repeat count">
+                <input
+                  type="number"
+                  min="0"
+                  max="65535"
+                  value={value.repeat}
+                  disabled={editorLocked}
+                  onChange={(e) =>
+                    setValue({ ...value, repeat: Number(e.target.value) })
+                  }
+                />
+              </Field>
+              <Field label="New event">
+                <Select
+                  value={kind}
+                  options={["keyboard", "mouse_button", "mouse_move"].map(
+                    (k) => [k, titleCase(k.replaceAll("_", "-"))],
+                  )}
+                  disabled={editorLocked}
+                  onChange={(e) => setKind(e.target.value)}
+                />
+              </Field>
+              <Button
+                disabled={editorLocked}
+                onClick={() =>
+                  setValue({
+                    ...value,
+                    events: [...value.events, makeEvent(kind)],
+                  })
+                }
+              >
+                Add event
+              </Button>
+            </div>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Event</th>
+                    <th>Action</th>
+                    <th>Delay (ms)</th>
+                    <th>Order</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {value.events.map((event, i) => {
+                    const type = event.type || "keyboard";
+                    return (
+                      <tr key={i}>
+                        <td>{titleCase(type.replaceAll("_", "-"))}</td>
+                        <td>
+                          {type === "mouse_move" ? (
+                            <div className="fields compact">
+                              <input
+                                aria-label={`Event ${i + 1} X movement`}
+                                type="number"
+                                min="-128"
+                                max="127"
+                                value={event.dx}
+                                onChange={(e) =>
+                                  setEvent(i, "dx", Number(e.target.value))
+                                }
+                              />
+                              <input
+                                aria-label={`Event ${i + 1} Y movement`}
+                                type="number"
+                                min="-128"
+                                max="127"
+                                value={event.dy}
+                                onChange={(e) =>
+                                  setEvent(i, "dy", Number(e.target.value))
+                                }
+                              />
+                            </div>
+                          ) : (
+                            <div className="fields compact">
+                              {type === "keyboard" ? (
+                                <input
+                                  aria-label={`Event ${i + 1} key usage`}
+                                  type="number"
+                                  min="4"
+                                  max="239"
+                                  value={event.hid_usage}
+                                  disabled={editorLocked}
+                                  onChange={(e) =>
+                                    setEvent(
+                                      i,
+                                      "hid_usage",
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <Select
+                                  aria-label={`Event ${i + 1} mouse button`}
+                                  value={event.button}
+                                  options={[
+                                    "left",
+                                    "right",
+                                    "middle",
+                                    "back",
+                                    "forward",
+                                  ]}
+                                  onChange={(e) =>
+                                    setEvent(i, "button", e.target.value)
+                                  }
+                                />
+                              )}
+                              <Select
+                                aria-label={`Event ${i + 1} direction`}
+                                value={String(event.down)}
+                                options={[
+                                  ["true", "Press"],
+                                  ["false", "Release"],
+                                ]}
+                                disabled={editorLocked}
+                                onChange={(e) =>
+                                  setEvent(i, "down", e.target.value === "true")
+                                }
+                              />
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            aria-label={`Event ${i + 1} delay`}
+                            type="number"
+                            min="1"
+                            max="65535"
+                            value={event.delay_ms}
+                            disabled={editorLocked}
+                            onChange={(e) =>
+                              setEvent(i, "delay_ms", Number(e.target.value))
+                            }
+                          />
+                        </td>
+                        <td className="row-actions">
+                          <button
+                            title="Move up"
+                            aria-label={`Move event ${i + 1} up`}
+                            disabled={i === 0}
+                            onClick={() => move(i, -1)}
+                          >
+                            <ArrowUp size={16} />
+                          </button>
+                          <button
+                            title="Move down"
+                            aria-label={`Move event ${i + 1} down`}
+                            disabled={i === value.events.length - 1}
+                            onClick={() => move(i, 1)}
+                          >
+                            <ArrowDown size={16} />
+                          </button>
+                          <button
+                            title="Remove event"
+                            aria-label={`Remove event ${i + 1}`}
+                            onClick={() =>
+                              setValue({
+                                ...value,
+                                events: value.events.filter((_, j) => i !== j),
+                              })
+                            }
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          <Button
+                            disabled={editorLocked}
+                            onClick={() => setPicker({ index: i, pair: false })}
+                          >
+                            Capture event {i + 1}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {!value.events.length && (
+              <p className="muted">
+                Add keyboard or mouse events to create a sequence.
+              </p>
+            )}
+            <div className="apply-row">
+              <Button
+                disabled={editorLocked}
+                onClick={() =>
+                  setPicker({ index: value.events.length, pair: true })
+                }
+              >
+                Capture key/button pair
+              </Button>
+              <Button
+                primary
+                disabled={
+                  !connected ||
+                  busy ||
+                  recorderPending ||
+                  recorderValidating ||
+                  libraryWorking
+                }
+                onClick={() =>
+                  run(
+                    () => api("write", { kind: "macro", slot, value }),
+                    "Macro readback verified.",
+                  )
+                }
+              >
+                Save macro
+              </Button>
+              <Button onClick={() => download(`macro-${slot}.json`, value)}>
+                Export JSON
+              </Button>
+              <span className="muted">
+                Assign this slot to a key in Keymap.
+              </span>
+            </div>
+          </fieldset>
         </>
       )}
     </Panel>

@@ -349,9 +349,11 @@
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "ui/tests/workflows.spec.js",
-        "ui/tests/macro-raw-export.spec.js"
+        "ui/tests/macro-raw-export.spec.js",
+        "ui/tests/macro-event-picker.spec.js",
+        "ui/tests/macro-event-capacity.spec.js"
       ],
-      "notes": "Semantic JSON editing/import/export exists; raw exports preserve the original loaded slot. One-action capture and vendor configuration-file compatibility remain open; see the partial editor audit."
+      "notes": "Semantic JSON editing/import/export and captured key/button pair insertion exist. Event capture preserves direction/timing and raw load snapshots; pair insertion validates capacity before changing the draft. Vendor configuration-file compatibility remains open."
     },
     {
       "id": "G05.3",
@@ -379,12 +381,13 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/macros-editor.jsx"
+        "ui/src/macros-editor.jsx",
+        "docs/releases/glyph-macro-editor-audit.md"
       ],
       "implementation_status": "partial",
-      "audit_status": "pending-control-level-audit",
+      "audit_status": "partial-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Vendor position maps to signed dx/dy; UI bounds -127..127, Linux byte format -128..127. Shared encoder/decoder disagree on compact motion delay; Linux uses explicit long delays. Axis orientation, timing and -128 physical acceptance remain unverified."
     },
     {
       "id": "G05.5",

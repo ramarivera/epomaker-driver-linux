@@ -102,6 +102,21 @@ returning them. Corrupt entries produce an error rather than being silently
 discarded. This is an independent local library; vendor cloud synchronization and
 vendor file compatibility remain open audit items.
 
+## Capturing an event or pair
+
+The editor can capture a physical key or mouse button without entering a numeric
+usage. Review the captured input before applying it. Replacing an existing event
+changes its input identity, preserving that row's press/release direction and
+delay. Capturing a new pair inserts a press and release with an explicit delay
+after each (50 ms by default); it does not measure the hold duration. The pair is
+validated before insertion, including the macro's 256-byte capacity.
+
+Capture is limited to the focused picker. Escape, cancellation, or leaving the
+picker cancels without changing the editor. Unsupported inputs show an error
+and can be retried. Browser/OS-reserved shortcuts may not arrive; Escape and mouse
+movement remain manually editable. Capture and insertion only change the draft;
+Save macro remains the separate device write.
+
 
 ## Focused input recording
 

@@ -119,6 +119,8 @@ const MOUSE_BUTTON_NAMES = {
   back: "Back mouse button",
   forward: "Forward mouse button",
 };
+export const keyNameForUsage = (usage) => KEY_NAMES[usage] || `HID ${usage}`;
+export const mouseButtonName = (button) => MOUSE_BUTTON_NAMES[button] || button;
 export const hidUsageForCode = (code) =>
   Object.hasOwn(HID_BY_CODE, code) ? HID_BY_CODE[code] : null;
 export const encodedBytes = (events) =>
