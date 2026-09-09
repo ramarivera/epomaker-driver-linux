@@ -608,16 +608,18 @@
         "docs/releases/glyph-live-light-audit.md",
         "docs/live-lighting.md",
         "src/epomaker_driver/live_light_session.py",
-        "ui/src/live-lighting.jsx"
+        "ui/src/live-lighting.jsx",
+        "docs/releases/glyph-live-layout-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
       "test_evidence": [
         "tests/test_live_lighting.py",
         "tests/test_live_light_session.py",
-        "ui/tests/live-lighting.spec.js"
+        "ui/tests/live-lighting.spec.js",
+        "ui/tests/live-light-crop.spec.js"
       ],
-      "notes": "Wired USB and firmware-flag-gated RGB frames plus explicit browser screen capture, per-session stale-request rejection and stop restoration. Physical LED mapping, capture/throughput and full vendor layout/audio/lifecycle parity remain unverified or incomplete."
+      "notes": "Browser screen capture includes all eight vendor centered crop ratios, default/reset 2.35:1, source-resize recalculation, in-app selection retention and RGB preview. Session cleanup and stale-request rejection exist. Rhythm layout/audio controls, physical LED mapping, real capture/throughput and host lifecycle remain incomplete or unverified. Vendor rhythm layout controls do not apply to screen mode."
     },
     {
       "id": "G09.1",

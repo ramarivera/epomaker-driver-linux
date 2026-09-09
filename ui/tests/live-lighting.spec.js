@@ -5,6 +5,16 @@ async function setup(page, request, mode = "normal") {
   await page.addInitScript((mode) => {
     window.captureCalls = 0;
     window.liveTracks = [];
+    window.liveVideoSize = [1920, 1080];
+    window.liveDrawCalls = [];
+    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", {
+      configurable: true,
+      get: () => window.liveVideoSize[0],
+    });
+    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", {
+      configurable: true,
+      get: () => window.liveVideoSize[1],
+    });
     const makeStream = () => {
       const source = document.createElement("canvas");
       const stream = source.captureStream(1);
@@ -35,7 +45,9 @@ async function setup(page, request, mode = "normal") {
       if (this.width !== 21 || this.height !== 6)
         return original.apply(this, args);
       return {
-        drawImage() {},
+        drawImage(...args) {
+          window.liveDrawCalls.push(args.slice(1));
+        },
         getImageData() {
           const data = new Uint8ClampedArray(21 * 6 * 4);
           for (let i = 0; i < data.length; i += 4)
@@ -252,4 +264,69 @@ test("backend session created after navigation is explicitly stopped", async ({
     .poll(() => calls.find((c) => c.op === "live_light_stop")?.session)
     .toBe("late-session");
   expect(calls.filter((c) => c.op === "live_light_frame")).toHaveLength(0);
+});
+
+test("screen crop ratio updates frames and preview without recapturing", async ({
+  page,
+  request,
+}) => {
+  const { calls } = await setup(page, request);
+  const ratio = page.getByLabel("Screen crop ratio", { exact: true });
+  await expect(ratio).toHaveValue("2.35:1");
+  await ratio.selectOption("1:1");
+  await start(page);
+  await expect
+    .poll(() => page.evaluate(() => window.liveDrawCalls.at(-1)))
+    .toEqual([420, 0, 1080, 1080, 0, 0, 21, 6]);
+  const preview = page.getByRole("img", {
+    name: "Live RGB color preview, 21 columns by 6 rows",
+  });
+  await expect(preview).toBeVisible();
+  await expect(preview.locator("rect")).toHaveCount(126);
+  await expect(preview.locator("rect").first()).toHaveAttribute(
+    "fill",
+    "#800a1e",
+  );
+  await ratio.selectOption("original");
+  await expect
+    .poll(() => page.evaluate(() => window.liveDrawCalls.at(-1)))
+    .toEqual([0, 0, 1920, 1080, 0, 0, 21, 6]);
+  await ratio.selectOption("1:1");
+  await page.evaluate(() => {
+    window.liveVideoSize = [1000, 2000];
+  });
+  await expect
+    .poll(() => page.evaluate(() => window.liveDrawCalls.at(-1)))
+    .toEqual([0, 500, 1000, 1000, 0, 0, 21, 6]);
+  await expect(
+    page.getByText("Source 1000×2000 · Crop 1000×1000 at 0, 500", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(calls.filter((c) => c.op === "live_light_start")).toHaveLength(1);
+  expect(await page.evaluate(() => window.captureCalls)).toBe(1);
+  await stop(page);
+  await expect(preview).toHaveCount(0);
+});
+
+test("screen crop selection survives page changes and resets to vendor default", async ({
+  page,
+  request,
+}) => {
+  await setup(page, request);
+  await page
+    .getByLabel("Screen crop ratio", { exact: true })
+    .selectOption("16:10");
+  await page.getByRole("button", { name: "Display", exact: true }).click();
+  await page.getByRole("button", { name: "Lighting", exact: true }).click();
+  await expect(
+    page.getByLabel("Screen crop ratio", { exact: true }),
+  ).toHaveValue("16:10");
+  await page
+    .getByRole("button", { name: "Reset screen crop ratio", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Screen crop ratio", { exact: true }),
+  ).toHaveValue("2.35:1");
+  expect(await page.evaluate(() => window.captureCalls)).toBe(0);
 });

@@ -75,6 +75,8 @@ export default function Lighting({
   connected,
   transport,
   lightSync,
+  screenRatio,
+  onScreenRatioChange,
   busy,
   run,
   epoch,
@@ -269,6 +271,8 @@ export default function Lighting({
         connected={connected}
         transport={transport}
         lightSync={lightSync}
+        screenRatio={screenRatio}
+        onScreenRatioChange={onScreenRatioChange}
         busy={busy}
       />
     </>

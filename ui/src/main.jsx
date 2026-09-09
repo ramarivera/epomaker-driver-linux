@@ -13,6 +13,7 @@ import { api } from "./api";
 import { Button, Select } from "./controls";
 import Keymap from "./keymap";
 import Lighting from "./lighting";
+import { DEFAULT_RATIO } from "./live-light-crop";
 import MacrosEditor from "./macros-editor";
 import Display from "./display";
 import Settings from "./settings";
@@ -42,6 +43,7 @@ const pages = [
   ],
 ];
 function App() {
+  const [screenRatio, setScreenRatio] = useState(DEFAULT_RATIO);
   const [tab, setTab] = useState("Keymap"),
     [catalog, setCatalog] = useState(null),
     [devices, setDevices] = useState([]),
@@ -186,6 +188,8 @@ function App() {
             connected={connected}
             transport={identity?.transport}
             lightSync={identity?.light_sync}
+            screenRatio={screenRatio}
+            onScreenRatioChange={setScreenRatio}
             busy={busy}
             run={run}
             epoch={epoch}

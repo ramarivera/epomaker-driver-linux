@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
-import { Button, Panel } from "./controls";
+import { Button, Field, Panel, Select } from "./controls";
+import { centeredCrop, DEFAULT_RATIO, SCREEN_RATIOS } from "./live-light-crop";
 
 const WIDTH = 21;
 const HEIGHT = 6;
@@ -26,11 +27,17 @@ export default function LiveLighting({
   transport,
   lightSync,
   busy,
+  screenRatio,
+  onScreenRatioChange,
 }) {
   const [running, setRunning] = useState(false);
   const [starting, setStarting] = useState(false);
   const [sampleCount, setSampleCount] = useState(0);
   const [error, setError] = useState(null);
+  const ratioRef = useRef(screenRatio);
+  ratioRef.current = screenRatio;
+  const [preview, setPreview] = useState(null);
+  const [frameSize, setFrameSize] = useState(null);
   const generation = useRef(0);
   const attempt = useRef(null);
 
@@ -49,6 +56,8 @@ export default function LiveLighting({
       attempt.current = null;
       setRunning(false);
       setStarting(false);
+      setPreview(null);
+      setFrameSize(null);
       if (message) setError(message);
     }
     if (current.session) {
@@ -142,16 +151,22 @@ export default function LiveLighting({
           const context = current.canvas.getContext("2d", {
             willReadFrequently: true,
           });
-          context.drawImage(selected, 0, 0, WIDTH, HEIGHT);
+          const size = [selected.videoWidth, selected.videoHeight];
+          const bounds = centeredCrop(ratioRef.current, ...size);
+          context.drawImage(selected, ...bounds, 0, 0, WIDTH, HEIGHT);
+          const colors = frameColors(context);
           await api("live_light_frame", {
             session: current.session,
-            colors: frameColors(context),
+            colors,
           });
           if (
             current.generation === generation.current &&
             attempt.current === current
-          )
+          ) {
             setSampleCount((count) => count + 1);
+            setPreview(colors.match(/.{6}/g));
+            setFrameSize({ size, bounds });
+          }
           if (
             current.generation === generation.current &&
             attempt.current === current
@@ -181,17 +196,66 @@ export default function LiveLighting({
   }, [supported, cleanup]);
   useEffect(() => () => cleanup(attempt.current), [cleanup]);
 
-  if (!supported)
-    return (
-      <p className="muted">
-        Live screen lighting requires a USB keyboard whose firmware reports
-        light sync capability.
-      </p>
-    );
   return (
     <Panel title="Live screen lighting">
+      {!supported && (
+        <p className="muted">
+          Live screen lighting requires a USB keyboard whose firmware reports
+          light sync capability.
+        </p>
+      )}
+      <p className="muted">
+        Choose a centered crop for the selected screen, window or tab. Changes
+        take effect on the next frame. Stop and start again to choose another
+        capture source.
+      </p>
+      <div className="fields">
+        <Field label="Screen crop ratio">
+          <Select
+            value={screenRatio}
+            options={SCREEN_RATIOS}
+            disabled={busy}
+            onChange={(event) => onScreenRatioChange(event.target.value)}
+          />
+        </Field>
+      </div>
+      <Button
+        disabled={busy}
+        onClick={() => onScreenRatioChange(DEFAULT_RATIO)}
+      >
+        Reset screen crop ratio
+      </Button>
+      {frameSize && (
+        <p className="muted">
+          Source {frameSize.size[0]}×{frameSize.size[1]} · Crop{" "}
+          {frameSize.bounds[2]}×{frameSize.bounds[3]} at {frameSize.bounds[0]},{" "}
+          {frameSize.bounds[1]}
+        </p>
+      )}
+      {preview && (
+        <svg
+          role="img"
+          aria-label="Live RGB color preview, 21 columns by 6 rows"
+          viewBox="0 0 21 6"
+          style={{ width: "100%", maxWidth: 420, display: "block" }}
+        >
+          {preview.map((color, index) => (
+            <rect
+              key={index}
+              x={index % 21}
+              y={Math.floor(index / 21)}
+              width="1"
+              height="1"
+              fill={`#${color}`}
+            />
+          ))}
+        </svg>
+      )}
       <div className="live-lighting">
-        <Button disabled={busy || running || starting} onClick={start}>
+        <Button
+          disabled={!supported || busy || running || starting}
+          onClick={start}
+        >
           Start screen lighting
         </Button>
         <Button

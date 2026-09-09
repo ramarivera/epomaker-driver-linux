@@ -3,13 +3,31 @@
 The Lighting page includes **Live screen lighting** for a connected wired USB
 Glyph whose firmware reports live-light support. Choose **Start screen lighting**
 and select a screen, window or tab in the browser's capture chooser. The selected
-source is resized to a 21×6 RGB grid and sent to the keyboard. Captured images are
+source is cropped, resized to a 21×6 RGB grid and sent to the keyboard. Captured images are
 processed in memory; neither images nor frames are saved.
 
 The browser selects sources using
 [`getDisplayMedia`](https://www.w3.org/TR/screen-capture/). Available source choices
 and permissions depend on the browser and desktop. This workflow requests video
 only. It does not start a microphone or desktop-audio capture.
+
+**Screen crop ratio** offers the vendor's eight choices: Original, 16:9, 16:10,
+4:3, 1:1, 1.37:1, 1.85:1 and 2.35:1. The default and reset value is 2.35:1.
+Original uses the whole selected source; the other choices produce the largest
+centered rectangle with that ratio, using the vendor's rounding rules. Changes
+apply to the next frame without starting a second capture. The crop recalculates
+if the source dimensions change, and the panel shows both source and crop sizes.
+A live 21×6 preview shows the RGB values from successfully sent frames; it is
+cleared on stop and is not a verified physical LED layout.
+
+The chosen ratio survives page navigation and reconnect within the open app.
+Reloading the browser resets it; no capture selection or images are persisted.
+To choose another source, stop and start capture again through the browser
+chooser. Resetting the ratio does not change the captured source. The vendor
+also resets to its first display; browser capture permissions require source
+selection through the chooser instead. See the
+[screen layout audit](releases/glyph-live-layout-audit.md). Rhythm position,
+size and rotation controls do not apply to the vendor's screen mode.
 
 One frame request completes before the next is scheduled, with a 100 ms pause.
 This caps the browser at 10 frames/second before transfer time; actual rate is
@@ -46,7 +64,7 @@ to an app audio effect yet. Tests use fake processes and synthetic PCM; no real
 capture was performed during this implementation.
 
 Physical LED correspondence, real desktop capture, USB throughput and restoration
-remain unverified. Vendor crop/layout controls, rhythm visualization and its DSP
+remain unverified. Rhythm layout controls, visualization and its DSP
 settings, persistent host-service behavior, and suspend/resume remain unfinished.
 The screen workflow and audio capture component do not establish full live-light
 parity.
