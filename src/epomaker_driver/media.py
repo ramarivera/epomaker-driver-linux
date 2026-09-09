@@ -1,5 +1,8 @@
 """Convert local still images into keyboard display pixels before touching hardware."""
 
+import base64
+import io
+
 from PIL import Image, ImageOps
 
 from .codec import rgb24_column_major, rgb565_column_major
@@ -59,3 +62,50 @@ def screen_animation(path, *, fit=False, delay_ms=None, model_id=3059):
         # Match positive Math.round rather than Python's half-to-even rounding.
         actual_delay = (2 * sum(delays) + count) // (2 * count) if delay_ms is None else delay_ms
         return frames, actual_delay
+
+
+def _preview_png(frame, spec):
+    """Reconstruct a PNG from the exact column-major wire pixels."""
+    width, height = spec["width"], spec["height"]
+    image = Image.new("RGB", (width, height))
+    pixels = image.load()
+    step = spec["pixel_bytes"]
+    for x in range(width):
+        for y in range(height):
+            offset = (x * height + y) * step
+            if step == 2:
+                value = int.from_bytes(frame[offset : offset + 2], "big")
+                r = (value >> 11) & 31
+                g = (value >> 5) & 63
+                b = value & 31
+                pixels[x, y] = ((r * 255 + 15) // 31, (g * 255 + 31) // 63, (b * 255 + 15) // 31)
+            else:
+                pixels[x, y] = tuple(frame[offset : offset + 3])
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    return base64.b64encode(output.getvalue()).decode("ascii")
+
+
+def prepare_display(content, *, kind, delay_ms=None, model_id=3059):
+    """Prepare an offline display preview using the same conversion as uploads."""
+    if kind not in ("screen", "animation"):
+        raise ValueError("display kind must be screen or animation")
+    if not isinstance(content, (bytes, bytearray)) or not content:
+        raise ValueError("display content must be nonempty bytes")
+    spec = display_spec(model_id)
+    source = io.BytesIO(content)
+    if kind == "screen":
+        frames = [screen_image(source, fit=True, model_id=model_id)]
+        actual_delay = None
+    else:
+        frames, actual_delay = screen_animation(
+            source, fit=True, delay_ms=delay_ms, model_id=model_id
+        )
+    return {
+        "width": spec["width"],
+        "height": spec["height"],
+        "frame_count": len(frames),
+        "delay_ms": actual_delay,
+        "pixel_bytes": sum(len(frame) for frame in frames),
+        "preview_png": _preview_png(frames[0], spec),
+    }

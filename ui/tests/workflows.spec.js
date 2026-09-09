@@ -168,6 +168,9 @@ test("display image upload, clock, backup download and verified restore", async 
     ),
   });
   await page
+    .getByRole("button", { name: "Prepare preview", exact: true })
+    .click();
+  await page
     .getByRole("button", { name: "Upload to display", exact: true })
     .click();
   await expect(

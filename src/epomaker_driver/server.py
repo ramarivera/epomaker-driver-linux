@@ -87,6 +87,18 @@ class Controller:
             )
         if operation == "macro_library_delete":
             return self.library.delete(data.get("id"), data.get("revision"))
+        if operation == "display_prepare":
+            encoded = data.get("content")
+            if not isinstance(encoded, str) or not encoded:
+                raise ValueError("display content must be a base64 string")
+            if len(encoded) > MAX_BODY:
+                raise ValueError("display content exceeds request size limit")
+            content = base64.b64decode(encoded, validate=True)
+            return media.prepare_display(
+                content,
+                kind=data.get("kind"),
+                delay_ms=data.get("delay_ms"),
+            )
         if operation == "connect":
             info = next(
                 (d for d in self.discovery() if d.path == data.get("path") and d.command_transport),
@@ -328,6 +340,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/validate_macro",
             "/api/macro_library_save",
             "/api/macro_library_delete",
+            "/api/display_prepare",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return

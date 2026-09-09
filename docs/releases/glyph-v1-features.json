@@ -617,8 +617,12 @@
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_display_prepare.py",
+        "ui/tests/display-prepare.spec.js",
+        "ui/tests/workflows.spec.js"
+      ],
+      "notes": "Offline preparation validates all converted frames and previews the first frame from actual RGB565 pixels, with frame count and effective timing. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open."
     },
     {
       "id": "G09.2",
@@ -633,8 +637,12 @@
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_display_prepare.py",
+        "ui/tests/display-prepare.spec.js",
+        "ui/tests/workflows.spec.js"
+      ],
+      "notes": "Offline preparation validates all converted frames and previews the first frame from actual RGB565 pixels, with frame count and effective timing. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open."
     },
     {
       "id": "G09.3",
