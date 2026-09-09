@@ -61,4 +61,37 @@ them. The decoder processes events at the end of a completely full macro buffer.
 
 This is based on the shipped `macroEventToByte`, `buffToMacroEvents`, `configToMatrix`
 and mouse action table, documented in [the protocol reference](glyph-protocol.md).
-No recording service or physical-device acceptance has been verified yet.
+Physical-device playback acceptance remains unverified.
+
+
+## Focused keyboard recording
+
+The Macro page records keyboard events only while its capture pad is focused.
+Start a recording, type the sequence, then stop or press Escape. Losing focus also
+stops capture. Escape is reserved for leaving recording; add an Escape action in
+the editor when needed. Browser/OS-reserved shortcuts and keys not delivered as
+keyboard events cannot be captured. Mouse events remain editable manually.
+
+A recording creates a separate draft. Review and explicitly replace the editor to
+use it; cancel/discard preserves the existing macro. Saving to a device and assigning
+the macro slot remain separate actions. The backend validates the draft before it
+replaces the editor. Oversized macros, unsupported keys and out-of-range measured
+delays are reported instead of silently altering the saved editor sequence.
+
+Measured timing records the interval between accepted actions on the preceding
+action. Fixed timing uses the selected interval (1–65535 ms). Measured recordings
+end with a 50 ms trailing delay; fixed recordings end with the selected delay.
+Repeated keydown events are ignored. Held keys receive generated release actions
+when recording stops; review these actions before accepting the draft.
+
+Vendor evidence: Windows `fd19495c.js` and macOS `918febcc.js` append each new
+inter-event delay before the next action; the first action has no leading delay.
+The index-bundle `stopRecording` appends a trailing measured 50 ms/fixed delay.
+Adapters pair each action with the following delay when calling `macroEventToByte`.
+Thus a sequence is action A, gap A-to-B, action B, trailing delay. This source
+convention does not establish physical firmware playback timing.
+
+The vendor rejects unmatched held keys and saturates long gaps; this recorder
+instead adds explicit releases and rejects unrepresentable timing. These are
+intentional recording-workflow differences, not claims of verified device behavior.
+Source files belong to [the pinned installer baseline](source-releases.json).

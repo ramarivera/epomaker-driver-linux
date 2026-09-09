@@ -30,7 +30,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G05.2 | Macro editor/import/export | partial | expected |
 | G05.3 | Macro delays, repeats, and playback modes | partial | expected |
 | G05.4 | Mouse-motion macro semantics | partial | expected |
-| G05.5 | Macro recording and playback verification | missing | expected |
+| G05.5 | Macro recording and playback verification | partial | expected |
 | G06.1 | Main lighting effect catalog and controls | partial | expected |
 | G06.2 | Side lighting effect catalog and controls | partial | expected |
 | G06.3 | Lighting persistence, off, and readback | partial | expected |

@@ -389,12 +389,16 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/macros-editor.jsx"
+        "ui/src/macros-editor.jsx",
+        "docs/macros.md"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Binding and stored macro execution configuration already exist; recording and physical playback verification remain."
+      "test_evidence": [
+        "ui/tests/macro-recording.spec.js",
+        "tests/test_macros.py"
+      ],
+      "notes": "Focused keyboard recording supports measured/fixed timing and validated draft replacement. Mouse capture, reserved-key workflow comparison and physical playback verification remain open."
     },
     {
       "id": "G06.1",

@@ -65,6 +65,10 @@ lighting, custom patterns, macro editing and malformed imports, image upload, se
 backup/restore, and a narrow viewport. They complement protocol tests and manual visual
 verification through the Codex in-app browser. See [design/spec.md](design/spec.md).
 
-Remaining interface work includes macro recording, localization, native packaging,
+The Macro page includes focused keyboard recording with measured/fixed delays and
+an explicit draft review before replacement. See [macro recording](macros.md#focused-keyboard-recording)
+for reserved shortcuts and capture limitations.
+
+Remaining interface work includes mouse macro recording, localization, native packaging,
 reactive host lighting, background refresh, richer display controls, and additional
 protocol families. A successful simulated readback does not establish hardware parity.

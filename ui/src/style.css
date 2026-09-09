@@ -660,3 +660,29 @@ td .fields {
     animation: none;
   }
 }
+
+/* ui/src/macro-recorder.jsx: focused capture surface and draft preview. */
+.macro-recorder {
+  margin-block: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.macro-capture-pad {
+  padding: 20px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-block: 12px;
+}
+.macro-capture-pad.recording {
+  border-color: var(--accent);
+}
+.macro-capture-pad:focus-visible {
+  outline: 3px solid #7d96ff;
+  outline-offset: 3px;
+}
+.macro-preview ol {
+  max-height: 240px;
+  overflow: auto;
+}

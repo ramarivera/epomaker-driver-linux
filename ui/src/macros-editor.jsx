@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { api, download } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
+import MacroRecorder from "./macro-recorder";
 const makeEvent = (type) =>
   type === "mouse_move"
     ? { type, dx: 0, dy: 0, delay_ms: 10 }
@@ -9,6 +10,7 @@ const makeEvent = (type) =>
       ? { type, button: "left", down: true, delay_ms: 10 }
       : { hid_usage: 4, down: true, delay_ms: 10 };
 export default function MacrosEditor({ connected, busy, run }) {
+  const [recorderValidating, setRecorderValidating] = useState(false);
   const [slot, setSlot] = useState(0),
     [value, setValue] = useState({ repeat: 1, events: [] }),
     [kind, setKind] = useState("keyboard"),
@@ -37,7 +39,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           />
         </Field>
         <Button
-          disabled={!connected || busy}
+          disabled={!connected || busy || recorderValidating}
           onClick={() =>
             run(async () => {
               const result = await api("read", { section: "macro", slot });
@@ -50,6 +52,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           Load macro
         </Button>
         <Button
+          disabled={busy || recorderValidating}
           onClick={() => {
             setValue({ repeat: 1, events: [] });
             setWarning("");
@@ -62,6 +65,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           <input
             type="file"
             accept=".json"
+            disabled={busy || recorderValidating}
             onChange={(e) => {
               const file = e.target.files[0];
               if (file)
@@ -92,6 +96,15 @@ export default function MacrosEditor({ connected, busy, run }) {
       )}
       {value && (
         <>
+          <MacroRecorder
+            busy={busy}
+            onValidatingChange={setRecorderValidating}
+            onUse={(recorded) => {
+              setValue(recorded);
+              setRaw(null);
+              setWarning("");
+            }}
+          />
           <div className="fields">
             <Field label="Repeat count">
               <input
@@ -268,7 +281,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           <div className="apply-row">
             <Button
               primary
-              disabled={!connected || busy}
+              disabled={!connected || busy || recorderValidating}
               onClick={() =>
                 run(
                   () => api("write", { kind: "macro", slot, value }),
