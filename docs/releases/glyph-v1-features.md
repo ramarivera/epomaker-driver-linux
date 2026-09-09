@@ -38,7 +38,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G06.4 | Conditional brightness, speed, RGB, rainbow, and music controls | partial | expected |
 | G07.1 | Select and persist picture bank | partial | expected |
 | G07.2 | Edit per-key RGB picture pixels | partial | expected |
-| G07.3 | Picture import/export and full bank correspondence | missing | expected |
+| G07.3 | Picture import/export and full bank correspondence | partial | expected |
 | G08.1 | Host live-light USB gating | unresolved | pending-audit |
 | G08.2 | Live-light capture/stream lifecycle | missing | expected |
 | G09.1 | Still-image conversion and screen upload | partial | expected |

@@ -1,0 +1,549 @@
+{
+  "model": "Epomaker Glyph",
+  "matrix_slots": 128,
+  "records": [
+    {
+      "key": "AudioVolumeDown",
+      "slot": 109,
+      "reason": "exact defaultMatrix record [3, 0, 234, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "MediaPlayPause",
+      "slot": 53,
+      "reason": "exact defaultMatrix record [3, 0, 205, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "AudioVolumeUp",
+      "slot": 108,
+      "reason": "exact defaultMatrix record [3, 0, 233, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Backspace",
+      "slot": 79,
+      "reason": "exact defaultMatrix record [0, 0, 42, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Tab",
+      "slot": 2,
+      "reason": "exact defaultMatrix record [0, 0, 43, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "CapsLock",
+      "slot": 3,
+      "reason": "exact defaultMatrix record [0, 0, 57, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Enter",
+      "slot": 81,
+      "reason": "exact defaultMatrix record [0, 0, 40, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ShiftLeft",
+      "slot": 4,
+      "reason": "exact defaultMatrix record [0, 0, 225, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ShiftRight",
+      "slot": 76,
+      "reason": "exact defaultMatrix record [0, 0, 229, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ControlLeft",
+      "slot": 5,
+      "reason": "exact defaultMatrix record [0, 0, 224, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "MetaLeft",
+      "slot": 11,
+      "reason": "exact defaultMatrix record [0, 0, 227, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "AltLeft",
+      "slot": 17,
+      "reason": "exact defaultMatrix record [0, 0, 226, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Space",
+      "slot": 41,
+      "reason": "exact defaultMatrix record [0, 0, 44, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "AltRight",
+      "slot": 59,
+      "reason": "exact defaultMatrix record [0, 0, 230, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Fn",
+      "slot": 65,
+      "reason": "exact defaultMatrix record [10, 1, 0, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Backslash",
+      "slot": 80,
+      "reason": "exact defaultMatrix record [0, 0, 49, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Escape",
+      "slot": 0,
+      "reason": "exact defaultMatrix record [0, 0, 41, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Backquote",
+      "slot": 1,
+      "reason": "exact defaultMatrix record [0, 0, 53, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit1",
+      "slot": 7,
+      "reason": "exact defaultMatrix record [0, 0, 30, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit2",
+      "slot": 13,
+      "reason": "exact defaultMatrix record [0, 0, 31, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit3",
+      "slot": 19,
+      "reason": "exact defaultMatrix record [0, 0, 32, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit4",
+      "slot": 25,
+      "reason": "exact defaultMatrix record [0, 0, 33, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit5",
+      "slot": 31,
+      "reason": "exact defaultMatrix record [0, 0, 34, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit6",
+      "slot": 37,
+      "reason": "exact defaultMatrix record [0, 0, 35, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit7",
+      "slot": 43,
+      "reason": "exact defaultMatrix record [0, 0, 36, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit8",
+      "slot": 49,
+      "reason": "exact defaultMatrix record [0, 0, 37, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit9",
+      "slot": 55,
+      "reason": "exact defaultMatrix record [0, 0, 38, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Digit0",
+      "slot": 61,
+      "reason": "exact defaultMatrix record [0, 0, 39, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Minus",
+      "slot": 67,
+      "reason": "exact defaultMatrix record [0, 0, 45, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Equal",
+      "slot": 73,
+      "reason": "exact defaultMatrix record [0, 0, 46, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyQ",
+      "slot": 8,
+      "reason": "exact defaultMatrix record [0, 0, 20, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyW",
+      "slot": 14,
+      "reason": "exact defaultMatrix record [0, 0, 26, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyE",
+      "slot": 20,
+      "reason": "exact defaultMatrix record [0, 0, 8, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyR",
+      "slot": 26,
+      "reason": "exact defaultMatrix record [0, 0, 21, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyT",
+      "slot": 32,
+      "reason": "exact defaultMatrix record [0, 0, 23, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyY",
+      "slot": 38,
+      "reason": "exact defaultMatrix record [0, 0, 28, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyU",
+      "slot": 44,
+      "reason": "exact defaultMatrix record [0, 0, 24, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyI",
+      "slot": 50,
+      "reason": "exact defaultMatrix record [0, 0, 12, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyO",
+      "slot": 56,
+      "reason": "exact defaultMatrix record [0, 0, 18, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyP",
+      "slot": 62,
+      "reason": "exact defaultMatrix record [0, 0, 19, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "BracketLeft",
+      "slot": 68,
+      "reason": "exact defaultMatrix record [0, 0, 47, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "BracketRight",
+      "slot": 74,
+      "reason": "exact defaultMatrix record [0, 0, 48, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyA",
+      "slot": 9,
+      "reason": "exact defaultMatrix record [0, 0, 4, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyS",
+      "slot": 15,
+      "reason": "exact defaultMatrix record [0, 0, 22, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyD",
+      "slot": 21,
+      "reason": "exact defaultMatrix record [0, 0, 7, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyF",
+      "slot": 27,
+      "reason": "exact defaultMatrix record [0, 0, 9, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyG",
+      "slot": 33,
+      "reason": "exact defaultMatrix record [0, 0, 10, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyH",
+      "slot": 39,
+      "reason": "exact defaultMatrix record [0, 0, 11, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyJ",
+      "slot": 45,
+      "reason": "exact defaultMatrix record [0, 0, 13, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyK",
+      "slot": 51,
+      "reason": "exact defaultMatrix record [0, 0, 14, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyL",
+      "slot": 57,
+      "reason": "exact defaultMatrix record [0, 0, 15, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Semicolon",
+      "slot": 63,
+      "reason": "exact defaultMatrix record [0, 0, 51, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Quote",
+      "slot": 69,
+      "reason": "exact defaultMatrix record [0, 0, 52, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F1",
+      "slot": 6,
+      "reason": "exact defaultMatrix record [0, 0, 58, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F2",
+      "slot": 12,
+      "reason": "exact defaultMatrix record [0, 0, 59, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F3",
+      "slot": 18,
+      "reason": "exact defaultMatrix record [0, 0, 60, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F4",
+      "slot": 24,
+      "reason": "exact defaultMatrix record [0, 0, 61, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F5",
+      "slot": 30,
+      "reason": "exact defaultMatrix record [0, 0, 62, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F6",
+      "slot": 36,
+      "reason": "exact defaultMatrix record [0, 0, 63, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F7",
+      "slot": 42,
+      "reason": "exact defaultMatrix record [0, 0, 64, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F8",
+      "slot": 48,
+      "reason": "exact defaultMatrix record [0, 0, 65, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F9",
+      "slot": 54,
+      "reason": "exact defaultMatrix record [0, 0, 66, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F10",
+      "slot": 60,
+      "reason": "exact defaultMatrix record [0, 0, 67, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F11",
+      "slot": 66,
+      "reason": "exact defaultMatrix record [0, 0, 68, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "F12",
+      "slot": 72,
+      "reason": "exact defaultMatrix record [0, 0, 69, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ArrowLeft",
+      "slot": 71,
+      "reason": "exact defaultMatrix record [0, 0, 80, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ArrowDown",
+      "slot": 77,
+      "reason": "exact defaultMatrix record [0, 0, 81, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ArrowUp",
+      "slot": 82,
+      "reason": "exact defaultMatrix record [0, 0, 82, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "PageUp",
+      "slot": 87,
+      "reason": "exact defaultMatrix record [0, 0, 75, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "PageDown",
+      "slot": 88,
+      "reason": "exact defaultMatrix record [0, 0, 78, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "ArrowRight",
+      "slot": 83,
+      "reason": "exact defaultMatrix record [0, 0, 79, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyZ",
+      "slot": 16,
+      "reason": "exact defaultMatrix record [0, 0, 29, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyX",
+      "slot": 22,
+      "reason": "exact defaultMatrix record [0, 0, 27, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyC",
+      "slot": 28,
+      "reason": "exact defaultMatrix record [0, 0, 6, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyV",
+      "slot": 34,
+      "reason": "exact defaultMatrix record [0, 0, 25, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyB",
+      "slot": 40,
+      "reason": "exact defaultMatrix record [0, 0, 5, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyN",
+      "slot": 46,
+      "reason": "exact defaultMatrix record [0, 0, 17, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "KeyM",
+      "slot": 52,
+      "reason": "exact defaultMatrix record [0, 0, 16, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Comma",
+      "slot": 58,
+      "reason": "exact defaultMatrix record [0, 0, 54, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Period",
+      "slot": 64,
+      "reason": "exact defaultMatrix record [0, 0, 55, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Slash",
+      "slot": 70,
+      "reason": "exact defaultMatrix record [0, 0, 56, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "PrintScreen",
+      "slot": 78,
+      "reason": "exact defaultMatrix record [0, 0, 70, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "End",
+      "slot": 84,
+      "reason": "exact defaultMatrix record [0, 0, 77, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Insert",
+      "slot": 89,
+      "reason": "exact defaultMatrix record [0, 0, 73, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Home",
+      "slot": 85,
+      "reason": "exact defaultMatrix record [0, 0, 74, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    },
+    {
+      "key": "Delete",
+      "slot": 86,
+      "reason": "exact defaultMatrix record [0, 0, 76, 0]; vendor findIndexInDefaultMatrix(hid,index) occurrence 0"
+    }
+  ],
+  "reserved_slots": [
+    10,
+    23,
+    29,
+    35,
+    47,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    104,
+    105,
+    106,
+    107,
+    110,
+    111,
+    112,
+    113,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "last_two_slots": {
+    "126": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "127": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "evidence": {
+    "matrix_file": "src/epomaker_driver/data/glyph-matrices.json",
+    "layout_file": "src/epomaker_driver/data/glyph-key-layout.json",
+    "matrix_file_sha256": "f1efac445d769ee466b559d83ea1976e1f53f9f9e97910166558975dd48b38ee",
+    "vendor_chunk": "17dc9c62.js",
+    "vendor_setLightPic_byte_offset_windows": 6808,
+    "vendor_findIndexInDefaultMatrix_byte_offset_windows": 13823,
+    "vendor_findHidWithIndexInMatrix_byte_offset_windows": 7372,
+    "baseline": "docs/source-releases.json",
+    "linux_keymap": "ui/src/keymap.jsx"
+  },
+  "unexposed_nonempty_slots": [
+    {
+      "slot": 75,
+      "record": [
+        0,
+        0,
+        50,
+        0
+      ]
+    },
+    {
+      "slot": 102,
+      "record": [
+        0,
+        0,
+        42,
+        0
+      ]
+    },
+    {
+      "slot": 103,
+      "record": [
+        0,
+        0,
+        40,
+        0
+      ]
+    },
+    {
+      "slot": 114,
+      "record": [
+        19,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "slot": 115,
+      "record": [
+        19,
+        1,
+        1,
+        0
+      ]
+    }
+  ],
+  "model_id": 3059,
+  "status": "Source-derived candidate mapping; physical LED correspondence unverified"
+}

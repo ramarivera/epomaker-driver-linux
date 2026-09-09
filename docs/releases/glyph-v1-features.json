@@ -515,11 +515,16 @@
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
         "ui/src/lighting.jsx",
-        "ui/src/display.jsx"
+        "ui/src/display.jsx",
+        "docs/glyph-patterns.md",
+        "docs/releases/glyph-pattern-audit.md",
+        "ui/src/custom-pattern.jsx"
       ],
       "implementation_status": "partial",
-      "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [
+        "ui/tests/custom-pattern.spec.js"
+      ],
       "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
     },
     {
@@ -531,12 +536,18 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/lighting.jsx"
+        "ui/src/lighting.jsx",
+        "docs/glyph-patterns.md",
+        "docs/releases/glyph-pattern-audit.md",
+        "ui/src/custom-pattern.jsx",
+        "docs/releases/glyph-pattern-key-slots.json"
       ],
       "implementation_status": "partial",
-      "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [
+        "ui/tests/custom-pattern.spec.js"
+      ],
+      "notes": "Raw126-slot painting and fill exist. Source-derived86-key crosswalk has five nonvisible nonzero matrix records; visual key editing, undo/redo and physical LED correspondence remain open."
     },
     {
       "id": "G07.3",
@@ -547,12 +558,17 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/lighting.jsx"
+        "ui/src/lighting.jsx",
+        "docs/glyph-patterns.md",
+        "docs/releases/glyph-pattern-audit.md",
+        "ui/src/custom-pattern.jsx"
       ],
-      "implementation_status": "missing",
-      "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "implementation_status": "partial",
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [
+        "ui/tests/custom-pattern.spec.js"
+      ],
+      "notes": "Independent 126-color JSON import/export and offline creation/fill exist, with destination preservation and full-array simulated round trips. Source-derived86-key mapping available; physical correspondence, vendor saved-record management/file compatibility remain open."
     },
     {
       "id": "G08.1",

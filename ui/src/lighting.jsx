@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
+import CustomPattern from "./custom-pattern";
 const initial = {
   mode: "solid",
   rgb: 0xffffff,
@@ -242,72 +243,17 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
         </div>
       </Panel>
       <Panel title="Custom colors">
-        <div className="fields">
-          <Field label="Pattern">
-            <Select
-              value={index}
-              options={[0, 1, 2, 3, 4].map((i) => [i, `Pattern ${i + 1}`])}
-              onChange={(e) => {
-                setIndex(Number(e.target.value));
-                setColors(null);
-              }}
-            />
-          </Field>
-          <Field label="Paint color">
-            <input
-              type="color"
-              value={brush}
-              onChange={(e) => setBrush(e.target.value)}
-            />
-          </Field>
-          <Button
-            disabled={!connected || busy}
-            onClick={() =>
-              run(async () => {
-                const value = await api("read", { section: "picture", index });
-                setColors(value.colors.match(/.{6}/g));
-              })
-            }
-          >
-            Load pattern
-          </Button>
-        </div>
-        <p className="muted">
-          Load a pattern, then paint its physical color slots.
-        </p>
-        {colors && (
-          <div className="color-grid">
-            {colors.map((color, i) => (
-              <button
-                key={i}
-                title={`Color slot ${i}`}
-                aria-label={`Color slot ${i}`}
-                style={{ background: `#${color}` }}
-                onClick={() =>
-                  setColors(
-                    colors.map((c, j) => (i === j ? brush.slice(1) : c)),
-                  )
-                }
-              />
-            ))}
-          </div>
-        )}
-        <Button
-          disabled={!connected || busy || !colors}
-          onClick={() =>
-            run(
-              () =>
-                api("write", {
-                  kind: "picture",
-                  index,
-                  colors: colors.join(""),
-                }),
-              "Pattern verified.",
-            )
-          }
-        >
-          Save pattern
-        </Button>
+        <CustomPattern
+          index={index}
+          setIndex={setIndex}
+          colors={colors}
+          setColors={setColors}
+          brush={brush}
+          setBrush={setBrush}
+          connected={connected}
+          busy={busy}
+          run={run}
+        />
       </Panel>
     </>
   );
