@@ -2,52 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Volume1, Volume2, Play } from "lucide-react";
 import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
-const DOM = {
-  Backspace: 42,
-  Tab: 43,
-  CapsLock: 57,
-  Enter: 40,
-  ShiftLeft: 225,
-  ShiftRight: 229,
-  ControlLeft: 224,
-  MetaLeft: 227,
-  AltLeft: 226,
-  Space: 44,
-  AltRight: 230,
-  Backslash: 49,
-  Escape: 41,
-  Backquote: 53,
-  Minus: 45,
-  Equal: 46,
-  BracketLeft: 47,
-  BracketRight: 48,
-  Semicolon: 51,
-  Quote: 52,
-  ArrowLeft: 80,
-  ArrowDown: 81,
-  ArrowUp: 82,
-  PageUp: 75,
-  PageDown: 78,
-  ArrowRight: 79,
-  Comma: 54,
-  Period: 55,
-  Slash: 56,
-  PrintScreen: 70,
-  End: 77,
-  Insert: 73,
-  Home: 74,
-  Delete: 76,
-};
-for (let i = 0; i < 26; i++) DOM[`Key${String.fromCharCode(65 + i)}`] = i + 4;
-for (let i = 1; i <= 9; i++) DOM[`Digit${i}`] = i + 29;
-DOM.Digit0 = 39;
-for (let i = 1; i <= 12; i++) DOM[`F${i}`] = 57 + i;
-const SPECIAL = {
-  Fn: [10, 1, 0, 0],
-  AudioVolumeDown: [3, 0, 234, 0],
-  AudioVolumeUp: [3, 0, 233, 0],
-  MediaPlayPause: [3, 0, 205, 0],
-};
+import { layoutKeys } from "./keyboard-layout";
 const hex = (values) =>
   values.map((n) => n.toString(16).padStart(2, "0")).join("");
 function decode(raw, catalog) {
@@ -83,17 +38,7 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
     fn: layer !== "Main",
     os_mode: layer === "Fn Mac" ? 1 : 0,
   };
-  const keys = useMemo(
-    () =>
-      Object.entries(catalog.layout.layout).map(([name, geometry]) => {
-        const action = SPECIAL[name] || [0, 0, DOM[name], 0];
-        const slot = Array.from({ length: 128 }, (_, i) => i).find((i) =>
-          action.every((n, j) => catalog.matrices[0][i * 4 + j] === n),
-        );
-        return { name, geometry, slot };
-      }),
-    [catalog],
-  );
+  const keys = useMemo(() => layoutKeys(catalog), [catalog]);
   useEffect(() => {
     setSlot(keys.find((k) => k.name === "KeyA").slot);
   }, [keys]);
@@ -200,7 +145,7 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
                 key={name}
                 aria-label={`Key ${g.displayText?.join(" ") || name}`}
                 title={`${name} · slot ${keySlot}`}
-                disabled={busy || keySlot === undefined}
+                disabled={busy || keySlot == null}
                 aria-pressed={slot === keySlot}
                 onClick={() => setSlot(keySlot)}
                 className={`key ${slot === keySlot ? "selected" : ""} ${g.type === "knob" ? "knob" : ""}`}

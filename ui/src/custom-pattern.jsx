@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Button, Field, Select } from "./controls";
 import { api, download } from "./api";
+import PatternKeyboard from "./pattern-keyboard";
 
 export const PATTERN_SCHEMA = "epomaker-glyph-pattern";
 export const PATTERN_VERSION = 1;
 export const PATTERN_MODEL_ID = 3059;
 export const PATTERN_COLORS = 126;
+export const PATTERN_HISTORY_LIMIT = 100;
 export const emptyPattern = () => Array(PATTERN_COLORS).fill("000000");
 
 export function validatePattern(value) {
@@ -53,14 +55,47 @@ export default function CustomPattern({
   connected,
   busy,
   run,
+  catalog,
 }) {
   const locked = busy;
+  // Keep one bounded draft history: changing banks or loading replaces its destination.
+  const histories = useRef({ past: [], future: [] });
+  const history = histories.current;
+  const sameColors = (left, right) =>
+    left === right ||
+    (Array.isArray(left) &&
+      Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((color, i) => color === right[i]));
+  const resetHistory = () => {
+    histories.current = { past: [], future: [] };
+  };
+  const edit = (next) => {
+    if (sameColors(colors, next)) return;
+    history.past.push(colors);
+    if (history.past.length > PATTERN_HISTORY_LIMIT)
+      history.past.splice(0, history.past.length - PATTERN_HISTORY_LIMIT);
+    history.future = [];
+    setColors(next);
+  };
+  const undo = () => {
+    if (locked || !history.past.length) return;
+    const previous = history.past.pop();
+    history.future.push(colors);
+    setColors(previous);
+  };
+  const redo = () => {
+    if (locked || !history.future.length) return;
+    const next = history.future.pop();
+    history.past.push(colors);
+    setColors(next);
+  };
   const importPattern = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     run(async () => {
       const next = await readPatternFile(file);
-      setColors(next);
+      edit(next);
     }).finally(() => {
       event.target.value = "";
     });
@@ -81,7 +116,9 @@ export default function CustomPattern({
             options={[0, 1, 2, 3, 4].map((i) => [i, `Pattern ${i + 1}`])}
             disabled={locked}
             onChange={(event) => {
-              setIndex(Number(event.target.value));
+              const nextIndex = Number(event.target.value);
+              resetHistory();
+              setIndex(nextIndex);
               setColors(null);
             }}
           />
@@ -112,13 +149,15 @@ export default function CustomPattern({
                 throw new Error(
                   "Keyboard returned an invalid 126-color pattern.",
                 );
-              setColors(value.colors.match(/.{6}/g));
+              const next = value.colors.match(/.{6}/g);
+              resetHistory();
+              setColors(next);
             });
           }}
         >
           Load pattern
         </Button>
-        <Button disabled={locked} onClick={() => setColors(emptyPattern())}>
+        <Button disabled={locked} onClick={() => edit(emptyPattern())}>
           New pattern
         </Button>
       </div>
@@ -138,9 +177,15 @@ export default function CustomPattern({
         </Button>
         <Button
           disabled={locked || !colors}
-          onClick={() => setColors(colors.map(() => brush.slice(1)))}
+          onClick={() => edit(colors.map(() => brush.slice(1)))}
         >
           Fill all
+        </Button>
+        <Button disabled={locked || !history.past.length} onClick={undo}>
+          Undo
+        </Button>
+        <Button disabled={locked || !history.future.length} onClick={redo}>
+          Redo
         </Button>
       </div>
       <p className="muted">
@@ -148,24 +193,39 @@ export default function CustomPattern({
         different format.
       </p>
       {colors && (
-        <div className="color-grid">
-          {colors.map((color, i) => (
-            <button
-              key={i}
-              title={`Color slot ${i}`}
-              aria-label={`Color slot ${i}`}
-              disabled={locked}
-              style={{ background: `#${color}` }}
-              onClick={() =>
-                setColors(
-                  colors.map((current, j) =>
-                    i === j ? brush.slice(1) : current,
-                  ),
-                )
-              }
-            />
-          ))}
-        </div>
+        <>
+          <PatternKeyboard
+            catalog={catalog}
+            colors={colors}
+            brush={brush}
+            onPaint={(slot) =>
+              edit(
+                colors.map((current, i) =>
+                  i === slot ? brush.slice(1) : current,
+                ),
+              )
+            }
+            disabled={locked}
+          />
+          <div className="color-grid">
+            {colors.map((color, i) => (
+              <button
+                key={i}
+                title={`Color slot ${i}`}
+                aria-label={`Color slot ${i}`}
+                disabled={locked}
+                style={{ background: `#${color}` }}
+                onClick={() =>
+                  edit(
+                    colors.map((current, j) =>
+                      i === j ? brush.slice(1) : current,
+                    ),
+                  )
+                }
+              />
+            ))}
+          </div>
+        </>
       )}
       <Button
         disabled={!connected || locked || !colors}

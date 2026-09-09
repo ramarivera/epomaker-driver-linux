@@ -244,6 +244,7 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
       </Panel>
       <Panel title="Custom colors">
         <CustomPattern
+          catalog={catalog}
           index={index}
           setIndex={setIndex}
           colors={colors}

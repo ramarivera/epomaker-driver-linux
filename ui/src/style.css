@@ -686,3 +686,28 @@ td .fields {
   max-height: 240px;
   overflow: auto;
 }
+.pattern-keyboard-scroll {
+  overflow-x: auto;
+  padding: 8px 0 14px;
+}
+.pattern-keyboard {
+  position: relative;
+  min-width: 760px;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+.pattern-key {
+  position: absolute;
+  padding: 5px;
+  border: 1px solid rgba(17, 24, 39, 0.22);
+  border-radius: 6px;
+  overflow: hidden;
+  white-space: pre-line;
+  line-height: 1.1;
+  font-size: clamp(9px, 0.9vw, 14px);
+  font-weight: 650;
+  text-align: center;
+}
+.pattern-key.knob {
+  border-radius: 50%;
+}

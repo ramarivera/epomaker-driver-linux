@@ -547,7 +547,7 @@
       "test_evidence": [
         "ui/tests/custom-pattern.spec.js"
       ],
-      "notes": "Raw126-slot painting and fill exist. Source-derived86-key crosswalk has five nonvisible nonzero matrix records; visual key editing, undo/redo and physical LED correspondence remain open."
+      "notes": "Visual painting covers 86 layout entries using the source-derived crosswalk; all 126 raw RGB slots remain editable. Draft undo/redo retains up to 100 edits. Five nonvisible nonzero matrix records remain unexplained; physical LED correspondence and the full vendor editing workflow audit remain open."
     },
     {
       "id": "G07.3",
