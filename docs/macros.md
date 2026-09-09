@@ -69,6 +69,39 @@ This is based on the shipped `macroEventToByte`, `buffToMacroEvents`, `configToM
 and mouse action table, documented in [the protocol reference](glyph-protocol.md).
 Physical-device playback acceptance remains unverified.
 
+## Named macro library
+
+The Macro page can keep named entries on the Linux host independently of the
+keyboard's numeric slots. Library operations work while disconnected. Each entry
+contains an editable sequence and a preferred playback mode: count, toggle, or
+held. Saving a library entry does not write the keyboard or assign a key; deleting
+an entry does not erase a device slot.
+
+Load an entry into the editor, choose its destination macro slot, then use Save
+macro to write that slot. Assign the slot and its playback mode in Keymap. The
+library's playback preference is metadata; loading it does not change an existing
+key assignment. Editing a loaded sequence does not persist changes until the
+library update action is used.
+
+Names must be nonblank and at most 20 characters. Entries have stable generated
+identifiers, so renaming does not change their identity. Updates and deletion use
+revision checks: a stale browser tab must refresh before replacing newer saved
+content. Errors preserve the existing saved entry and editor draft.
+
+`epomaker serve` stores entries under
+`~/.local/share/epomaker-driver-linux/macros`. Set `serve --library-dir PATH` to
+choose another location. This directory is independent of `--backup-dir`, browser
+storage, and the server's port or session token. Back up the library directory as
+well as device snapshots: the keyboard backup does not contain host-side names or
+library entries. Semantic JSON export contains the sequence only, not its library
+identity or playback preference.
+
+The library supports up to 4096 entries, each bounded to 1 MiB on disk and the
+existing 256-byte encoded macro capacity. It uses private atomic JSON files and validates stored sequences before
+returning them. Corrupt entries produce an error rather than being silently
+discarded. This is an independent local library; vendor cloud synchronization and
+vendor file compatibility remain open audit items.
+
 
 ## Focused input recording
 

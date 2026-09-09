@@ -131,6 +131,7 @@ const MIN_DELAY = 1;
 export default function MacroRecorder({
   onUse,
   onValidatingChange,
+  onPendingChange,
   busy = false,
 }) {
   const pad = useRef(null);
@@ -145,6 +146,12 @@ export default function MacroRecorder({
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(null);
   const [validating, setValidating] = useState(false);
+
+  useEffect(() => {
+    onPendingChange?.(
+      recording || events.length > 0 || Boolean(preview) || validating,
+    );
+  }, [events.length, onPendingChange, preview, recording, validating]);
 
   const updateEvents = (next) => {
     eventsRef.current = next;

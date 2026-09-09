@@ -16,6 +16,7 @@ from . import actions, codec, macros, media, snapshot, system_info
 from .device import Keyboard
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
+from .macro_library import MacroLibrary
 from .models import glyph_matrix
 from .transport import Transport
 
@@ -23,8 +24,11 @@ MAX_BODY = 20 * 1024 * 1024
 
 
 class Controller:
-    def __init__(self, backup_dir, *, discovery=discover, transport_factory=Transport.open):
+    def __init__(
+        self, backup_dir, *, library_dir=None, discovery=discover, transport_factory=Transport.open
+    ):
         self.backup_dir = Path(backup_dir)
+        self.library = MacroLibrary(library_dir or self.backup_dir / "macro-library")
         self.discovery, self.transport_factory = discovery, transport_factory
         self.keyboard = None
         self.identity = None
@@ -71,6 +75,18 @@ class Controller:
             value = data["value"]
             macros.encode(value["repeat"], value["events"])
             return value
+        if operation == "macro_library":
+            return {"entries": self.library.list()}
+        if operation == "macro_library_save":
+            return self.library.save(
+                data.get("name"),
+                data.get("value"),
+                data.get("mode"),
+                data.get("id"),
+                data.get("revision"),
+            )
+        if operation == "macro_library_delete":
+            return self.library.delete(data.get("id"), data.get("revision"))
         if operation == "connect":
             info = next(
                 (d for d in self.discovery() if d.path == data.get("path") and d.command_transport),
@@ -280,7 +296,12 @@ class Handler(BaseHTTPRequestHandler):
         if not self._guard(api):
             return
         if api:
-            if path not in ("/api/devices", "/api/catalog", "/api/connection"):
+            if path not in (
+                "/api/devices",
+                "/api/catalog",
+                "/api/connection",
+                "/api/macro_library",
+            ):
                 self._reply(404, {"error": "unknown endpoint"})
                 return
             self._call(path[5:], {})
@@ -305,6 +326,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/read",
             "/api/write",
             "/api/validate_macro",
+            "/api/macro_library_save",
+            "/api/macro_library_delete",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return

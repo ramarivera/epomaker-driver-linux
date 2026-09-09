@@ -7,7 +7,7 @@ control audit, not physical verification or a closed inventory.
 
 | Workflow | Vendor evidence | Linux status |
 | --- | --- | --- |
-| Named macro collection | 16000–17800: selection, rename, rejection of blank names, deletion and `ALL_MACROS` persistence. 22500–23300: generated names, UUID and a new entry with events and playback metadata. | Missing. The numeric device-slot editor holds a single draft in memory. A persistent named collection is required for Glyph v1. |
+| Named macro collection | 16000–17800: selection, rename, rejection of blank names, deletion and `ALL_MACROS` persistence. 22500–23300: generated names, UUID and a new entry with events and playback metadata. | Local named creation, rename, update, deletion and disk persistence now exist. Explicit loading preserves the destination slot; device assignment remains separate. |
 | Playback metadata | 26500–27680: count bounded to 1–65535, toggle, and while-held selection. 32500–32900: Save invokes `saveMacro`. | Repeat editing exists; count/toggle/held binding selection lives in Keymap. The complete library-to-assignment workflow needs verification. Separate placement alone does not prove a missing device capability. |
 | Insert and capture one action | 29396–30942: an editing placeholder accepts a keyboard/mouse action; a coordinate entry is also insertable. | Numeric usage/button/coordinate editing exists, as does sequence recording. One-action capture remains missing. |
 | Local/cloud collection interaction | 19300–19750: page mount passes local entries through IOT DB helpers and invokes synchronization. 18500–19072: sharing has SDK/company/login conditions. | Local persistence is required. Helper behavior and shipped Glyph service gates need further tracing before deciding cloud applicability; these calls alone do not prove a mandatory network dependency. |
@@ -18,7 +18,7 @@ file workflows, or that Linux functionality is a superset. Broader configuration
 and service paths remain to be audited.
 
 Device macro slots, app-local named entries, and key playback bindings are distinct.
-The future library must preserve names and playback preferences without pretending
+The local library preserves names and playback preferences without pretending
 those names are stored in the device's 256-byte macro slot. Loading or saving a
 library entry must make its destination slot and assignment behavior clear.
 

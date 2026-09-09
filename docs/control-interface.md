@@ -29,6 +29,10 @@ local editing but disables device writes. Device permissions are documented in
 `serve --port 0` chooses an available port; the default is 8932. Ctrl+C closes the
 server and its keyboard connection. Recovery files default to
 `~/.local/state/epomaker-driver-linux/backups`; change this with `--backup-dir`.
+The named macro library defaults to `~/.local/share/epomaker-driver-linux/macros`;
+change this independently with `--library-dir`. Library operations are available
+offline and persist across browser/server restarts. See
+[library and device-slot semantics](macros.md#named-macro-library).
 A successful restore displays the recovery path. Downloaded backups go through the
 browser's normal download flow. Glyph backups include all 256 macro slots, including
 unreferenced and empty slots. Screen pixels are not included.

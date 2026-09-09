@@ -416,12 +416,22 @@
       "applicability": "expected",
       "audit_pointers": [
         "docs/releases/glyph-macro-editor-audit.md",
-        "ui/src/macros-editor.jsx"
+        "ui/src/macros-editor.jsx",
+        "src/epomaker_driver/macro_library.py",
+        "ui/src/macro-library.jsx",
+        "docs/macros.md"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
-      "test_evidence": [],
-      "notes": "Both vendor macro pages expose named entries, rename/delete and local persistence. Linux currently has one in-memory slot draft. Service synchronization applicability remains unresolved."
+      "test_evidence": [
+        "tests/test_macro_library.py",
+        "tests/test_macro_library_boundaries.py",
+        "tests/test_macro_library_cli.py",
+        "tests/test_macro_library_concurrency.py",
+        "ui/tests/macro-library.spec.js",
+        "ui/tests/macro-library-integration.spec.js"
+      ],
+      "notes": "Persistent local named entries support create, rename, update, delete, explicit editor loading and playback preferences. Revision checks protect concurrent updates. Assignment remains a separate Keymap workflow; vendor service synchronization and hardware playback are unverified."
     },
     {
       "id": "G06.1",

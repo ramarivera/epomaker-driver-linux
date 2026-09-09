@@ -59,6 +59,12 @@ def parser():
         type=Path,
         default=Path.home() / ".local/state/epomaker-driver-linux/backups",
     )
+    serve.add_argument(
+        "--library-dir",
+        type=Path,
+        default=Path.home() / ".local/share/epomaker-driver-linux/macros",
+        help="persistent named macro library directory (independent of device backups)",
+    )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     mouse_cli.parsers(commands)
@@ -214,7 +220,9 @@ def execute(args):
         from .server import Controller, ControlServer
 
         codec.bounded(args.port, 65535, "port")
-        with ControlServer(Controller(args.backup_dir), port=args.port) as server:
+        with ControlServer(
+            Controller(args.backup_dir, library_dir=args.library_dir), port=args.port
+        ) as server:
             print(f"http://127.0.0.1:{server.server_port}/#token={server.token}", flush=True)
             server.serve_forever()
         return {"stopped": True}
