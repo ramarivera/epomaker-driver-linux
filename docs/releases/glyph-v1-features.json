@@ -640,9 +640,11 @@
       "test_evidence": [
         "tests/test_display_prepare.py",
         "ui/tests/display-prepare.spec.js",
-        "ui/tests/workflows.spec.js"
+        "ui/tests/workflows.spec.js",
+        "tests/test_glyph_animation_transport.py",
+        "ui/tests/display-transport.spec.js"
       ],
-      "notes": "Offline preparation validates all converted frames and previews the first frame from actual RGB565 pixels, with frame count and effective timing. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open."
+      "notes": "Offline preparation validates all converted frames and previews the first frame from actual RGB565 pixels, with frame count and effective timing. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open. Glyph animation uploads require classified wired USB; the GUI uses connected transport metadata. Bluetooth/unknown transport cannot bypass the gate through multi-frame screen uploads."
     },
     {
       "id": "G09.3",

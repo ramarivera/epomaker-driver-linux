@@ -14,7 +14,8 @@ def descriptor():
 class SimulatedKeyboard:
     """Firmware-side state machine for integration tests, never real hardware."""
 
-    def __init__(self):
+    def __init__(self, kind="usb"):
+        self.kind = kind
         self.sent = []
         self.matrices = [bytearray(glyph_matrix()) for _ in range(3)]
         self.fn = [

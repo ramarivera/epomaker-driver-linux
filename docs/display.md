@@ -25,7 +25,11 @@ frame delay. It does not yet preview animation playback or offer frame editing.
 Changing the source, upload type or delay invalidates the prepared draft. Changing
 a still-image destination bank keeps the pixels. **Upload to display** sends the
 prepared source and effective timing only after an explicit click and connection;
-preparation itself performs no device access. Inputs remain locked during either
+preparation itself performs no device access. Glyph animation uploads require a
+wired USB connection; Bluetooth or unknown transports cannot upload animations.
+This follows the vendor UI gate, documented in
+[the display workflow audit](releases/glyph-display-workflow-audit.md). Single-frame
+still uploads are not given that restriction. Inputs remain locked during either
 operation. The graphical file limit is 14 MiB; normal server request limits also
 apply. Retained asset libraries and screen-image backup remain open work.
 

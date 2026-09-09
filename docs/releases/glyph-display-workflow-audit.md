@@ -25,9 +25,13 @@ not establish the same restriction for still-image uploads.
 
 The Linux animation conversion already validates frame capacity and timing without
 silently dropping frames. Offline preparation now reports the converted result.
-Explicit transport gating of the Glyph animation workflow remains a follow-up;
-it must cover backend entry points and the graphical controls, while leaving
-offline preparation available.
+The Linux backend now requires a transport classified as wired USB for Glyph
+animation, including the multi-frame screen entry point. Bluetooth and unknown
+transport kinds are rejected before the preparation handshake or pixel transfer.
+The interface uses the actual connected transport, not the device-menu selection,
+to enable animation upload. Offline preparation remains available, and single-frame
+still uploads retain their existing behavior. Tests: `tests/test_glyph_animation_transport.py`
+and `ui/tests/display-transport.spec.js`.
 
 These findings do not prove that every shared editor control is exposed for Glyph.
 Canvas editing, retained assets, screen clearing, transport behavior, firmware

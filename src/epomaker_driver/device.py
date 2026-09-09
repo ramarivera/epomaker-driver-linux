@@ -523,6 +523,8 @@ class Keyboard:
     def upload_screen(self, pixels, bounds, *, frame=0, frames=1, delay=0, progress=None):
         # Prepare all data/metadata before the first device mutation.
         self._supported()
+        if frames > 1:
+            self._require_wired_animation()
         spec = display_spec(self.identity["device_id"])
         if frames > spec["max_frames"]:
             raise ValueError("animation exceeds model display memory")
@@ -550,6 +552,7 @@ class Keyboard:
             raise ValueError(f"animation must contain 2..{maximum} frames")
         if any(len(frame) != width * height * spec["pixel_bytes"] for frame in frames):
             raise ValueError(f"animation frames must be complete {width}x{height} RGB images")
+        self._require_wired_animation()
         prepare = codec.screen_prepare(
             len(frames[0]),
             (0, 0, width, height),
@@ -567,6 +570,11 @@ class Keyboard:
             )
         ]
         self._transfer_screen(prepare, chunks, progress)
+
+    def _require_wired_animation(self):
+        """Match the vendor UI gate; see docs/releases/glyph-display-workflow-audit.md."""
+        if self.identity["device_id"] == 3059 and getattr(self.transport, "kind", None) != "usb":
+            raise UnsupportedDevice("Glyph animation uploads require a wired USB connection")
 
     def _transfer_screen(self, prepare, chunks, progress):
         self._check_commands([prepare])

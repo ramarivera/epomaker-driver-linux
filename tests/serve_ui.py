@@ -18,9 +18,14 @@ def main():
     device = DeviceInfo(
         "/dev/hidraw-test", "Glyph simulator", 5, 0x3151, 0x5004, descriptor, "bluetooth", 6
     )
+    usb_device = DeviceInfo(
+        "/dev/hidraw-usb-test", "Glyph USB simulator", 3, 0x3151, 0x5002, b"", "usb", 0
+    )
     with tempfile.TemporaryDirectory() as directory:
         controller = Controller(
-            directory, discovery=lambda: [device], transport_factory=lambda _: SimulatedKeyboard()
+            directory,
+            discovery=lambda: [device, usb_device],
+            transport_factory=lambda info: SimulatedKeyboard(kind=info.command_transport),
         )
         with ControlServer(controller, port=args.port, token="ui-test-token") as server:
             server.serve_forever()

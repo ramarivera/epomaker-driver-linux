@@ -184,6 +184,7 @@ function App() {
             key={tab}
             catalog={catalog}
             connected={connected}
+            transport={identity?.transport}
             busy={busy}
             run={run}
             epoch={epoch}

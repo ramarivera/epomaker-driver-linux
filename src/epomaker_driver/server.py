@@ -111,6 +111,9 @@ class Controller:
                 keyboard = Keyboard(transport)
                 keyboard._supported()
                 identity = keyboard.identify()
+                # The transport kind comes from the opened command collection;
+                # expose it so the UI can gate Glyph animation controls.
+                identity["transport"] = getattr(transport, "kind", None)
                 if identity["device_id"] != 3059:
                     raise UnsupportedDevice(
                         "The graphical interface currently supports Glyph; use the CLI for RT85/RT75 and RY6602 core"

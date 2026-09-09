@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { api, base64File } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
-export default function Display({ connected, busy, run }) {
+export default function Display({ connected, transport, busy, run }) {
   const [file, setFile] = useState(null),
     [prepared, setPrepared] = useState(null),
     [kind, setKind] = useState("screen"),
     [bank, setBank] = useState(0),
     [delay, setDelay] = useState("");
+  const animationNeedsUsb = kind === "animation" && transport !== "usb";
   return (
     <>
       <Panel title="Screen image">
@@ -91,6 +92,12 @@ export default function Display({ connected, busy, run }) {
               ` · ${prepared.delay_ms} ms per frame`}
           </p>
         )}
+        {kind === "animation" && (
+          <p className="muted">
+            Animation upload requires wired USB. You can prepare and preview it
+            on any connection.
+          </p>
+        )}
         <div className="apply-row">
           <Button
             disabled={busy || !file}
@@ -122,7 +129,7 @@ export default function Display({ connected, busy, run }) {
           </Button>
           <Button
             primary
-            disabled={!connected || busy || !prepared}
+            disabled={!connected || busy || !prepared || animationNeedsUsb}
             onClick={() =>
               run(
                 () =>
