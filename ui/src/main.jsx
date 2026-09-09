@@ -19,28 +19,60 @@ import Settings from "./settings";
 import Backups from "./backups";
 import "./style.css";
 const pages = [
-  ["Keymap", Keyboard, Keymap, "Select a key to change its assignment."],
-  ["Lighting", Lightbulb, Lighting, "Set effects and paint custom colors."],
+  [
+    "Keymap",
+    Keyboard,
+    Keymap,
+    "Select a key to change its assignment.",
+    "keymap",
+  ],
+  [
+    "Lighting",
+    Lightbulb,
+    Lighting,
+    "Set effects and paint custom colors.",
+    "lighting",
+  ],
   [
     "Macros",
     Play,
     MacrosEditor,
     "Create and assign keyboard and mouse sequences.",
+    "macros",
   ],
   [
     "Display",
     Monitor,
     Display,
     "Choose images and information for your keyboard.",
+    "display",
   ],
-  ["Settings", SettingsIcon, Settings, "Read and update keyboard preferences."],
+  [
+    "Settings",
+    SettingsIcon,
+    Settings,
+    "Read and update keyboard preferences.",
+    "settings",
+  ],
   [
     "Backups",
     Database,
     Backups,
     "Save your configuration and restore it with a recovery copy.",
+    "backups",
   ],
 ];
+const GLYPH_UI = {
+  profiles: 3,
+  fn_modes: [
+    { label: "Fn Windows", os_mode: 0 },
+    { label: "Fn Mac", os_mode: 1 },
+  ],
+  submodes: 1,
+  matrix_slots: 128,
+  macro_slots: 256,
+  controls: pages.map((page) => page[4]),
+};
 function App() {
   const [tab, setTab] = useState("Keymap"),
     [catalog, setCatalog] = useState(null),
@@ -67,14 +99,14 @@ function App() {
   }, []);
   useEffect(() => {
     run(async () => {
-      const [catalog, devices, connection] = await Promise.all([
-        api("catalog"),
+      const [devices, connection] = await Promise.all([
         api("devices"),
         api("connection"),
       ]);
-      setCatalog(catalog);
+      const nextCatalog = await api("catalog");
       setDevices(devices);
       setIdentity(connection);
+      setCatalog(nextCatalog);
     });
   }, []);
   const refresh = () =>
@@ -82,8 +114,17 @@ function App() {
       setDevices(await api("devices"));
       setEpoch((e) => e + 1);
     });
-  const selected = pages.find((page) => page[0] === tab),
+  const ui = identity?.ui || catalog?.ui || GLYPH_UI;
+  const visiblePages = pages.filter(
+    (page) => !ui.controls || ui.controls.includes(page[4]),
+  );
+  const selected =
+      visiblePages.find((page) => page[0] === tab) || visiblePages[0],
     Page = selected[2];
+  useEffect(() => {
+    if (!visiblePages.some((page) => page[0] === tab))
+      setTab(visiblePages[0][0]);
+  }, [identity?.device_id, catalog, tab]);
   const connected = Boolean(identity);
   return (
     <div className="app">
@@ -93,7 +134,7 @@ function App() {
           <span>Linux driver</span>
         </div>
         <nav aria-label="Controls">
-          {pages.map(([name, Icon]) => (
+          {visiblePages.map(([name, Icon]) => (
             <button
               key={name}
               className={tab === name ? "active" : ""}
@@ -121,7 +162,9 @@ function App() {
               onClick={() =>
                 run(async () => {
                   await api("disconnect", {});
+                  const nextCatalog = await api("catalog");
                   setIdentity(null);
+                  setCatalog(nextCatalog);
                 }, "Disconnected.")
               }
             >
@@ -156,7 +199,10 @@ function App() {
               disabled={busy || !path}
               onClick={() =>
                 run(async () => {
-                  setIdentity(await api("connect", { path }));
+                  const nextIdentity = await api("connect", { path });
+                  const nextCatalog = await api("catalog");
+                  setIdentity(nextIdentity);
+                  setCatalog(nextCatalog);
                   setEpoch((e) => e + 1);
                 }, "Keyboard connected.")
               }
@@ -183,6 +229,8 @@ function App() {
           <Page
             key={tab}
             catalog={catalog}
+            ui={ui}
+            identity={identity}
             connected={connected}
             busy={busy}
             run={run}

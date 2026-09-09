@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { api, download } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
@@ -8,12 +8,19 @@ const makeEvent = (type) =>
     : type === "mouse_button"
       ? { type, button: "left", down: true, delay_ms: 10 }
       : { hid_usage: 4, down: true, delay_ms: 10 };
-export default function MacrosEditor({ connected, busy, run }) {
+export default function MacrosEditor({ ui, connected, busy, run, epoch }) {
+  const macroSlots = ui?.macro_slots ?? 256;
   const [slot, setSlot] = useState(0),
     [value, setValue] = useState({ repeat: 1, events: [] }),
     [kind, setKind] = useState("keyboard"),
     [raw, setRaw] = useState(null),
     [warning, setWarning] = useState("");
+  useEffect(() => {
+    setSlot(0);
+    setValue({ repeat: 1, events: [] });
+    setRaw(null);
+    setWarning("");
+  }, [epoch, macroSlots]);
   const setEvent = (i, field, v) =>
     setValue({
       ...value,
@@ -31,7 +38,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           <input
             type="number"
             min="0"
-            max="255"
+            max={macroSlots - 1}
             value={slot}
             onChange={(e) => setSlot(Number(e.target.value))}
           />

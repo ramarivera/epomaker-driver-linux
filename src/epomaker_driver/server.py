@@ -12,11 +12,26 @@ from importlib.resources import files
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-from . import actions, codec, macros, media, snapshot, system_info
-from .device import Keyboard
+from . import (
+    actions,
+    codec,
+    he_recovery,
+    he_snapshot,
+    legacy_snapshot,
+    macros,
+    media,
+    snapshot,
+    system_info,
+)
+from .backend_factory import backend_for_transport, verify_device_identity
+from .device import (
+    Keyboard,  # noqa: F401  # compatibility seam for callers patching the generic backend
+)
 from .discovery import discover
 from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
-from .models import glyph_matrix
+from .gui_contract import catalog_contract, ui_descriptor
+from .he import HEKeyboard
+from .legacy import LegacyKeyboard
 from .transport import Transport
 
 MAX_BODY = 20 * 1024 * 1024
@@ -46,12 +61,21 @@ class Controller:
             return [device.public_dict() for device in self.discovery() if device.command_transport]
         if operation == "catalog":
             root = files("epomaker_driver").joinpath("data")
+            model_id = self.identity["device_id"] if self.identity else 3059
+            if model_id == 3059:
+                layout = json.loads(root.joinpath("glyph-key-layout.json").read_text())
+            else:
+                layout = {
+                    "width": 16,
+                    "height": 8,
+                    "layout": {
+                        str(index): {"x": index % 16, "y": index // 16, "type": "key"}
+                        for index in range(128)
+                    },
+                }
             return {
-                "layout": json.loads(root.joinpath("glyph-key-layout.json").read_text()),
-                "matrices": [
-                    list(glyph_matrix(name))
-                    for name in ("defaultMatrix", "defaultFnMatrix", "defaultFnMacMatrix")
-                ],
+                "layout": layout,
+                **catalog_contract(model_id),
                 "keys": actions.KEYS,
                 "modifiers": actions.MODIFIERS,
                 "media": actions.MEDIA,
@@ -73,13 +97,11 @@ class Controller:
                 raise DeviceUnavailable("selected command device is no longer available")
             transport = self.transport_factory(info)
             try:
-                keyboard = Keyboard(transport)
+                keyboard = backend_for_transport(transport, product_id=info.product_id)
                 keyboard._supported()
                 identity = keyboard.identify()
-                if identity["device_id"] != 3059:
-                    raise UnsupportedDevice(
-                        "The graphical interface currently supports Glyph; use the CLI for RT85/RT75 and RY6602 core"
-                    )
+                verify_device_identity(info, identity)
+                identity = {**identity, "ui": ui_descriptor(identity["device_id"])}
             except Exception:
                 transport.close()
                 raise
@@ -96,16 +118,27 @@ class Controller:
             raise DeviceUnavailable("connect a keyboard first")
         if operation == "read":
             section = data.get("section")
+            controls = self.identity.get("ui", {}).get("controls", [])
+            required = {"keymap": "keymap", "lighting": "lighting", "picture": "lighting", "macro": "macros", "settings": "settings", "backup": "backups"}.get(section)
+            if required and required not in controls:
+                raise UnsupportedDevice(f"GUI control unavailable: {required}")
             if section == "keymap":
-                raw = keyboard.read_matrix(
-                    data.get("profile", 0), fn=data.get("fn", False), os_mode=data.get("os_mode", 0)
-                )
+                matrix_args = {
+                    "fn": data.get("fn", False),
+                    "os_mode": data.get("os_mode", 0),
+                }
+                if isinstance(keyboard, HEKeyboard):
+                    matrix_args["mode"] = data.get("mode", 0)
+                raw = keyboard.read_matrix(data.get("profile", 0), **matrix_args)
                 return {
                     "raw": list(raw),
                     "slots": [actions.decode(raw[i : i + 4]) for i in range(0, 512, 4)],
                 }
             if section == "lighting":
-                return {"main": keyboard.get_light(), "side": keyboard.get_light(side=True)}
+                result = {"main": keyboard.get_light()}
+                if "side_lighting" in controls:
+                    result["side"] = keyboard.get_light(side=True)
+                return result
             if section == "picture":
                 return {"colors": keyboard.read_picture(data.get("index", 0)).hex()}
             if section == "macro":
@@ -116,25 +149,31 @@ class Controller:
                 except ProtocolError as error:
                     return {"data": raw.hex(), "decode_error": str(error)}
             if section == "settings":
-                return {
-                    **keyboard.status(),
-                    "options": keyboard.get_options(),
-                    "auto_os": keyboard.get_auto_os(),
-                }
+                result = {**keyboard.status()}
+                if "options" in controls and hasattr(keyboard, "get_options"):
+                    result["options"] = keyboard.get_options()
+                if "auto_os" in controls and hasattr(keyboard, "get_auto_os"):
+                    result["auto_os"] = keyboard.get_auto_os()
+                return result
             if section == "backup":
-                return snapshot.capture(keyboard)
+                return self._capture_backup(keyboard)
             raise ValueError("unknown read section")
         if operation != "write":
             raise ValueError("unknown operation")
         kind = data.get("kind")
+        controls = self.identity.get("ui", {}).get("controls", [])
+        control_for_kind = {"key": "keymap", "lighting": "lighting", "picture": "lighting", "macro": "macros", "screen": "display", "animation": "display", "clock": "clock", "display_language_toggle": "display_language_toggle", "system_info": "system_info", "debounce": "debounce", "sleep": "sleep", "options": "options", "auto_os": "auto_os", "restore": "backups"}.get(kind)
+        if control_for_kind and control_for_kind not in controls:
+            raise UnsupportedDevice(f"GUI control unavailable: {control_for_kind}")
         if kind == "key":
-            keyboard.set_key(
-                data["slot"],
-                bytes.fromhex(data["action"]),
-                profile=data.get("profile", 0),
-                fn=data.get("fn", False),
-                os_mode=data.get("os_mode", 0),
-            )
+            kwargs = {
+                "profile": data.get("profile", 0),
+                "fn": data.get("fn", False),
+                "os_mode": data.get("os_mode", 0),
+            }
+            if isinstance(keyboard, HEKeyboard):
+                kwargs["mode"] = data.get("mode", 0)
+            keyboard.set_key(data["slot"], bytes.fromhex(data["action"]), **kwargs)
         elif kind == "lighting":
             return keyboard.set_light(
                 data["mode"],
@@ -154,13 +193,17 @@ class Controller:
             content = base64.b64decode(data["content"], validate=True)
             source = io.BytesIO(content)
             if kind == "screen":
-                bank = codec.bounded(data.get("bank", 0), 4, "still bank")
+                display = self.identity["ui"].get("display") or {}
+                bank = codec.bounded(data.get("bank", 0), display.get("banks", 1) - 1, "still bank")
+                identity_id = keyboard.identity["device_id"]
+                display_size = keyboard.model["other"]["screen"]["size"]
+                display_width, display_height = display_size["w"], display_size["h"]
                 keyboard.upload_screen(
-                    media.screen_image(source, fit=True), (0, 0, 428, 142), frame=bank
+                    media.screen_image(source, fit=True, model_id=identity_id), (0, 0, display_width, display_height), frame=bank
                 )
             else:
                 frames, delay = media.screen_animation(
-                    source, fit=True, delay_ms=data.get("delay_ms")
+                    source, fit=True, delay_ms=data.get("delay_ms"), model_id=keyboard.identity["device_id"]
                 )
                 keyboard.upload_animation(frames, delay)
         elif kind == "clock":
@@ -176,18 +219,37 @@ class Controller:
         elif kind == "debounce":
             keyboard.set_debounce(data["milliseconds"])
         elif kind == "sleep":
-            keyboard.set_sleep(data["bt"], data["dongle"], data["deep_bt"], data["deep_dongle"])
+            fields = self.identity["ui"].get("sleep_fields", [])
+            values = [data[name] for name in fields]
+            if isinstance(keyboard, HEKeyboard) and fields == ["bt", "dongle"]:
+                keyboard.set_sleep(*values)
+            else:
+                values.extend(data.get(name) for name in ("deep_bt", "deep_dongle")[len(values) - 2 :])
+                keyboard.set_sleep(*values)
         elif kind == "options":
             return keyboard.set_options(system=data.get("system"), wasd_swap=data.get("wasd_swap"))
         elif kind == "auto_os":
             keyboard.set_auto_os(data["enabled"])
         elif kind == "restore":
-            return snapshot.restore(
-                keyboard, data["value"], self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
-            )
+            return self._restore_backup(keyboard, data["value"])
         else:
             raise ValueError("unknown write kind")
         return {"ok": True}
+
+    def _capture_backup(self, keyboard):
+        if isinstance(keyboard, HEKeyboard):
+            return he_snapshot.capture(keyboard)
+        if isinstance(keyboard, LegacyKeyboard):
+            return legacy_snapshot.capture(keyboard)
+        return snapshot.capture(keyboard)
+
+    def _restore_backup(self, keyboard, value):
+        path = self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
+        if isinstance(keyboard, HEKeyboard):
+            return he_recovery.restore(keyboard, value, path)
+        if isinstance(keyboard, LegacyKeyboard):
+            return legacy_snapshot.restore(keyboard, value, path)
+        return snapshot.restore(keyboard, value, path)
 
 
 class ControlServer(ThreadingHTTPServer):

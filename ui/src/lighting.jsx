@@ -9,89 +9,172 @@ const initial = {
   option: 0,
   rainbow: false,
 };
-export default function Lighting({ catalog, connected, busy, run, epoch }) {
+export default function Lighting({
+  catalog,
+  ui: descriptor,
+  connected,
+  busy,
+  run,
+  epoch,
+}) {
   const [side, setSide] = useState(false),
     [lights, setLights] = useState({ main: initial, side: initial });
   const [index, setIndex] = useState(0),
     [colors, setColors] = useState(null),
     [brush, setBrush] = useState("#365df5");
+  const key = side ? "side" : "main",
+    value = lights[key];
+  const ui = descriptor || catalog?.ui || {};
+  const controls = ui.controls;
+  const hasSide = controls
+    ? controls.includes("side_lighting")
+    : Boolean(catalog.side_modes);
+  const pictureSlots = Number.isInteger(ui.picture_slots)
+    ? ui.picture_slots
+    : 5;
+  const modeDefinitions = (isSide) => {
+    const source =
+      ui[isSide ? "side_modes" : "light_modes"] ||
+      catalog[isSide ? "side_modes" : "light_modes"] ||
+      {};
+    return Object.fromEntries(
+      Object.entries(source).map(([name, definition]) => [
+        name,
+        typeof definition === "object"
+          ? definition
+          : {
+              code: definition,
+              speed_max: isSide ? 3 : 4,
+              option_max: name === "picture" ? pictureSlots - 1 : 15,
+              rgb: true,
+              rainbow: true,
+              brightness: true,
+            },
+      ]),
+    );
+  };
+  const modes = modeDefinitions(side);
+  const definition = modes[value?.mode] || modes[Object.keys(modes)[0]] || {};
+  const supports = (field) => definition[field] !== false;
+  const maxFor = (field, fallback) =>
+    Number.isInteger(definition[field]) ? definition[field] : fallback;
+  const sanitize = (mode, source) => {
+    const metadata = modeDefinitions(side)[mode] || {};
+    const speedMax = Number.isInteger(metadata.speed_max)
+      ? metadata.speed_max
+      : side
+        ? 3
+        : 4;
+    const optionMax = Number.isInteger(metadata.option_max)
+      ? metadata.option_max
+      : 15;
+    return {
+      ...source,
+      mode,
+      rgb: metadata.rgb === false ? 0xffffff : source.rgb,
+      rainbow: metadata.rainbow === false ? false : source.rainbow,
+      speed:
+        metadata.speed_max === false ? 0 : Math.min(source.speed, speedMax),
+      option:
+        metadata.option_max === false ? 0 : Math.min(source.option, optionMax),
+      brightness: metadata.brightness === false ? 4 : source.brightness,
+    };
+  };
   useEffect(() => {
     if (connected)
       run(async () => setLights(await api("read", { section: "lighting" })));
   }, [connected, epoch]);
-  const key = side ? "side" : "main",
-    value = lights[key];
   function update(field, v) {
     setLights({ ...lights, [key]: { ...value, [field]: v } });
   }
+  if (!value) return null;
   return (
     <>
       <div className="toolbar segments">
-        {["Main lighting", "Side lighting"].map((name, i) => (
-          <button
-            key={name}
-            aria-pressed={side === Boolean(i)}
-            onClick={() => setSide(Boolean(i))}
-          >
-            {name}
-          </button>
-        ))}
+        {["Main lighting", "Side lighting"].map(
+          (name, i) =>
+            (!i || hasSide) && (
+              <button
+                key={name}
+                aria-pressed={side === Boolean(i)}
+                onClick={() => setSide(Boolean(i))}
+              >
+                {name}
+              </button>
+            ),
+        )}
       </div>
       <Panel title="Lighting effect">
         <div className="fields">
           <Field label="Effect">
             <Select
               value={value.mode}
-              options={Object.keys(
-                side ? catalog.side_modes : catalog.light_modes,
-              ).map((k) => [k, titleCase(k)])}
-              onChange={(e) => update("mode", e.target.value)}
-            />
-          </Field>
-          <Field label="Color">
-            <input
-              type="color"
-              value={`#${value.rgb.toString(16).padStart(6, "0")}`}
+              options={Object.keys(modes).map((k) => [k, titleCase(k)])}
               onChange={(e) =>
-                update("rgb", parseInt(e.target.value.slice(1), 16))
+                setLights({
+                  ...lights,
+                  [key]: sanitize(e.target.value, value),
+                })
               }
             />
           </Field>
-          <Field label={`Brightness · ${value.brightness}`}>
-            <input
-              type="range"
-              min="0"
-              max="4"
-              value={value.brightness}
-              onChange={(e) => update("brightness", Number(e.target.value))}
-            />
-          </Field>
-          <Field label={`Speed · ${value.speed}`}>
-            <input
-              type="range"
-              min="0"
-              max={side ? "3" : "4"}
-              value={value.speed}
-              onChange={(e) => update("speed", Number(e.target.value))}
-            />
-          </Field>
-          <Field label="Effect option">
-            <input
-              type="number"
-              min="0"
-              max={value.mode === "picture" ? "4" : "15"}
-              value={value.option}
-              onChange={(e) => update("option", Number(e.target.value))}
-            />
-          </Field>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={value.rainbow}
-              onChange={(e) => update("rainbow", e.target.checked)}
-            />
-            Rainbow
-          </label>
+          {supports("rgb") && (
+            <Field label="Color">
+              <input
+                type="color"
+                value={`#${value.rgb.toString(16).padStart(6, "0")}`}
+                onChange={(e) =>
+                  update("rgb", parseInt(e.target.value.slice(1), 16))
+                }
+              />
+            </Field>
+          )}
+          {supports("brightness") && (
+            <Field label={`Brightness · ${value.brightness}`}>
+              <input
+                type="range"
+                min="0"
+                max={maxFor("brightness_max", 4)}
+                value={value.brightness}
+                onChange={(e) => update("brightness", Number(e.target.value))}
+              />
+            </Field>
+          )}
+          {definition.speed_max !== false && (
+            <Field label={`Speed · ${value.speed}`}>
+              <input
+                type="range"
+                min="0"
+                max={maxFor("speed_max", side ? 3 : 4)}
+                value={value.speed}
+                onChange={(e) => update("speed", Number(e.target.value))}
+              />
+            </Field>
+          )}
+          {definition.option_max !== false && (
+            <Field label="Effect option">
+              <input
+                type="number"
+                min="0"
+                max={maxFor(
+                  "option_max",
+                  value.mode === "picture" ? pictureSlots - 1 : 15,
+                )}
+                value={value.option}
+                onChange={(e) => update("option", Number(e.target.value))}
+              />
+            </Field>
+          )}
+          {supports("rainbow") && (
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={value.rainbow}
+                onChange={(e) => update("rainbow", e.target.checked)}
+              />
+              Rainbow
+            </label>
+          )}
         </div>
         <div className="apply-row">
           <Button
@@ -117,7 +200,10 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
           <Field label="Pattern">
             <Select
               value={index}
-              options={[0, 1, 2, 3, 4].map((i) => [i, `Pattern ${i + 1}`])}
+              options={Array.from({ length: pictureSlots }, (_, i) => [
+                i,
+                `Pattern ${i + 1}`,
+              ])}
               onChange={(e) => {
                 setIndex(Number(e.target.value));
                 setColors(null);
@@ -136,7 +222,12 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
             onClick={() =>
               run(async () => {
                 const value = await api("read", { section: "picture", index });
-                setColors(value.colors.match(/.{6}/g));
+                const hex = value.colors || "";
+                setColors(
+                  Array.from({ length: Math.floor(hex.length / 6) }, (_, i) =>
+                    hex.slice(i * 6, i * 6 + 6),
+                  ),
+                );
               })
             }
           >

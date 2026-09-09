@@ -67,7 +67,15 @@ function decode(raw, catalog) {
   }
   return { type: "Raw", key: hex(raw) };
 }
-export default function Keymap({ catalog, connected, busy, run, epoch }) {
+export default function Keymap({ catalog, ui, connected, busy, run, epoch }) {
+  const profiles = ui?.profiles ?? 3;
+  const fnModes = ui?.fn_modes ?? [
+    { label: "Fn Windows", os_mode: 0 },
+    { label: "Fn Mac", os_mode: 1 },
+  ];
+  const submodes = ui?.submodes ?? 1;
+  const matrixSlots = ui?.matrix_slots ?? 128;
+  const layout = catalog.layout?.layout || {};
   const [profile, setProfile] = useState(0),
     [layer, setLayer] = useState("Main"),
     [matrix, setMatrix] = useState(catalog.matrices[0]);
@@ -78,35 +86,42 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
       modifiers: 0,
       second: 0,
     });
+  const modelKey = `${profiles}:${fnModes.map((mode) => `${mode.label}:${mode.os_mode}`).join(",")}:${submodes}`;
+  const fnMode = fnModes.find((mode) => mode.label === layer);
+  const [mode, setMode] = useState(0);
   const target = {
-    profile: layer === "Main" ? profile : 0,
-    fn: layer !== "Main",
-    os_mode: layer === "Fn Mac" ? 1 : 0,
+    profile: fnMode ? 0 : profile,
+    fn: Boolean(fnMode),
+    os_mode: fnMode?.os_mode ?? 0,
+    ...(submodes > 1 && !fnMode ? { mode } : {}),
   };
   const keys = useMemo(
     () =>
-      Object.entries(catalog.layout.layout).map(([name, geometry]) => {
+      Object.entries(layout).map(([name, geometry]) => {
         const action = SPECIAL[name] || [0, 0, DOM[name], 0];
-        const slot = Array.from({ length: 128 }, (_, i) => i).find((i) =>
-          action.every((n, j) => catalog.matrices[0][i * 4 + j] === n),
-        );
+        const slot = Number.isInteger(geometry.slot)
+          ? geometry.slot
+          : Array.from({ length: matrixSlots }, (_, i) => i).find((i) =>
+              action.every((n, j) => catalog.matrices?.[0]?.[i * 4 + j] === n),
+            );
         return { name, geometry, slot };
       }),
-    [catalog],
+    [catalog, layout, matrixSlots],
   );
   useEffect(() => {
-    setSlot(keys.find((k) => k.name === "KeyA").slot);
-  }, [keys]);
+    setProfile(0);
+    setLayer("Main");
+    setMode(0);
+    setSlot(keys.find((k) => k.slot !== undefined)?.slot ?? 0);
+  }, [keys, modelKey]);
   useEffect(() => {
     if (connected)
       run(async () =>
         setMatrix((await api("read", { section: "keymap", ...target })).raw),
       );
     else
-      setMatrix(
-        catalog.matrices[layer === "Main" ? 0 : layer === "Fn Windows" ? 1 : 2],
-      );
-  }, [connected, epoch, profile, layer]);
+      setMatrix(catalog.matrices[fnMode ? (fnMode.os_mode ? 2 : 1) : 0] || []);
+  }, [connected, epoch, profile, layer, mode, modelKey]);
   useEffect(() => {
     setDraft(decode(matrix.slice(slot * 4, slot * 4 + 4), catalog));
   }, [matrix, slot, catalog]);
@@ -166,10 +181,25 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
           value={profile}
           onChange={(e) => setProfile(Number(e.target.value))}
           disabled={busy || layer !== "Main"}
-          options={[0, 1, 2].map((i) => [i, `Profile ${i + 1}`])}
+          options={Array.from({ length: profiles }, (_, i) => [
+            i,
+            `Profile ${i + 1}`,
+          ])}
         />
+        {submodes > 1 && (
+          <Select
+            aria-label="Submode"
+            value={mode}
+            onChange={(e) => setMode(Number(e.target.value))}
+            disabled={busy || Boolean(fnMode)}
+            options={Array.from({ length: submodes }, (_, i) => [
+              i,
+              `Submode ${i + 1}`,
+            ])}
+          />
+        )}
         <div className="segments">
-          {["Main", "Fn Windows", "Fn Mac"].map((name) => (
+          {["Main", ...fnModes.map((item) => item.label)].map((name) => (
             <button
               key={name}
               disabled={busy}

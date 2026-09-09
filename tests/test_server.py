@@ -228,9 +228,9 @@ def test_display_bank_api(controller, firmware):
     assert firmware.sent[-1][:2] == bytes([0x27, 1])
 
 
-def test_rt85_does_not_enter_glyph_interface(controller, firmware):
+def test_rt85_identity_cannot_use_glyph_usb_product(controller, firmware):
     firmware.model_id = 2895
-    with pytest.raises(Exception, match="use the CLI for RT85"):
+    with pytest.raises(Exception, match="does not match"):
         connect(controller)
     assert firmware.closed
     assert controller.keyboard is None
