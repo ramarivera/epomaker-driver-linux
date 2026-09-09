@@ -325,7 +325,8 @@
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
         "ui/src/macros-editor.jsx",
-        "ui/tests/workflows.spec.js"
+        "ui/tests/workflows.spec.js",
+        "docs/releases/glyph-macro-editor-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -341,12 +342,16 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/macros-editor.jsx"
+        "ui/src/macros-editor.jsx",
+        "docs/releases/glyph-macro-editor-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "ui/tests/workflows.spec.js",
+        "ui/tests/macro-raw-export.spec.js"
+      ],
+      "notes": "Semantic JSON editing/import/export exists; raw exports preserve the original loaded slot. One-action capture and vendor configuration-file compatibility remain open; see the partial editor audit."
     },
     {
       "id": "G05.3",
@@ -357,12 +362,13 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/macros-editor.jsx"
+        "ui/src/macros-editor.jsx",
+        "docs/releases/glyph-macro-editor-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Repeat editing and separate Keymap count/toggle/held binding controls exist. Vendor metadata and eventual library-to-assignment workflow need end-to-end comparison; physical playback remains unverified."
     },
     {
       "id": "G05.4",
@@ -401,6 +407,21 @@
         "ui/tests/mouse-recorder-boundaries.spec.js"
       ],
       "notes": "Focused keyboard and mouse-button recording support measured/fixed timing and validated draft replacement. Reserved-key workflow comparison and physical playback verification remain open. Audited vendor recorder has no continuous-motion or wheel listener."
+    },
+    {
+      "id": "G05.6",
+      "group": "G05",
+      "title": "Named macro library and local persistence",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-macro-editor-audit.md",
+        "ui/src/macros-editor.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [],
+      "notes": "Both vendor macro pages expose named entries, rename/delete and local persistence. Linux currently has one in-memory slot draft. Service synchronization applicability remains unresolved."
     },
     {
       "id": "G06.1",

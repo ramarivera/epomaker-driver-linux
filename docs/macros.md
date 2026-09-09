@@ -59,6 +59,12 @@ of guessing its timing. Zero-delay and unknown events also fail semantic decodin
 raw export and configuration snapshots preserve their bytes without interpreting
 them. The decoder processes events at the end of a completely full macro buffer.
 
+The Macro page's raw export is a snapshot of the last successful load, with its
+original slot number. Changing the destination slot or editing the decoded sequence
+does not change that snapshot. New, successful JSON import, and accepted recordings
+clear it. Use Export JSON for the current editable sequence; a raw export is not an
+editable-macro JSON file and cannot be imported through that control.
+
 This is based on the shipped `macroEventToByte`, `buffToMacroEvents`, `configToMatrix`
 and mouse action table, documented in [the protocol reference](glyph-protocol.md).
 Physical-device playback acceptance remains unverified.

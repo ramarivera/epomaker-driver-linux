@@ -14,7 +14,7 @@ export default function MacrosEditor({ connected, busy, run }) {
   const [slot, setSlot] = useState(0),
     [value, setValue] = useState({ repeat: 1, events: [] }),
     [kind, setKind] = useState("keyboard"),
-    [raw, setRaw] = useState(null),
+    [rawSnapshot, setRawSnapshot] = useState(null),
     [warning, setWarning] = useState("");
   const setEvent = (i, field, v) =>
     setValue({
@@ -42,9 +42,13 @@ export default function MacrosEditor({ connected, busy, run }) {
           disabled={!connected || busy || recorderValidating}
           onClick={() =>
             run(async () => {
-              const result = await api("read", { section: "macro", slot });
+              const requestedSlot = slot;
+              const result = await api("read", {
+                section: "macro",
+                slot: requestedSlot,
+              });
               setValue(result.decoded || null);
-              setRaw(result.data);
+              setRawSnapshot({ slot: requestedSlot, data: result.data });
               setWarning(result.decode_error || "");
             })
           }
@@ -56,7 +60,7 @@ export default function MacrosEditor({ connected, busy, run }) {
           onClick={() => {
             setValue({ repeat: 1, events: [] });
             setWarning("");
-            setRaw(null);
+            setRawSnapshot(null);
           }}
         >
           New macro
@@ -73,7 +77,7 @@ export default function MacrosEditor({ connected, busy, run }) {
                   const v = JSON.parse(await file.text());
                   const valid = await api("validate_macro", { value: v });
                   setValue(valid);
-                  setRaw(null);
+                  setRawSnapshot(null);
                   setWarning("");
                 });
             }}
@@ -85,14 +89,20 @@ export default function MacrosEditor({ connected, busy, run }) {
           {warning}
         </p>
       )}
-      {raw && (
-        <Button
-          onClick={() =>
-            download(`macro-${slot}-raw.json`, { slot, data: raw })
-          }
-        >
-          Export raw data
-        </Button>
+      {rawSnapshot && (
+        <div>
+          <Button
+            onClick={() =>
+              download(`macro-${rawSnapshot.slot}-raw.json`, rawSnapshot)
+            }
+          >
+            Export raw data from slot {rawSnapshot.slot}
+          </Button>
+          <p className="muted">
+            Raw snapshot from slot {rawSnapshot.slot}; current draft slot is{" "}
+            {slot}.
+          </p>
+        </div>
       )}
       {value && (
         <>
@@ -101,7 +111,7 @@ export default function MacrosEditor({ connected, busy, run }) {
             onValidatingChange={setRecorderValidating}
             onUse={(recorded) => {
               setValue(recorded);
-              setRaw(null);
+              setRawSnapshot(null);
               setWarning("");
             }}
           />

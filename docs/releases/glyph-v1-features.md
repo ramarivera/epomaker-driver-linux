@@ -2,7 +2,7 @@
 
 Source of truth: [glyph-v1-features.json](glyph-v1-features.json). This is a **provisional workflow checklist**, not a closed vendor feature inventory or a completion percentage. It refines the [17 release acceptance areas](glyph-v1.md).
 
-The 61 rows include two evidence-backed exclusions (configurable polling rate and debounce). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
+The 62 rows include two evidence-backed exclusions (configurable polling rate and debounce). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
 
 Audit pointers in the JSON are starting points for source review, not claims that every referenced behavior has been verified. Do not use the row count as the denominator for a 100% claim until the individual Windows/macOS Glyph controls and connection restrictions have been reconciled.
 
@@ -31,6 +31,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G05.3 | Macro delays, repeats, and playback modes | partial | expected |
 | G05.4 | Mouse-motion macro semantics | partial | expected |
 | G05.5 | Macro recording and playback verification | partial | expected |
+| G05.6 | Named macro library and local persistence | missing | expected |
 | G06.1 | Main lighting effect catalog and controls | partial | expected |
 | G06.2 | Side lighting effect catalog and controls | partial | expected |
 | G06.3 | Lighting persistence, off, and readback | partial | expected |

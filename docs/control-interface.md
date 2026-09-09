@@ -70,5 +70,7 @@ an explicit draft review before replacement. See [macro recording](macros.md#foc
 for reserved shortcuts and capture limitations.
 
 Remaining interface work includes localization, native packaging,
-reactive host lighting, background refresh, richer display controls, and additional
-protocol families. A successful simulated readback does not establish hardware parity.
+reactive host lighting, background refresh, and richer display controls. Additional
+keyboard models and unrelated protocol families are deferred under the
+[Glyph-only v1 scope](releases/glyph-v1.md). A successful simulated readback does not
+establish hardware parity.
