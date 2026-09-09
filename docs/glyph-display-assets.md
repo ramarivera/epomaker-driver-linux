@@ -41,3 +41,37 @@ base64 `content`, and `POST /api/display_asset_get` or
 `POST /api/display_asset_delete` with an `id`. Save returns a summary; get returns
 the original content and a newly computed preview. Library operations do not
 require an active keyboard connection.
+
+## Portable asset files
+
+Select a saved entry and choose **Export display asset JSON** to download its
+original image or animation and effective timing. Use **Import display asset JSON**
+to add that file to another installation. Each import creates a fresh entry; it
+never overwrites an existing ID, changes the current editor draft, or uploads to a
+keyboard. Select **Load asset into editor** afterwards when desired.
+
+The portable JSON object has exactly these fields:
+
+```json
+{
+  "schema": "epomaker-glyph-display-asset",
+  "version": 1,
+  "model_id": 3059,
+  "name": "Example",
+  "kind": "screen",
+  "delay_ms": null,
+  "content": "base64-encoded original image file"
+}
+```
+
+For animation, `kind` is `animation` and `delay_ms` is an integer from 0 through
+255. The field contains the effective delay, not an instruction to recalculate it.
+The UI limits imported JSON files to 20 MiB; decoded source content retains the
+14 MiB library limit. Unknown fields, models, versions, invalid image data and
+unrepresentable animation frames are rejected before persistence. No previews or
+library IDs are included in portable files. These exports remain independent of
+the vendor configuration/database formats.
+
+The matching authenticated endpoints are `POST /api/display_asset_export` with
+`id` and `POST /api/display_asset_import` with `value` containing the portable
+object. Export returns that object; import returns the newly saved summary.

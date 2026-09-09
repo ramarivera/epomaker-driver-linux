@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { api } from "./api";
+import { api, download } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
 
 const validName = (value) => {
@@ -89,6 +89,40 @@ export default function DisplayLibrary({
       setName(entry.name);
       setConfirmDelete(false);
       setMessage(`Saved “${entry.name}” to the display asset library.`);
+    });
+  };
+
+  const exportAsset = () => {
+    if (!selected) return;
+    perform(async () => {
+      const value = await api("display_asset_export", { id: selected.id });
+      download(`glyph-display-asset-${selected.id}.json`, value);
+      setMessage("Display asset exported.");
+    });
+  };
+  const importAsset = (event) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    perform(async () => {
+      if (file.size > 20 * 1024 * 1024)
+        throw new Error("Display asset file exceeds the 20 MiB limit.");
+      let value;
+      try {
+        value = JSON.parse(await file.text());
+      } catch {
+        throw new Error("Display asset file is not valid JSON.");
+      }
+      const entry = await api("display_asset_import", { value });
+      setEntries((current) => [...current, entry]);
+      setSelectedId(entry.id);
+      setName(entry.name);
+      setConfirmDelete(false);
+      setMessage(
+        `Imported “${entry.name}”. Load it explicitly to replace the editor draft.`,
+      );
+    }).finally(() => {
+      input.value = "";
     });
   };
 
@@ -185,6 +219,25 @@ export default function DisplayLibrary({
           </Button>
         )}
       </div>
+      <div className="fields">
+        <Field label="Import display asset JSON">
+          <input
+            type="file"
+            accept="application/json,.json"
+            disabled={locked}
+            onChange={importAsset}
+          />
+        </Field>
+      </div>
+      <div className="apply-row">
+        <Button disabled={locked || !selected} onClick={exportAsset}>
+          Export display asset JSON
+        </Button>
+      </div>
+      <p className="muted">
+        Import creates a new library entry and leaves the editor draft
+        unchanged. This format is independent of vendor configuration files.
+      </p>
       {selected && (
         <p className="muted">
           {selected.kind} · {selected.frame_count} frame

@@ -103,6 +103,10 @@ class Controller:
             )
         if operation == "display_asset_get":
             return self.display_library.get(data.get("id"))
+        if operation == "display_asset_export":
+            return self.display_library.export(data.get("id"))
+        if operation == "display_asset_import":
+            return self.display_library.import_asset(data.get("value"))
         if operation == "display_asset_delete":
             return self.display_library.delete(data.get("id"))
         if operation == "display_prepare":
@@ -365,6 +369,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/display_prepare",
             "/api/display_asset_save",
             "/api/display_asset_get",
+            "/api/display_asset_export",
+            "/api/display_asset_import",
             "/api/display_asset_delete",
         ):
             self._reply(404, {"error": "unknown endpoint"})

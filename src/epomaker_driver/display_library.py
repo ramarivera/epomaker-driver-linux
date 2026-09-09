@@ -16,6 +16,7 @@ from . import media, profiles
 _ID = re.compile(r"^[0-9a-f]{32}$")
 MODEL_ID = 3059
 VERSION = 1
+PORTABLE_SCHEMA = "epomaker-glyph-display-asset"
 MAX_DECODED_BYTES = 14 * 1024 * 1024
 MAX_ENCODED_BYTES = 4 * ((MAX_DECODED_BYTES + 2) // 3)
 MAX_ENTRY_BYTES = 20 * 1024 * 1024
@@ -191,6 +192,39 @@ class DisplayLibrary:
             if prepared[key] != entry[key]:
                 raise ValueError(f"display asset metadata mismatch for {key}")
         return {**entry, "preview_png": prepared["preview_png"]}
+
+    def export(self, ident):
+        entry = self.get(ident)
+        return {
+            "schema": PORTABLE_SCHEMA,
+            "version": VERSION,
+            "model_id": MODEL_ID,
+            "name": entry["name"],
+            "kind": entry["kind"],
+            "delay_ms": entry["delay_ms"],
+            "content": entry["content"],
+        }
+
+    def import_asset(self, value):
+        fields = {"schema", "version", "model_id", "name", "kind", "delay_ms", "content"}
+        if type(value) is not dict or set(value) != fields:
+            raise ValueError("display asset interchange has unexpected fields")
+        if value["schema"] != PORTABLE_SCHEMA:
+            raise ValueError("unsupported display asset schema")
+        if type(value["version"]) is not int or value["version"] != VERSION:
+            raise ValueError("unsupported display asset version")
+        if type(value["model_id"]) is not int or value["model_id"] != MODEL_ID:
+            raise ValueError("unsupported display asset model")
+        name = _name(value["name"])
+        kind = value["kind"]
+        delay = value["delay_ms"]
+        if kind == "screen" and delay is not None:
+            raise ValueError("still display assets must have null delay")
+        if kind == "animation" and type(delay) is not int:
+            raise ValueError("animation display assets must have an integer delay")
+        if kind not in ("screen", "animation"):
+            raise ValueError("display asset kind must be screen or animation")
+        return self.save(name, kind, delay, value["content"])
 
     def delete(self, ident):
         _id(ident)

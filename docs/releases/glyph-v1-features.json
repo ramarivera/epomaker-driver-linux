@@ -665,9 +665,11 @@
       "test_evidence": [
         "tests/test_display_library.py",
         "tests/test_display_library_cli.py",
-        "ui/tests/display-library.spec.js"
+        "ui/tests/display-library.spec.js",
+        "tests/test_display_asset_interchange.py",
+        "ui/tests/display-asset-interchange.spec.js"
       ],
-      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Canvas/frame editing, screen clear, physical bank behavior and transport verification remain open."
+      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Canvas/frame editing, screen clear, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts."
     },
     {
       "id": "G09.4",
