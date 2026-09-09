@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
+const firmwareCode = (code) =>
+  code ? `${code} (0x${code.toString(16).padStart(4, "0")})` : "Unavailable";
 export default function Settings({ connected, transport, busy, run, epoch }) {
   const [value, setValue] = useState(null);
+  const [versions, setVersions] = useState(null);
   const load = async () => setValue(await api("read", { section: "settings" }));
   useEffect(() => {
+    setVersions(null);
     if (connected) run(load);
     else setValue(null);
   }, [connected, epoch]);
@@ -36,17 +40,42 @@ export default function Settings({ connected, transport, busy, run, epoch }) {
               ? "Bluetooth"
               : "Unknown"}
         </p>
-        <p>
-          USB firmware code:{" "}
-          {value.identity?.usb_version
-            ? `${value.identity.usb_version} (0x${value.identity.usb_version.toString(16).padStart(4, "0")})`
-            : "Unavailable"}
-        </p>
+        <p>USB firmware code: {firmwareCode(value.identity?.usb_version)}</p>
         <p className="muted">
-          Firmware identity was read when connecting. Reconnect to refresh it
-          after a firmware change. This is the raw USB firmware code; other
-          component versions and firmware updates are not yet available here.
+          The USB code above was captured when connecting. Read component
+          versions for a fresh query. Codes are raw firmware values, not
+          semantic versions; firmware updates are not yet implemented.
         </p>
+        <Button
+          disabled={busy || !connected}
+          onClick={() =>
+            run(async () => {
+              setVersions(null);
+              setVersions(await api("read", { section: "firmware_versions" }));
+            })
+          }
+        >
+          Read component versions
+        </Button>
+        {versions && (
+          <div aria-label="Queried firmware components">
+            {Object.entries({
+              usb: "USB",
+              rf: "RF",
+              mled: "MLED",
+              oled: "OLED",
+              flash: "Flash",
+            }).map(([key, label]) => (
+              <p key={key}>
+                {label} component: {firmwareCode(versions[key])}
+              </p>
+            ))}
+            <p className="muted">
+              Unavailable means the device reported zero or no version. It does
+              not prove that the component is absent.
+            </p>
+          </div>
+        )}
       </Panel>
       <div className="two-columns">
         <Panel title="Profile and response">

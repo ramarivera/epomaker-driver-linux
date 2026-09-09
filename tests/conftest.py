@@ -29,6 +29,7 @@ class SimulatedKeyboard:
         self.side_light = bytearray(codec.light("solid", side=True))
         self.sleep_data = bytearray(codec.sleep_times(120, 240, 1800, 3600))
         self.model_id = 3059
+        self.usb_version = 0
         self.battery = 80
         self.online = True
         self.closed = False
@@ -53,7 +54,14 @@ class SimulatedKeyboard:
             result = bytearray(64)
             result[0] = op
             result[1:5] = self.model_id.to_bytes(4, "little")
+            result[7:9] = self.usb_version.to_bytes(2, "little")
             return bytes(result)
+        if op == 0x80:
+            return bytes([op, 0x34, 0x12]) + bytes(61)
+        if op == 0xAE:
+            return bytes([op, 0x01, 0x04]) + bytes(61)
+        if op == 0xAD:
+            return bytes([op, 0x02, 0x03, 0xCD, 0xAB]) + bytes(59)
         if op in (0x84, 0x83, 0x86):
             result = bytearray(64)
             result[0] = op

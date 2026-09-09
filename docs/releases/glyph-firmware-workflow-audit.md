@@ -78,8 +78,8 @@ The low-level shared `upgradeFirmware` routine begins at Windows **1924429** and
 **1933241**. It only rejects a payload when the supplied byte array is no longer
 than the supplied header offset (`t.length <= i`). It then strips that offset,
 calculates 64-byte chunks, waits for a start-ready response, sends each chunk,
-and checks a final checksum/length response. This routine is not yet traced through the Glyph-specific loader and boot subclass.
-It does not establish a cryptographic signature, model ID inside the image, or a local firmware-file
+and checks a final checksum/length response. The [class trace](glyph-firmware-class-audit.md) now identifies the Glyph USB override.
+The shared routine does not establish a cryptographic signature, model ID inside the image, or a local firmware-file
 format validator.
 
 Method dispatch is explicit at Windows **1926451** and macOS **1935263**:
@@ -131,11 +131,12 @@ bundle path alone.
 
 The Settings interface now shows the internal model ID, actual connection
 transport and raw USB firmware code from the existing connection response. It
-does not present the code as a semantic version or claim other component versions
-were queried. Reconnection is required to refresh this cached identity. The
+does not present the code as a semantic version. An explicit component read now
+queries the inherited version getters, as documented in the class trace. Reconnection is required to refresh this cached identity. The
 simulator UI and package build were checked; no physical device was queried.
 
-Remaining work includes tracing the Glyph loader and boot subclass, obtaining an
+The loader, inherited version getters and USB override are now documented in
+[the class trace](glyph-firmware-class-audit.md). Remaining work includes obtaining an
 authentic model-3059 metadata/image fixture, checking component applicability and
 image validation, implementing the update/reconnect workflow, and validating
 recovery on appropriate hardware. The shared routine alone is insufficient to

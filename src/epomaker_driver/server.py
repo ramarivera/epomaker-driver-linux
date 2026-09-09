@@ -181,6 +181,8 @@ class Controller:
                     "options": keyboard.get_options(),
                     "auto_os": keyboard.get_auto_os(),
                 }
+            if section == "firmware_versions":
+                return keyboard.read_firmware_versions()
             if section == "backup":
                 return snapshot.capture(keyboard)
             raise ValueError("unknown read section")

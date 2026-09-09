@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 
-from . import codec
+from . import codec, versions
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
 from .models import (
     RT100_PRO_IDS,
@@ -262,6 +262,30 @@ class Keyboard:
             "light": self.get_light(),
             "sleep": self.get_sleep(),
         }
+
+    def read_firmware_versions(self):
+        """Read Glyph firmware components on demand without changing status/connect."""
+
+        def operation():
+            identity = self.identify()
+            self._supported()
+            if identity["device_id"] != 3059:
+                raise UnsupportedDevice("firmware component reads currently support Glyph only")
+            responses = {}
+            for component in ("rf", "mled", "oled"):
+                command = versions.version_request(component)
+                response = self._query(command, expected=command[0])
+                responses[component] = versions.parse_version(component, response)
+            oled = responses["oled"]
+            return {
+                "usb": identity.get("usb_version") or None,
+                "rf": responses["rf"] or None,
+                "mled": responses["mled"] or None,
+                "oled": oled["oled"],
+                "flash": oled["flash"],
+            }
+
+        return self.transport.transaction(operation)
 
     def get_light(self, *, side=False):
         opcode = 0x88 if side else 0x87

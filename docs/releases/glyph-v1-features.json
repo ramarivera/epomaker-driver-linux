@@ -889,12 +889,17 @@
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
         "ui/src/main.jsx",
-        "docs/releases/glyph-firmware-workflow-audit.md"
+        "docs/releases/glyph-firmware-workflow-audit.md",
+        "docs/releases/glyph-firmware-class-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_glyph_versions.py",
+        "tests/test_versions.py",
+        "ui/tests/glyph-versions.spec.js"
+      ],
+      "notes": "Explicit Settings component read refreshes Glyph identity and queries USB/RF/MLED/OLED/flash with little-endian decoding and zero-as-unavailable semantics. Boot/non-Glyph modes are rejected. Physical versions and update/recovery remain unverified."
     },
     {
       "id": "G13.2",

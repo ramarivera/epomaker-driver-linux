@@ -227,6 +227,6 @@ The internal Linux adapter and its remaining integration boundaries are describe
 
 ## Firmware findings
 
-The YC3123 boot subclass uses `BA C0` preparation with a u32 little-endian size at byte 8; `BA C2` verification includes u32 values at bytes 8 and 12, with `[2]==55` as success. Its USB upgrade path passes a 65,536-byte boundary into the shared upgrade code. OLED update helpers use `30/31/B0/B1`; flash-content update uses `32/B2`.
+The YC3123 boot subclass uses `BA C0` preparation with a u32 little-endian 64-byte chunk count at byte 8; `BA C2` verification includes that count at byte 8 and a checksum value at byte 12, with `[2]==55` as success. Its USB upgrade path passes a 65,536-byte image offset into the shared upgrade code, which slices off that prefix before counting and transmitting chunks. See the [class trace](releases/glyph-firmware-class-audit.md). OLED update helpers use `30/31/B0/B1`; flash-content update uses `32/B2`.
 
 This is a useful map for future analysis, not a verified flashing procedure. Image boundaries, board IDs, checksums, reconnect behavior and recovery have not been validated with a firmware image/device. No firmware images were downloaded and the offline codec intentionally contains no erase, bootloader or update transport.
