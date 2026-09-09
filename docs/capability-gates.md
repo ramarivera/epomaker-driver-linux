@@ -21,10 +21,19 @@ Higher-rate models need their own metadata, firmware gate, protocol validation a
 hardware comparison before enabling this shared setter. A command that can be encoded
 must not automatically become a writable capability for every catalog entry.
 
+## Glyph debounce
+
+Both vendor builds require `other.deBounce` before exposing this control. Glyph
+does not declare that property. See [the source audit](releases/glyph-settings-audit.md).
+Glyph status and backups therefore leave debounce null without querying `86`; the
+setter rejects Glyph before writing `06`. Legacy numeric Glyph snapshot values are
+validated and ignored on restore, with an explicit limitation in the result. Other
+models retain their existing debounce behavior.
+
 ## Factory reset
 
 The Glyph base protocol's `reset(true)` sends opcode 0x01 and waits two seconds.
 The vendor application exposes factory reset separately from firmware upgrade. The
-Linux CLI now implements that operation with a recovery snapshot saved first;
+Linux CLI and Glyph interface implement that operation with a recovery snapshot saved first;
 see [snapshots.md](snapshots.md). Sending the command and verifying actual factory
 state remain separate outcomes.

@@ -246,7 +246,11 @@ class Keyboard:
                 "auto_os": self.get_auto_os(),
             }
         rate = self._query(codec.packet([0x83]), expected=0x83)[2]
-        debounce = self._query(codec.packet([0x86]), expected=0x86)[1]
+        debounce = (
+            None
+            if self.identity["device_id"] == 3059
+            else self._query(codec.packet([0x86]), expected=0x86)[1]
+        )
         return {
             "identity": self.identity,
             "model": self.model["displayName"],
@@ -445,6 +449,10 @@ class Keyboard:
             raise ProtocolError("profile readback differs")
 
     def set_debounce(self, milliseconds):
+        if self.identity is None:
+            self.identify()
+        if self.identity["device_id"] == 3059:
+            raise UnsupportedDevice("Glyph does not expose a debounce control")
         codec.bounded(milliseconds, 255, "debounce")
         self._write([codec.packet([6, milliseconds])])
         if self._query(codec.packet([0x86]), expected=0x86)[1] != milliseconds:

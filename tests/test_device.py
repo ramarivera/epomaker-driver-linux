@@ -8,14 +8,20 @@ from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 def test_settings_roundtrip(firmware):
     k = Keyboard(firmware)
     assert k.identify()["model"] == "Epomaker Glyph"
+    original_exchange = firmware.exchange
+
+    def no_debounce_query(command, **options):
+        assert command[0] != 0x86
+        return original_exchange(command, **options)
+
+    firmware.exchange = no_debounce_query
     assert k.status()["report_rate"] == 1000
+    assert k.status()["debounce"] is None
     assert k.set_light("wave", rgb=0xAAFF00)["rgb"] == 0xAAFF00
     assert k.set_light("solid", side=True)["rgb"] == 0xFFFFFF
     assert k.set_sleep(60, 120, 600, 1200)["deep_dongle"] == 1200
     k.set_profile(2)
-    k.set_debounce(10)
     assert k.status()["profile"] == 2
-    assert k.status()["debounce"] == 10
     k.sync_clock()
     assert firmware.sent[-1][0] == 0x28
     with pytest.raises(ValueError):
@@ -85,7 +91,7 @@ def test_partial_matrix_aborts(firmware, monkeypatch):
         k.read_macro(1)
 
 
-@pytest.mark.parametrize("operation", ["key", "matrix", "profile", "debounce", "macro"])
+@pytest.mark.parametrize("operation", ["key", "matrix", "profile", "macro"])
 def test_readback_mismatch(operation, firmware, monkeypatch):
     k = Keyboard(firmware)
     k.identify()
@@ -97,10 +103,17 @@ def test_readback_mismatch(operation, firmware, monkeypatch):
             k.write_matrix(bytes(512))
         elif operation == "profile":
             k.set_profile(1)
-        elif operation == "debounce":
-            k.set_debounce(99)
         else:
             k.write_macro(0, bytes([1]) * 256)
+
+
+def test_glyph_rejects_debounce_without_query_or_write(firmware):
+    k = Keyboard(firmware)
+    k.identify()
+    firmware.sent.clear()
+    with pytest.raises(UnsupportedDevice, match="no.*debounce"):
+        k.set_debounce(10)
+    assert not firmware.sent
 
 
 def test_options_preserve_fields_and_verify(firmware):

@@ -90,7 +90,7 @@ Do not apply this response layout to every family's firmware-version command; th
 | `01` | — | Factory reset | Long settle; destructive to configuration |
 | `03` | `83` | Report rate | Index at `[2]`; base maps 0..6 to 8000,4000,2000,1000,500,250,125 Hz; actual Glyph capability must constrain this |
 | `04` | `84` | Current profile | Profile at `[1]` |
-| `06` | `86` | Debounce | Value at `[1]` |
+| `06` | `86` | Shared-family debounce (not a Glyph control) | Value at `[1]`; excluded for Glyph by the [vendor gate](capability-gates.md#glyph-debounce) |
 | `07` | `87` | Main RGB effect | SET checksum at `[8]`; GET request checksum at `[7]` |
 | `08` | `88` | Side RGB effect | SET checksum at `[8]`; different effect IDs/speed handling |
 | `09` | `89` | Keyboard options | Multiple packed flags; port exact `setKBOption/getKBOption` |

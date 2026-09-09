@@ -290,10 +290,15 @@
         "ui/src/settings.jsx",
         "docs/releases/glyph-settings-audit.md"
       ],
-      "implementation_status": "incorrectly-exposed",
+      "implementation_status": "not-applicable",
       "audit_status": "vendor-control-gate-confirmed",
-      "test_evidence": [],
-      "notes": "Both vendor builds require other.deBounce, absent on Glyph. Linux UI/backend/snapshot compatibility cleanup remains pending; see glyph-settings-audit.md."
+      "test_evidence": [
+        "tests/test_snapshot.py",
+        "tests/test_device.py",
+        "ui/tests/legacy-backup.spec.js",
+        "ui/tests/workflows.spec.js"
+      ],
+      "notes": "Both vendor builds require other.deBounce, absent on Glyph. UI control removed; status avoids query, setter rejects Glyph, old numeric snapshots validate and report skipped legacy value."
     },
     {
       "id": "G04.6",
@@ -454,8 +459,11 @@
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_glyph_lighting_catalog.py",
+        "ui/tests/lighting-capabilities.spec.js"
+      ],
+      "notes": "GUI uses recovered per-effect metadata for brightness, speed, RGB/rainbow and labeled option controls. Music/screen host input remains unimplemented; physical effects remain unverified."
     },
     {
       "id": "G07.1",

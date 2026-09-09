@@ -46,6 +46,9 @@ class Controller:
             return [device.public_dict() for device in self.discovery() if device.command_transport]
         if operation == "catalog":
             root = files("epomaker_driver").joinpath("data")
+            lighting_capabilities = json.loads(
+                root.joinpath("glyph-lighting-capabilities.json").read_text()
+            )
             return {
                 "layout": json.loads(root.joinpath("glyph-key-layout.json").read_text()),
                 "matrices": [
@@ -59,6 +62,10 @@ class Controller:
                 "macro_modes": actions.MACRO_MODES,
                 "light_modes": codec.LIGHT_MODES,
                 "side_modes": codec.SIDE_MODES,
+                # Keep the functional Glyph metadata alongside the legacy flat
+                # mode maps. The UI uses this to avoid exposing controls that a
+                # particular effect does not implement.
+                "lighting_capabilities": lighting_capabilities,
             }
         if operation == "validate_macro":
             value = data["value"]

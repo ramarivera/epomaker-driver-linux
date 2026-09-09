@@ -32,7 +32,6 @@ def cli_device(monkeypatch, descriptor, firmware):
         ["key", "9", "00000500"],
         ["key", "9", "00000600", "--fn", "--os-mode", "1"],
         ["profile", "1"],
-        ["debounce", "10"],
         ["clock"],
     ],
 )
@@ -42,6 +41,14 @@ def test_cli_commands(arguments, cli_device, firmware, capsys):
     assert value is not None
     if arguments[0] not in ("discover", "models"):
         assert firmware.closed
+
+
+def test_glyph_debounce_cli_is_rejected(cli_device, firmware, capsys):
+    assert cli.main(["--device", cli_device.path, "debounce", "10"]) == 1
+    error = json.loads(capsys.readouterr().err)
+    assert error["error"] == "UnsupportedDevice"
+    assert "Glyph does not expose a debounce control" in error["message"]
+    assert firmware.closed and not firmware.sent
 
 
 def test_backup_and_inspect(cli_device, tmp_path, capsys):

@@ -45,7 +45,7 @@ means some code exists; **none is physically verified end to end yet**.
 | G01 | Discover and connect over every applicable Glyph transport | USB/Bluetooth descriptors and transport code; observed Bluetooth descriptor | Query the real internal ID; verify USB/Bluetooth; identify and integrate the actual Glyph receiver and its restrictions |
 | G02 | Connection lifecycle and status | Identity, firmware fields, battery/online parsing, disconnect errors | Accurate UI status, battery/charging where exposed, hotplug, sleep/wake, reconnect and transport changes; no stale device state |
 | G03 | Keys, Fn layers and knob actions | Three profiles, Windows/Mac Fn maps, named/raw bindings and readback | Audit every vendor-exposed action and restriction; verify physical key/knob mapping and playback behavior; expose applicable actions graphically |
-| G04 | Profile and keyboard settings | Profile selection, OS selection, automatic OS, WASD swap and sleep timers | Remove incorrectly exposed debounce; audit remaining Glyph option fields, limits and defaults; implement missing controls; verify persistence and transport-specific behavior |
+| G04 | Profile and keyboard settings | Profile selection, OS selection, automatic OS, WASD swap and sleep timers | Audit remaining Glyph option fields, limits and defaults; implement missing controls; verify persistence and transport-specific behavior |
 | G05 | Macro management | JSON editor, encoding/decoding, storage and playback bindings | Recording and editing workflows, delays/repeats/playback modes, mouse motion semantics, import/export compatibility and real execution |
 | G06 | Onboard main and side lighting | Main/side effects, colors, brightness, speed and options | Audit all 22 main and six side choices and their conditional controls; verify effects, off behavior, persistence and any firmware-gated light sync |
 | G07 | Custom per-key lighting | Five picture banks; 126 writable RGB slots and readback | Correct key/LED correspondence, full visual editing/import/export workflows, bank selection and physical color verification |
@@ -64,7 +64,7 @@ No Hall-effect/rapid-trigger/switch-calibration work belongs to Glyph v1: the Gl
 catalog explicitly disables magnetic switches. Configurable polling rate is also
 not a Glyph vendor-UI feature; retain status reporting without inventing a missing
 setting. Configurable debounce is also absent from both vendor Glyph controls;
-the Linux exposure needs cleanup, as recorded in [the settings audit](glyph-settings-audit.md).
+the Linux control is gated and older backups skip that value, as recorded in [the settings audit](glyph-settings-audit.md).
 See [capability gates](../capability-gates.md). Any other exclusion needs
 similarly specific evidence.
 

@@ -47,30 +47,32 @@ export default function Settings({ connected, busy, run, epoch }) {
               Set profile
             </Button>
           </div>
-          <div className="fields">
-            <Field label="Debounce (ms)">
-              <input
-                type="number"
-                min="0"
-                max="255"
-                value={value.debounce}
-                onChange={(e) =>
-                  setValue({ ...value, debounce: Number(e.target.value) })
+          {value.identity?.device_id !== 3059 && (
+            <div className="fields">
+              <Field label="Debounce (ms)">
+                <input
+                  type="number"
+                  min="0"
+                  max="255"
+                  value={value.debounce}
+                  onChange={(e) =>
+                    setValue({ ...value, debounce: Number(e.target.value) })
+                  }
+                />
+              </Field>
+              <Button
+                disabled={busy}
+                onClick={() =>
+                  write(
+                    { kind: "debounce", milliseconds: value.debounce },
+                    "Debounce verified.",
+                  )
                 }
-              />
-            </Field>
-            <Button
-              disabled={busy}
-              onClick={() =>
-                write(
-                  { kind: "debounce", milliseconds: value.debounce },
-                  "Debounce verified.",
-                )
-              }
-            >
-              Set debounce
-            </Button>
-          </div>
+              >
+                Set debounce
+              </Button>
+            </div>
+          )}
           <p className="muted">
             Reported polling rate: {value.report_rate ?? "Unknown"} Hz
           </p>

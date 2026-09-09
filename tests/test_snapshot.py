@@ -282,6 +282,40 @@ def test_glyph_version4_import(firmware, tmp_path):
     assert snapshot.restore(keyboard, value, tmp_path / "glyph.json")["restored"]
 
 
+@pytest.mark.parametrize("schema_version", [2, 3, 4])
+def test_glyph_legacy_numeric_debounce_is_validated_and_not_restored(
+    firmware, tmp_path, schema_version, monkeypatch
+):
+    keyboard = Keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    value["schema_version"] = schema_version
+    value["debounce"] = 17
+    firmware.sent.clear()
+    exchange = firmware.exchange
+
+    def no_debounce_query(command, **options):
+        assert command[0] != 0x86
+        return exchange(command, **options)
+
+    monkeypatch.setattr(firmware, "exchange", no_debounce_query)
+    result = snapshot.restore(keyboard, value, tmp_path / f"glyph-{schema_version}.json")
+    assert result["restored"]
+    assert "legacy Glyph debounce value is not restored" in result["limitations"]
+    assert all(packet[0] != 6 for packet in firmware.sent)
+    assert all(packet[0] != 0x86 for packet in firmware.sent)
+
+
+@pytest.mark.parametrize("debounce", [True, -1, 256, "17"])
+def test_glyph_legacy_debounce_must_be_valid_integer(firmware, tmp_path, debounce):
+    keyboard = Keyboard(firmware)
+    value = snapshot.capture(keyboard)
+    value["schema_version"] = 3
+    value["debounce"] = debounce
+    with pytest.raises(ValueError, match="debounce"):
+        snapshot.restore(keyboard, value, tmp_path / "glyph-invalid.json")
+    assert not firmware.sent
+
+
 def rt75_keyboard(firmware):
     from epomaker_driver.models import default_matrix
 

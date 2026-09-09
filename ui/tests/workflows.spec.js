@@ -102,11 +102,12 @@ test("main and side lighting, custom color pattern, settings", async ({
     page.getByText("Pattern verified.", { exact: true }),
   ).toBeVisible();
   await nav(page, "Settings");
-  await page.getByLabel("Debounce (ms)", { exact: true }).fill("9");
-  await page.getByRole("button", { name: "Set debounce", exact: true }).click();
+  await expect(page.getByLabel("Debounce (ms)", { exact: true })).toHaveCount(
+    0,
+  );
   await expect(
-    page.getByText("Debounce verified.", { exact: true }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Set debounce", exact: true }),
+  ).toHaveCount(0);
   await page.getByLabel("System layer", { exact: true }).selectOption("mac");
   await page
     .getByRole("button", { name: "Apply OS options", exact: true })

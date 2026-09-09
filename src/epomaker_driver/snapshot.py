@@ -60,7 +60,7 @@ def capture(keyboard, *, extra_macro_slots=()):
             else None,
             "sleep": keyboard.get_sleep(),
             "profile": status["profile"],
-            "debounce": None if rt85 else status["debounce"],
+            "debounce": None if rt85 or identity["device_id"] == 3059 else status["debounce"],
             "options": keyboard.get_options(),
             "auto_os": keyboard.get_auto_os(),
             "limitations": _limitations(identity["device_id"]),
@@ -142,6 +142,9 @@ def validate(value):
         if model_id == 2895:
             if value["debounce"] is not None:
                 raise ValueError("RT85 snapshots must leave debounce null")
+        elif model_id == 3059:
+            if value["debounce"] is not None:
+                codec.bounded(value["debounce"], 255, "debounce")
         else:
             codec.bounded(value["debounce"], 255, "debounce")
         if type(value["auto_os"]) is not bool:
@@ -191,7 +194,7 @@ def restore(keyboard, value, backup_path):
                     raise ProtocolError(f"{key} readback differs")
             if keyboard.get_sleep() != value["sleep"]:
                 raise ProtocolError("sleep readback differs")
-            if value["debounce"] is not None:
+            if value["debounce"] is not None and value["identity"]["device_id"] != 3059:
                 keyboard.set_debounce(value["debounce"])
             keyboard.set_auto_os(value["auto_os"])
             keyboard.set_profile(value["profile"])
@@ -204,6 +207,11 @@ def restore(keyboard, value, backup_path):
             "restored": True,
             "previous_configuration": str(backup_path),
             "limitations": _limitations(value["identity"]["device_id"])
+            + (
+                ["legacy Glyph debounce value is not restored"]
+                if value["identity"]["device_id"] == 3059 and value["debounce"] is not None
+                else []
+            )
             + ([] if pictures else ["version 2 snapshot leaves custom RGB pictures unchanged"]),
         }
 

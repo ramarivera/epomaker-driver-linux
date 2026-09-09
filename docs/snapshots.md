@@ -5,7 +5,7 @@ version 5 for RY6602, or schema version 6 for RT100/Dynatab75X-UK. It captures
 all three Glyph/RT75 or four RT85 normal matrices,
 Windows/Mac Fn matrices, all 256 macro slots for Glyph (referenced macros for the
 other modern models), main/side lighting
-configuration, sleep timers, active profile, debounce, keyboard options and automatic
+configuration, sleep timers, active profile, model-supported debounce, keyboard options and automatic
 OS selection, plus all five custom RGB pictures. Unknown four-byte key actions and unrelated keyboard-option bytes are
 preserved. Files are atomically created with user-only permissions.
 
@@ -20,6 +20,12 @@ Glyph capture includes empty and undecodable raw macro slots. Restoring a comple
 Glyph backup restores all 256 slots, including clearing slots that were empty in
 the saved state. Older partial version 2/3 backups remain accepted: omitted macro
 slots are left unchanged, and the pre-restore recovery copy captures all 256 slots.
+
+New Glyph snapshots store `debounce: null`: the vendor does not expose that setting
+for Glyph. Older numeric values (integers 0–255) are accepted but never written
+during Glyph restoration; the result explicitly reports the ignored legacy value.
+No debounce query is needed to capture Glyph state. Other models retain their
+existing snapshot behavior. See [capability gates](capability-gates.md#glyph-debounce).
 
 ## YC3121 schema version 6
 
@@ -102,7 +108,7 @@ that control is not migrated for RT85; restoration never sends its setter.
 RT85 side mode/speed validation honors its five effects and wave maximum of 4.
 
 Versions 2 and 3 remain Glyph-only. Version 4 also accepts Glyph snapshots with
-three matrices and a numeric debounce value. A matching model ID is mandatory
+three matrices and null debounce (or a validated legacy numeric value). A matching model ID is mandatory
 at restoration time; neither direction of Glyph/RT85 cross-restoration is allowed.
 The current device's identity is read again even if the caller cached one earlier.
 Malformed input fails before writes or recovery-file creation. Invalid current

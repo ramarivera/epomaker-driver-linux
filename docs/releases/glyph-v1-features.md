@@ -24,7 +24,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G04.2 | Keyboard options/system-WASD settings | partial | expected |
 | G04.3 | Automatic OS selection | partial | expected |
 | G04.4 | Sleep timer settings | partial | expected |
-| G04.5 | Debounce setting and bounds | incorrectly-exposed | excluded |
+| G04.5 | Debounce setting and bounds | not-applicable | excluded |
 | G04.6 | Report-rate selection | not-applicable | excluded |
 | G05.1 | Macro slot storage and read/write | partial | expected |
 | G05.2 | Macro editor/import/export | partial | expected |
@@ -70,4 +70,4 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G17.2 | Simulated end-to-end workflow coverage | partial | expected |
 | G17.3 | Physical USB/Bluetooth/receiver verification | missing | expected |
 
-The [settings source audit](glyph-settings-audit.md) records the debounce gate and pending cleanup.
+The [settings source audit](glyph-settings-audit.md) records the debounce gate and compatibility behavior.

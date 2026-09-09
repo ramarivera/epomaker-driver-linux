@@ -72,13 +72,12 @@ def test_controller_configuration(controller, firmware):
     firmware.macros[2] = bytearray(bytes([0, 0, 255, 1]) + bytes(252))
     assert "decode_error" in controller.call("read", {"section": "macro", "slot": 2})
     write(kind="profile", profile=2)
-    write(kind="debounce", milliseconds=8)
     write(kind="sleep", bt=120, dongle=240, deep_bt=1800, deep_dongle=3600)
     write(kind="options", system="mac", wasd_swap=True)
     write(kind="auto_os", enabled=True)
     result = controller.call("read", {"section": "settings"})
     assert result["auto_os"] is True
-    assert firmware.profile == 2 and firmware.debounce == 8
+    assert firmware.profile == 2
     for operation, data in [("read", {}), ("write", {}), ("unknown", {})]:
         with pytest.raises(ValueError, match="unknown"):
             controller.call(operation, data)

@@ -3,6 +3,10 @@
 The React interface exposes the implemented Glyph driver through a loopback Python
 server. It supports keymaps and Fn layers, lighting and custom color slots, editable
 macros, still/animated images, clock/statistics, settings, and configuration backups.
+Lighting controls follow each Glyph effect's brightness, speed, RGB/rainbow and
+option metadata. Music and screen-color effects identify the missing host-input
+service. Settings omits the vendor-inapplicable debounce control; restoring an older
+backup reports that its legacy debounce value was skipped.
 All device support and hardware-validation limits in [parity.md](parity.md) apply.
 
 ## Build and run

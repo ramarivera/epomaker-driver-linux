@@ -4,7 +4,7 @@ import pytest
 
 from epomaker_driver import codec
 from epomaker_driver.device import Keyboard
-from epomaker_driver.errors import UnsupportedDevice
+from epomaker_driver.errors import ProtocolError, UnsupportedDevice
 from epomaker_driver.models import default_matrix
 
 
@@ -84,6 +84,12 @@ def test_settings_model_limits(rt75, firmware):
         "lighting",
         "display",
     ]
+
+
+def test_debounce_readback_mismatch_is_still_detected(rt75, firmware, monkeypatch):
+    monkeypatch.setattr(firmware, "send", lambda *args, **kwargs: None)
+    with pytest.raises(ProtocolError, match="debounce readback differs"):
+        rt75.set_debounce(10)
 
 
 @pytest.mark.parametrize(

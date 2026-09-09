@@ -5,6 +5,7 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
   const [value, setValue] = useState(null),
     [name, setName] = useState(""),
     [recovery, setRecovery] = useState(""),
+    [restoreLimitations, setRestoreLimitations] = useState([]),
     [resetResult, setResetResult] = useState(null),
     [resetConfirmed, setResetConfirmed] = useState(false);
   return (
@@ -54,6 +55,7 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
           onClick={() => {
             setResetResult(null);
             setResetConfirmed(false);
+            setRestoreLimitations([]);
             run(async () => {
               try {
                 const result = await api("write", { kind: "factory_reset" });
@@ -86,6 +88,7 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
             onChange={(e) => {
               const file = e.target.files[0];
               setValue(null);
+              setRestoreLimitations([]);
               if (file)
                 run(async () => {
                   const value = JSON.parse(await file.text());
@@ -113,14 +116,26 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
           disabled={!connected || busy || !value}
           onClick={() =>
             run(async () => {
+              setRestoreLimitations([]);
               const result = await api("write", { kind: "restore", value });
               setRecovery(result.previous_configuration);
+              setRestoreLimitations(result.limitations || []);
             }, "Restoration verified.")
           }
         >
           Restore backup
         </Button>
         {recovery && <p className="recovery">Recovery copy: {recovery}</p>}
+        {restoreLimitations.length > 0 && (
+          <div role="note" aria-label="Restore limitations">
+            <p>Restore limitations:</p>
+            <ul>
+              {restoreLimitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Panel>
     </>
   );
