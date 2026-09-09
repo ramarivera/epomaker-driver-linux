@@ -220,7 +220,20 @@ def factory_reset(keyboard, backup_path):
         validate(current)
         profiles.save(backup_path, current)
         try:
+            before_reset = keyboard.identify()
+            if any(
+                before_reset[field] != current["identity"][field]
+                for field in ("device_id", "usb_version", "is_boot")
+            ):
+                raise ProtocolError("keyboard identity changed while creating reset backup")
             keyboard._supported()
+        except Exception as error:
+            keyboard.identity = None
+            keyboard.model = None
+            raise ProtocolError(
+                f"reset was not sent; recovery snapshot is saved at {backup_path}: {error}"
+            ) from error
+        try:
             keyboard.transport.send(codec.packet([1]))
             keyboard.transport.sleep(2)
         except Exception as error:

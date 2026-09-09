@@ -127,6 +127,27 @@ class Controller:
         if operation != "write":
             raise ValueError("unknown operation")
         kind = data.get("kind")
+        if kind == "factory_reset":
+            backup = self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
+            try:
+                # Re-identify immediately before the destructive operation; a
+                # cached identity can outlive a device replacement.
+                identity = keyboard.identify()
+                if identity.get("device_id") != 3059:
+                    raise UnsupportedDevice("graphical factory reset currently supports Glyph only")
+                result = snapshot.factory_reset(keyboard, backup)
+            finally:
+                # The reset invalidates the cache after sending the command, but
+                # backup capture can fail first. Either way reconnect is required.
+                self.close()
+            return {
+                **result,
+                "connection": {
+                    "state": "disconnected",
+                    "reconnect_required": True,
+                    "factory_defaults_verified": False,
+                },
+            }
         if kind == "key":
             keyboard.set_key(
                 data["slot"],

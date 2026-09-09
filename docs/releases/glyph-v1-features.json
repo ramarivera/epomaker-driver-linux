@@ -283,16 +283,17 @@
       "group": "G04",
       "title": "Debounce setting and bounds",
       "hardware_status": "unverified",
-      "applicability": "expected",
+      "applicability": "excluded",
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/settings.jsx"
+        "ui/src/settings.jsx",
+        "docs/releases/glyph-settings-audit.md"
       ],
-      "implementation_status": "partial",
-      "audit_status": "pending-control-level-audit",
+      "implementation_status": "incorrectly-exposed",
+      "audit_status": "vendor-control-gate-confirmed",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Both vendor builds require other.deBounce, absent on Glyph. Linux UI/backend/snapshot compatibility cleanup remains pending; see glyph-settings-audit.md."
     },
     {
       "id": "G04.6",
@@ -752,8 +753,12 @@
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "CLI reset and pre-reset backup exist. Actual factory defaults, reconnect and physical recovery remain unverified."
+      "test_evidence": [
+        "tests/test_snapshot.py",
+        "tests/test_glyph_reset_identity.py",
+        "tests/test_server.py"
+      ],
+      "notes": "CLI and GUI reset save all 256 macro slots before sending once; identity is rechecked after backup. Actual factory defaults and physical recovery remain unverified."
     },
     {
       "id": "G12.2",
@@ -766,10 +771,13 @@
         "src/epomaker_driver/server.py",
         "ui/src/main.jsx"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_server.py",
+        "ui/tests/workflows.spec.js"
+      ],
+      "notes": "GUI acknowledgement, pre-reset recovery path and stale-connection invalidation implemented. Reconnect is manual; physical reset/reconnect behavior remains unverified."
     },
     {
       "id": "G12.3",

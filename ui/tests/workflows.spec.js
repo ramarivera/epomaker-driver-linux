@@ -201,3 +201,69 @@ test("display image upload, clock, backup download and verified restore", async 
   ).toBeVisible();
   await expect(page.getByText(/Recovery copy:/)).toContainText("recovery-");
 });
+
+test("Glyph factory reset saves recovery and requires reconnect", async ({
+  page,
+}) => {
+  await connect(page);
+  await nav(page, "Backups");
+  await page
+    .getByLabel(
+      "I understand that factory reset changes the keyboard configuration.",
+      {
+        exact: true,
+      },
+    )
+    .check();
+  await page
+    .getByRole("button", { name: "Factory reset Glyph", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Factory reset sent. Reconnect to continue; defaults were not verified.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Reset command sent\. Reconnect required\./),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Offline preview", { exact: true }),
+  ).toBeVisible();
+});
+
+test("failed reset clears confirmation and stale connection", async ({
+  page,
+}) => {
+  await connect(page);
+  await nav(page, "Backups");
+  await page.route("**/api/write", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error:
+          "reset outcome is unknown; recovery snapshot is saved at /test/recovery.json",
+      }),
+    });
+  });
+  const confirmation = page.getByRole("checkbox", {
+    name: "I understand that factory reset changes the keyboard configuration.",
+    exact: true,
+  });
+  await confirmation.check();
+  await page
+    .getByRole("button", { name: "Factory reset Glyph", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("/test/recovery.json");
+  await expect(
+    page.getByText("Offline preview", { exact: true }),
+  ).toBeVisible();
+  await expect(confirmation).not.toBeChecked();
+  await expect(
+    page.getByText(/Reset command sent\. Reconnect required\./),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Download backup", exact: true }),
+  ).toBeDisabled();
+});

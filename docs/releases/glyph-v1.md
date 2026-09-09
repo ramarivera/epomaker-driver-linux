@@ -45,7 +45,7 @@ means some code exists; **none is physically verified end to end yet**.
 | G01 | Discover and connect over every applicable Glyph transport | USB/Bluetooth descriptors and transport code; observed Bluetooth descriptor | Query the real internal ID; verify USB/Bluetooth; identify and integrate the actual Glyph receiver and its restrictions |
 | G02 | Connection lifecycle and status | Identity, firmware fields, battery/online parsing, disconnect errors | Accurate UI status, battery/charging where exposed, hotplug, sleep/wake, reconnect and transport changes; no stale device state |
 | G03 | Keys, Fn layers and knob actions | Three profiles, Windows/Mac Fn maps, named/raw bindings and readback | Audit every vendor-exposed action and restriction; verify physical key/knob mapping and playback behavior; expose applicable actions graphically |
-| G04 | Profile and keyboard settings | Profile selection, debounce, OS selection, automatic OS, WASD swap and sleep timers | Audit all Glyph-exposed option fields, limits and defaults; implement missing controls; verify persistence and transport-specific behavior |
+| G04 | Profile and keyboard settings | Profile selection, OS selection, automatic OS, WASD swap and sleep timers | Remove incorrectly exposed debounce; audit remaining Glyph option fields, limits and defaults; implement missing controls; verify persistence and transport-specific behavior |
 | G05 | Macro management | JSON editor, encoding/decoding, storage and playback bindings | Recording and editing workflows, delays/repeats/playback modes, mouse motion semantics, import/export compatibility and real execution |
 | G06 | Onboard main and side lighting | Main/side effects, colors, brightness, speed and options | Audit all 22 main and six side choices and their conditional controls; verify effects, off behavior, persistence and any firmware-gated light sync |
 | G07 | Custom per-key lighting | Five picture banks; 126 writable RGB slots and readback | Correct key/LED correspondence, full visual editing/import/export workflows, bank selection and physical color verification |
@@ -53,7 +53,7 @@ means some code exists; **none is physically verified end to end yet**.
 | G09 | Display images and animation | 428×142 RGB565 conversion, five still banks, bounded transfers and animation capacity | Audit display selection/clear/settings/editor workflows; complete asset management; verify rendering, frame timing, capacity and interruption handling |
 | G10 | Clock, display language and host statistics | Clock/language commands and foreground Linux statistics | Graphical/background refresh, settings and sensor selection where applicable; verify physical output and suspend/resume behavior |
 | G11 | Backup, restore and vendor configuration files | Versioned snapshots including all 256 Glyph macro slots, validation, recovery copies, vendor-file inspection | Verify complete manageable-state recovery; vendor import/export workflows; retain original screen assets for replay when pixel readback is unavailable; document inherently unreadable state |
-| G12 | Factory reset and recovery | CLI reset with pre-reset backup | GUI workflow, verified factory state, reconnect after reset, failed-operation recovery and restoration of the saved configuration |
+| G12 | Factory reset and recovery | CLI and GUI reset with pre-reset backup and identity recheck | Verified factory state, physical reconnect after reset, failed-operation recovery and restoration of the saved configuration |
 | G13 | Firmware management | Source research and version/bootloader awareness | Audit all Glyph firmware components and vendor update paths; validate images/identity, implement update/progress/reconnect and supported recovery; verify on appropriate hardware |
 | G14 | Service-dependent Glyph management | Source research | Audit whether any Glyph profile, firmware or configuration workflow requires vendor services; implement the workflow or a functionally equivalent supported path; unresolved cases block a 100% claim |
 | G15 | Install, run and maintain on Linux | Python package, CLI and loopback React interface | Usable installation/launch/update/uninstall, least-privilege device permissions, persistence of user settings/assets, background-service lifecycle and error reporting |
@@ -63,7 +63,9 @@ means some code exists; **none is physically verified end to end yet**.
 No Hall-effect/rapid-trigger/switch-calibration work belongs to Glyph v1: the Glyph
 catalog explicitly disables magnetic switches. Configurable polling rate is also
 not a Glyph vendor-UI feature; retain status reporting without inventing a missing
-setting. See [capability gates](../capability-gates.md). Any other exclusion needs
+setting. Configurable debounce is also absent from both vendor Glyph controls;
+the Linux exposure needs cleanup, as recorded in [the settings audit](glyph-settings-audit.md).
+See [capability gates](../capability-gates.md). Any other exclusion needs
 similarly specific evidence.
 
 ## Execution order

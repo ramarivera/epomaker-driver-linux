@@ -2,7 +2,7 @@
 
 Source of truth: [glyph-v1-features.json](glyph-v1-features.json). This is a **provisional workflow checklist**, not a closed vendor feature inventory or a completion percentage. It refines the [17 release acceptance areas](glyph-v1.md).
 
-The 61 rows include one evidence-backed exclusion (configurable polling rate). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
+The 61 rows include two evidence-backed exclusions (configurable polling rate and debounce). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
 
 Audit pointers in the JSON are starting points for source review, not claims that every referenced behavior has been verified. Do not use the row count as the denominator for a 100% claim until the individual Windows/macOS Glyph controls and connection restrictions have been reconciled.
 
@@ -24,7 +24,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G04.2 | Keyboard options/system-WASD settings | partial | expected |
 | G04.3 | Automatic OS selection | partial | expected |
 | G04.4 | Sleep timer settings | partial | expected |
-| G04.5 | Debounce setting and bounds | partial | expected |
+| G04.5 | Debounce setting and bounds | incorrectly-exposed | excluded |
 | G04.6 | Report-rate selection | not-applicable | excluded |
 | G05.1 | Macro slot storage and read/write | partial | expected |
 | G05.2 | Macro editor/import/export | partial | expected |
@@ -53,7 +53,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G11.3 | Vendor snapshot import/export | missing | expected |
 | G11.4 | Screen asset backup and readback limits | partial | expected |
 | G12.1 | Factory reset command and safety backup | partial | expected |
-| G12.2 | GUI reset/reconnect workflow | missing | expected |
+| G12.2 | GUI reset/reconnect workflow | partial | expected |
 | G12.3 | Recovery restore after interrupted operation | partial | expected |
 | G13.1 | Firmware version and bootloader awareness | partial | expected |
 | G13.2 | Firmware update and recovery | missing | expected |
@@ -69,3 +69,5 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G17.1 | Source evidence and protocol traceability | partial | expected |
 | G17.2 | Simulated end-to-end workflow coverage | partial | expected |
 | G17.3 | Physical USB/Bluetooth/receiver verification | missing | expected |
+
+The [settings source audit](glyph-settings-audit.md) records the debounce gate and pending cleanup.

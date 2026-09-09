@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { api, download } from "./api";
 import { Button, Field, Panel } from "./controls";
-export default function Backups({ connected, busy, run }) {
+export default function Backups({ connected, busy, run, onConnectionLost }) {
   const [value, setValue] = useState(null),
     [name, setName] = useState(""),
-    [recovery, setRecovery] = useState("");
+    [recovery, setRecovery] = useState(""),
+    [resetResult, setResetResult] = useState(null),
+    [resetConfirmed, setResetConfirmed] = useState(false);
   return (
     <>
       <Panel title="Save configuration">
@@ -29,6 +31,52 @@ export default function Backups({ connected, busy, run }) {
         >
           Download backup
         </Button>
+      </Panel>
+      <Panel title="Factory reset Glyph">
+        <p>
+          Save keymaps, all macro slots, custom colors and settings, then send
+          the Glyph factory-reset command. Screen images are not backed up.
+        </p>
+        <p className="muted">
+          The keyboard will be disconnected after the attempt. Reconnect it to
+          continue. Factory defaults are not verified automatically.
+        </p>
+        <label>
+          <input
+            type="checkbox"
+            checked={resetConfirmed}
+            onChange={(e) => setResetConfirmed(e.target.checked)}
+          />{" "}
+          I understand that factory reset changes the keyboard configuration.
+        </label>
+        <Button
+          disabled={!connected || busy || !resetConfirmed}
+          onClick={() => {
+            setResetResult(null);
+            setResetConfirmed(false);
+            run(async () => {
+              try {
+                const result = await api("write", { kind: "factory_reset" });
+                onConnectionLost();
+                setRecovery(result.previous_configuration);
+                setResetResult(result);
+              } catch (error) {
+                // The server drops stale state even when reset or its backup
+                // fails, so reconnect is required for every reset response.
+                onConnectionLost();
+                throw error;
+              }
+            }, "Factory reset sent. Reconnect to continue; defaults were not verified.");
+          }}
+        >
+          Factory reset Glyph
+        </Button>
+        {resetResult && (
+          <p className="recovery" role="status">
+            Reset command sent. Reconnect required. Recovery copy:{" "}
+            {resetResult.previous_configuration}
+          </p>
+        )}
       </Panel>
       <Panel title="Restore configuration">
         <Field label="Backup file">

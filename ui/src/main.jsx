@@ -187,6 +187,10 @@ function App() {
             busy={busy}
             run={run}
             epoch={epoch}
+            onConnectionLost={() => {
+              setIdentity(null);
+              setEpoch((e) => e + 1);
+            }}
           />
         ) : (
           !notice && <p className="muted">Loading device catalog…</p>

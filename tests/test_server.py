@@ -9,7 +9,7 @@ from PIL import Image
 
 from epomaker_driver import cli, server
 from epomaker_driver.discovery import DeviceInfo
-from epomaker_driver.errors import DeviceUnavailable
+from epomaker_driver.errors import DeviceUnavailable, ProtocolError, UnsupportedDevice
 
 
 @pytest.fixture
@@ -90,6 +90,59 @@ def test_controller_backup_and_restore(controller):
     result = controller.call("write", {"kind": "restore", "value": value})
     assert result
     assert len(list(controller.backup_dir.glob("recovery-*.json"))) == 1
+
+
+def test_controller_factory_reset_is_glyph_only_and_requires_reconnect(controller, firmware):
+    connect(controller)
+    result = controller.call("write", {"kind": "factory_reset"})
+    assert result["reset_sent"] is True
+    assert result["factory_defaults_verified"] is False
+    assert result["connection"] == {
+        "state": "disconnected",
+        "reconnect_required": True,
+        "factory_defaults_verified": False,
+    }
+    assert controller.identity is None and controller.keyboard is None
+    recovery = list(controller.backup_dir.glob("recovery-*.json"))
+    assert len(recovery) == 1 and str(recovery[0]) == result["previous_configuration"]
+
+
+def test_controller_factory_reset_failure_keeps_recovery_and_drops_connection(controller, firmware):
+    connect(controller)
+
+    def fail_send(*args, **kwargs):
+        raise OSError("simulated disconnect after reset")
+
+    firmware.send = fail_send
+    with pytest.raises(ProtocolError, match="recovery snapshot is saved at"):
+        controller.call("write", {"kind": "factory_reset"})
+    assert controller.identity is None and controller.keyboard is None
+    assert len(list(controller.backup_dir.glob("recovery-*.json"))) == 1
+
+
+def test_controller_factory_reset_rechecks_identity_before_reset(controller, firmware):
+    connect(controller)
+    firmware.model_id = 2895
+    with pytest.raises(UnsupportedDevice, match="Glyph only"):
+        controller.call("write", {"kind": "factory_reset"})
+    assert controller.identity is None and controller.keyboard is None
+    assert not [command for command in firmware.sent if command[0] == 1]
+    assert not list(controller.backup_dir.glob("recovery-*.json"))
+
+
+def test_controller_reset_backup_failure_prevents_send(controller, firmware, monkeypatch):
+    connect(controller)
+
+    def failed_capture(*args, **kwargs):
+        raise ProtocolError("macro read failed")
+
+    monkeypatch.setattr(controller.keyboard, "read_macro", failed_capture)
+    with pytest.raises(ProtocolError, match="macro read failed"):
+        controller.call("write", {"kind": "factory_reset"})
+    assert firmware.closed
+    assert controller.keyboard is None and controller.identity is None
+    assert not firmware.sent
+    assert not list(controller.backup_dir.glob("recovery-*.json"))
 
 
 def test_controller_display(controller, monkeypatch):

@@ -29,6 +29,12 @@ A successful restore displays the recovery path. Downloaded backups go through t
 browser's normal download flow. Glyph backups include all 256 macro slots, including
 unreferenced and empty slots. Screen pixels are not included.
 
+Backups also provides a Glyph factory-reset action with an explicit acknowledgement.
+It saves a private recovery file before sending the command, then drops the connection
+even if the operation fails. Reconnect through the device selector before inspecting
+or restoring settings. A sent command does not prove factory defaults; failed writes
+report an unknown outcome and the recovery path. The driver never retries reset.
+
 The server binds only to 127.0.0.1, checks Host and Origin, and requires a token header
 for every API operation. It accepts bounded JSON bodies, confines static assets to the
 built UI directory, and never accepts arbitrary device or recovery paths from the

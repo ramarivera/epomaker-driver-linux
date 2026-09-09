@@ -72,6 +72,9 @@ This explicitly resets device configuration. Before sending the reset command, t
 CLI captures all normal/Fn maps, settings, custom colors, and **all 256 macro slots**,
 including unreferenced slots. It atomically saves a private recovery snapshot and
 refuses to overwrite an existing file. A failed capture or save prevents the reset.
+After saving, the driver reads identity again and requires the same model, firmware
+version and bootloader state. A failed query or changed identity prevents the reset
+and reports the saved recovery path.
 Screen pixels cannot currently be read back and are not recoverable from this file.
 
 The implementation sends one checksum-protected command `01 00 00 00 00 00 00 fe`
@@ -86,7 +89,8 @@ the command never retries a possibly completed reset automatically.
 Reconnect and inspect the physical keyboard after resetting. Use `restore` with the
 saved file and another new recovery path if you want to put the saved configuration
 back. Factory behavior, which device memories are reset, and reconnect timing remain
-hardware-unverified. This operation is currently available through the CLI.
+hardware-unverified. This operation is available through the CLI and the Glyph
+Backups panel; see [the control interface](control-interface.md).
 
 
 ## RT85 schema version 4
