@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
-export default function Settings({ connected, busy, run, epoch }) {
+export default function Settings({ connected, transport, busy, run, epoch }) {
   const [value, setValue] = useState(null);
   const load = async () => setValue(await api("read", { section: "settings" }));
   useEffect(() => {
@@ -23,6 +23,31 @@ export default function Settings({ connected, busy, run, epoch }) {
     }, message);
   return (
     <>
+      <Panel title="Device identity and firmware">
+        <p>
+          Model: {value.model || "Epomaker Glyph"} · Internal ID:{" "}
+          {value.identity?.device_id ?? "Unknown"}
+        </p>
+        <p>
+          Connected transport:{" "}
+          {transport === "usb"
+            ? "Wired USB"
+            : transport === "bluetooth"
+              ? "Bluetooth"
+              : "Unknown"}
+        </p>
+        <p>
+          USB firmware code:{" "}
+          {value.identity?.usb_version
+            ? `${value.identity.usb_version} (0x${value.identity.usb_version.toString(16).padStart(4, "0")})`
+            : "Unavailable"}
+        </p>
+        <p className="muted">
+          Firmware identity was read when connecting. Reconnect to refresh it
+          after a firmware change. This is the raw USB firmware code; other
+          component versions and firmware updates are not yet available here.
+        </p>
+      </Panel>
       <div className="two-columns">
         <Panel title="Profile and response">
           <div className="fields">

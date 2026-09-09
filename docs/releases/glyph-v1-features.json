@@ -72,12 +72,13 @@
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "ui/src/settings.jsx"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Settings shows the connected model, internal ID, actual transport and raw USB firmware code captured at connection. Simulator UI checked; other component versions and physical identity remain unverified."
     },
     {
       "id": "G02.2",
@@ -887,7 +888,8 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-firmware-workflow-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -903,7 +905,8 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-firmware-workflow-audit.md"
       ],
       "implementation_status": "missing",
       "audit_status": "pending-control-level-audit",
@@ -935,7 +938,8 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-firmware-workflow-audit.md"
       ],
       "implementation_status": "unresolved",
       "audit_status": "pending-control-level-audit",
