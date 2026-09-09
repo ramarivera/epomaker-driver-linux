@@ -185,6 +185,7 @@ function App() {
             catalog={catalog}
             connected={connected}
             transport={identity?.transport}
+            lightSync={identity?.light_sync}
             busy={busy}
             run={run}
             epoch={epoch}

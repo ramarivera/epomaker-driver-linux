@@ -104,6 +104,9 @@ Mouse commands use their own protocol and are rejected on keyboards.
 ## Run
 
 For the graphical interface, follow the [build and launch instructions](docs/control-interface.md).
+The Glyph Lighting page includes [live screen lighting](docs/live-lighting.md)
+on wired USB firmware that advertises support; the Display page offers
+[continuous host statistics](docs/system-info.md). Physical output remains unverified.
 Run `epomaker serve`, open its printed session URL, and select the discovered keyboard.
 
 

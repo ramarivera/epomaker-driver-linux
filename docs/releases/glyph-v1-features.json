@@ -576,16 +576,24 @@
       "group": "G08",
       "title": "Host live-light USB gating",
       "hardware_status": "unverified",
-      "applicability": "pending-audit",
+      "applicability": "expected",
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/lighting.jsx"
+        "ui/src/lighting.jsx",
+        "docs/releases/glyph-live-light-audit.md",
+        "docs/live-lighting.md",
+        "src/epomaker_driver/live_light_session.py",
+        "ui/src/live-lighting.jsx"
       ],
-      "implementation_status": "unresolved",
-      "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Vendor live-light support is gated by USB and the reported light-sync flag. Reading an identity flag does not implement a live-light stream."
+      "implementation_status": "partial",
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [
+        "tests/test_live_lighting.py",
+        "tests/test_live_light_session.py",
+        "ui/tests/live-lighting.spec.js"
+      ],
+      "notes": "Wired USB and firmware-flag-gated RGB frames plus explicit browser screen capture, per-session stale-request rejection and stop restoration. Physical LED mapping, capture/throughput and full vendor layout/audio/lifecycle parity remain unverified or incomplete."
     },
     {
       "id": "G08.2",
@@ -596,12 +604,20 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/lighting.jsx"
+        "ui/src/lighting.jsx",
+        "docs/releases/glyph-live-light-audit.md",
+        "docs/live-lighting.md",
+        "src/epomaker_driver/live_light_session.py",
+        "ui/src/live-lighting.jsx"
       ],
-      "implementation_status": "missing",
-      "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "implementation_status": "partial",
+      "audit_status": "partial-control-level-audit",
+      "test_evidence": [
+        "tests/test_live_lighting.py",
+        "tests/test_live_light_session.py",
+        "ui/tests/live-lighting.spec.js"
+      ],
+      "notes": "Wired USB and firmware-flag-gated RGB frames plus explicit browser screen capture, per-session stale-request rejection and stop restoration. Physical LED mapping, capture/throughput and full vendor layout/audio/lifecycle parity remain unverified or incomplete."
     },
     {
       "id": "G09.1",

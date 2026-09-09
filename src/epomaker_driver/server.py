@@ -17,6 +17,7 @@ from .device import Keyboard
 from .discovery import discover
 from .display_library import DisplayLibrary
 from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDevice
+from .live_light_session import LiveLightSession
 from .macro_library import MacroLibrary
 from .models import glyph_matrix
 from .system_info_refresh import SystemInfoRefresh
@@ -44,9 +45,11 @@ class Controller:
         self.identity = None
         self.lock = threading.RLock()
         self.system_info_refresh = SystemInfoRefresh(self, collector_factory)
+        self.live_light = LiveLightSession()
 
     def close(self):
         with self.lock:
+            self.live_light.cancel()
             self.system_info_refresh.stop()
             if self.keyboard is not None:
                 self.keyboard.transport.close()
@@ -140,6 +143,7 @@ class Controller:
                 delay_ms=data.get("delay_ms"),
             )
         if operation == "connect":
+            self.live_light.cancel()
             self.system_info_refresh.stop()
             info = next(
                 (d for d in self.discovery() if d.path == data.get("path") and d.command_transport),
@@ -174,6 +178,12 @@ class Controller:
         keyboard = self.keyboard
         if keyboard is None:
             raise DeviceUnavailable("connect a keyboard first")
+        if operation == "live_light_start":
+            return self.live_light.start(keyboard)
+        if operation == "live_light_frame":
+            return self.live_light.frame(data.get("session"), data.get("colors"))
+        if operation == "live_light_stop":
+            return self.live_light.stop(data.get("session"))
         if operation == "read":
             section = data.get("section")
             if section == "keymap":
@@ -209,6 +219,11 @@ class Controller:
         if operation != "write":
             raise ValueError("unknown operation")
         kind = data.get("kind")
+        if self.live_light.session is not None:
+            if kind in ("factory_reset", "restore"):
+                self.live_light.cancel()
+            else:
+                self.live_light.stop(self.live_light.session)
         if kind == "factory_reset":
             self.system_info_refresh.stop()
             backup = self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
@@ -399,6 +414,9 @@ class Handler(BaseHTTPRequestHandler):
             "/api/display_asset_delete",
             "/api/system_info_refresh_start",
             "/api/system_info_refresh_stop",
+            "/api/live_light_start",
+            "/api/live_light_frame",
+            "/api/live_light_stop",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return

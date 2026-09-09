@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
 import CustomPattern from "./custom-pattern";
+import LiveLighting from "./live-lighting";
 const initial = {
   mode: "solid",
   rgb: 0xffffff,
@@ -69,7 +70,15 @@ function effectOptions(catalog, side, mode) {
 function labelOption(option) {
   return OPTION_LABELS[option] || option;
 }
-export default function Lighting({ catalog, connected, busy, run, epoch }) {
+export default function Lighting({
+  catalog,
+  connected,
+  transport,
+  lightSync,
+  busy,
+  run,
+  epoch,
+}) {
   const [side, setSide] = useState(false),
     [lights, setLights] = useState({ main: initial, side: initial });
   const [index, setIndex] = useState(0),
@@ -215,7 +224,7 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
           <p className="muted">
             {value.mode === "music"
               ? "Music-follow input is not provided by this host yet."
-              : "Screen-color input is not provided by this host yet."}
+              : "Use Live screen lighting below to select and stream a screen source on supported USB firmware."}
           </p>
         )}
         <div className="apply-row">
@@ -256,6 +265,12 @@ export default function Lighting({ catalog, connected, busy, run, epoch }) {
           run={run}
         />
       </Panel>
+      <LiveLighting
+        connected={connected}
+        transport={transport}
+        lightSync={lightSync}
+        busy={busy}
+      />
     </>
   );
 }

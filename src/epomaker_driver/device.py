@@ -6,6 +6,7 @@ import datetime
 
 from . import codec, versions
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
+from .live_lighting import frame_packets
 from .models import (
     RT100_PRO_IDS,
     RY6602_IDS,
@@ -599,6 +600,32 @@ class Keyboard:
         """Match the vendor UI gate; see docs/releases/glyph-display-workflow-audit.md."""
         if self.identity["device_id"] == 3059 and getattr(self.transport, "kind", None) != "usb":
             raise UnsupportedDevice("Glyph animation uploads require a wired USB connection")
+
+    def send_live_colors(self, colors):
+        """Send one host-driven 21x6 RGB frame to a USB Glyph.
+
+        The complete frame is encoded before acquiring the transport transaction,
+        so invalid input cannot partially mutate the device. Each packet uses
+        the transport's normal USB send delay; no extra post-frame delay is
+        added.
+        """
+        self._supported()
+        if self.identity["device_id"] != 3059:
+            raise UnsupportedDevice("host-driven lighting currently supports Glyph only")
+        if getattr(self.transport, "kind", None) != "usb":
+            raise UnsupportedDevice("Glyph host-driven lighting requires a wired USB connection")
+        if self.identity.get("is_boot"):
+            raise UnsupportedDevice("host-driven lighting is unavailable in bootloader mode")
+        if self.identity.get("light_sync") is not True:
+            raise UnsupportedDevice("Glyph does not report host-driven lighting support")
+        packets = frame_packets(colors)
+
+        def operation():
+            for packet in packets:
+                self.transport.send(packet)
+            return len(packets)
+
+        return self.transport.transaction(operation)
 
     def _transfer_screen(self, prepare, chunks, progress):
         self._check_commands([prepare])
