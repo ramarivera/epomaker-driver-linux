@@ -1,8 +1,13 @@
 # EPOMAKER Driver for Linux
 
 Independent Linux configuration software for EPOMAKER keyboards, mice and receivers.
-**Work in progress. The target is greater than 95% feature parity with the Windows/macOS
-3.2.22 installers; that target has not been reached.**
+**Work in progress. The next release is Glyph v1: complete management of the
+EPOMAKER Glyph on Linux, referenced against the Windows/macOS 3.2.22 installers.
+That release is not complete. Other products are deferred from v1.**
+
+The [Glyph v1 scope and release checklist](docs/releases/glyph-v1.md) is the active
+release plan. The broader backend inventory below records existing work; it is not
+the v1 completion target.
 
 The first implementation is a userspace Python HID backend, CLI and local React control
 interface for the Glyph/YC3123 protocol. It includes USB/Bluetooth transport code, device discovery, remapping, profiles,

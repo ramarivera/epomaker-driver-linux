@@ -1,9 +1,11 @@
 # Migration status
 
 Baseline: EPOMAKER Driver v4 3.2.22, Windows and macOS installers recorded in
-[source-releases.json](source-releases.json). The objective is greater than 95%
-feature parity. It has not been achieved, and there is no defensible overall
-percentage until the inventory and weighting have been completed.
+[source-releases.json](source-releases.json). The original project-wide objective was greater than 95%
+feature parity. On 2026-09-09, v1 was deliberately narrowed to
+[complete Glyph management](releases/glyph-v1.md); other products are deferred.
+This document retains the broader research inventory. Neither the original target
+nor the Glyph v1 release criteria have been achieved.
 
 The [model inventory](model-inventory.md) records all 46 EPOMAKER catalog rows,
 per-model feature gates and loader matches from both installers. Glyph, [RT85 CLI features](rt85.md) and [RT75 CLI configuration](rt75.md) are
