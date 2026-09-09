@@ -31,6 +31,9 @@ undocumented, dependent on a service, or not yet available for hardware testing.
 An unresolved applicability question remains open until source/UI/device evidence
 settles it. A shared protocol method alone does not prove Glyph applicability.
 
+The [provisional feature inventory](glyph-v1-features.md) breaks these areas into
+individual workflows and records unresolved applicability.
+
 ## Release checklist
 
 These are acceptance areas, not equally weighted percentages. Each must be split
@@ -49,7 +52,7 @@ means some code exists; **none is physically verified end to end yet**.
 | G08 | Host-driven lighting | Effect selection and protocol research | Determine which Glyph music/screen/reactive modes require host processing; implement applicable Linux capture, streaming, start/stop and cleanup workflows |
 | G09 | Display images and animation | 428×142 RGB565 conversion, five still banks, bounded transfers and animation capacity | Audit display selection/clear/settings/editor workflows; complete asset management; verify rendering, frame timing, capacity and interruption handling |
 | G10 | Clock, display language and host statistics | Clock/language commands and foreground Linux statistics | Graphical/background refresh, settings and sensor selection where applicable; verify physical output and suspend/resume behavior |
-| G11 | Backup, restore and vendor configuration files | Versioned snapshots, validation, recovery copies, vendor-file inspection | Complete manageable-state backup including unreferenced macros; vendor import/export workflows; retain original screen assets for replay when pixel readback is unavailable; document inherently unreadable state |
+| G11 | Backup, restore and vendor configuration files | Versioned snapshots including all 256 Glyph macro slots, validation, recovery copies, vendor-file inspection | Verify complete manageable-state recovery; vendor import/export workflows; retain original screen assets for replay when pixel readback is unavailable; document inherently unreadable state |
 | G12 | Factory reset and recovery | CLI reset with pre-reset backup | GUI workflow, verified factory state, reconnect after reset, failed-operation recovery and restoration of the saved configuration |
 | G13 | Firmware management | Source research and version/bootloader awareness | Audit all Glyph firmware components and vendor update paths; validate images/identity, implement update/progress/reconnect and supported recovery; verify on appropriate hardware |
 | G14 | Service-dependent Glyph management | Source research | Audit whether any Glyph profile, firmware or configuration workflow requires vendor services; implement the workflow or a functionally equivalent supported path; unresolved cases block a 100% claim |

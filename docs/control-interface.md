@@ -26,7 +26,8 @@ local editing but disables device writes. Device permissions are documented in
 server and its keyboard connection. Recovery files default to
 `~/.local/state/epomaker-driver-linux/backups`; change this with `--backup-dir`.
 A successful restore displays the recovery path. Downloaded backups go through the
-browser's normal download flow. Screen data and unreferenced macros are not included.
+browser's normal download flow. Glyph backups include all 256 macro slots, including
+unreferenced and empty slots. Screen pixels are not included.
 
 The server binds only to 127.0.0.1, checks Host and Origin, and requires a token header
 for every API operation. It accepts bounded JSON bodies, confines static assets to the

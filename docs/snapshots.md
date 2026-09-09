@@ -3,17 +3,23 @@
 `backup` writes a version 3 JSON snapshot for Glyph, version 4 for RT85/RT75,
 version 5 for RY6602, or schema version 6 for RT100/Dynatab75X-UK. It captures
 all three Glyph/RT75 or four RT85 normal matrices,
-Windows/Mac Fn matrices, every macro referenced by those matrices, main/side lighting
+Windows/Mac Fn matrices, all 256 macro slots for Glyph (referenced macros for the
+other modern models), main/side lighting
 configuration, sleep timers, active profile, debounce, keyboard options and automatic
 OS selection, plus all five custom RGB pictures. Unknown four-byte key actions and unrelated keyboard-option bytes are
 preserved. Files are atomically created with user-only permissions.
 
-Screen pixels and unreferenced macro slots are not captured
-by an ordinary backup. These omissions are recorded in the file. A snapshot is not a
+Screen pixels are not captured. Non-Glyph ordinary backups also omit unreferenced
+macro slots. These omissions are recorded in the file. A snapshot is not a
 firmware image or a complete device-memory dump. The current importer can inspect vendor
 JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3, 4, 5 and 6 schemas.
 Restoring version 2 leaves custom RGB pictures unchanged and reports that limitation.
 Earlier version 1 snapshots can still be inspected; create a new backup before restoring.
+
+Glyph capture includes empty and undecodable raw macro slots. Restoring a complete
+Glyph backup restores all 256 slots, including clearing slots that were empty in
+the saved state. Older partial version 2/3 backups remain accepted: omitted macro
+slots are left unchanged, and the pre-restore recovery copy captures all 256 slots.
 
 ## YC3121 schema version 6
 

@@ -9,12 +9,10 @@ export default function Backups({ connected, busy, run }) {
     <>
       <Panel title="Save configuration">
         <p>
-          Download keymaps, referenced macros, custom colors and keyboard
+          Download keymaps, all 256 macro slots, custom colors and keyboard
           settings.
         </p>
-        <p className="muted">
-          Screen images and unreferenced macro slots are not included.
-        </p>
+        <p className="muted">Screen images are not included.</p>
         <Button
           primary
           disabled={!connected || busy}

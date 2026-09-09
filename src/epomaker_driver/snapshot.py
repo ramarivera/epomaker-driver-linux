@@ -12,7 +12,9 @@ def _has_side(model_id):
 
 
 def _limitations(model_id, *, all_macros=False):
-    result = ["screen pixels are not included"] if all_macros else LIMITATIONS.copy()
+    result = (
+        ["screen pixels are not included"] if all_macros or model_id == 3059 else LIMITATIONS.copy()
+    )
     if model_id in RY6602_IDS:
         result.append("unexposed receiver timer field is not restored")
     return result
@@ -23,6 +25,10 @@ def macro_slots(matrices):
 
 
 def capture(keyboard, *, extra_macro_slots=()):
+    extra_macro_slots = tuple(extra_macro_slots)
+    if any(type(slot) is not int or not 0 <= slot <= 255 for slot in extra_macro_slots):
+        raise ValueError("extra macro slots must be integers from 0 through 255")
+
     def operation():
         identity = keyboard.identify()
         keyboard._supported()
@@ -32,7 +38,11 @@ def capture(keyboard, *, extra_macro_slots=()):
             name: keyboard.read_matrix(fn=True, os_mode=mode)
             for name, mode in (("win", 0), ("mac", 1))
         }
-        slots = sorted(set(macro_slots(matrices + list(fn.values()))) | set(extra_macro_slots))
+        slots = (
+            range(256)
+            if identity["device_id"] == 3059
+            else sorted(set(macro_slots(matrices + list(fn.values()))) | set(extra_macro_slots))
+        )
         macros = {str(slot): keyboard.read_macro(slot).hex() for slot in slots}
         status = keyboard.status()
         return {

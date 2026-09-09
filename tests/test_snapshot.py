@@ -15,7 +15,7 @@ def test_capture_restore_and_recovery(firmware, tmp_path):
     firmware.macros[7] = bytearray([1] * 256)
     firmware.macros[8] = bytearray([2] * 256)
     desired = snapshot.capture(keyboard)
-    assert set(desired["macros"]) == {"7", "8"}
+    assert set(desired["macros"]) == {str(slot) for slot in range(256)}
     firmware.matrices[1][20:24] = bytes(4)
     firmware.fn[1][24:28] = bytes(4)
     firmware.macros[7] = bytearray([3] * 256)
@@ -45,7 +45,10 @@ def test_capture_restore_and_recovery(firmware, tmp_path):
         lambda v: v.update(matrices=["00"]),
         lambda v: v.update(macros={"01": bytes(256).hex()}),
         lambda v: v.update(macros={"2": "00"}),
-        lambda v: v["matrices"].__setitem__(0, (bytes([9, 0, 1, 0]) + bytes(508)).hex()),
+        lambda v: (
+            v["matrices"].__setitem__(0, (bytes([9, 0, 1, 0]) + bytes(508)).hex()),
+            v["macros"].pop("1"),
+        ),
         lambda v: v["light"].update(raw=[0] * 64),
         lambda v: v["sleep"].update(deep_bluetooth=0),
         lambda v: v.update(profile=3),

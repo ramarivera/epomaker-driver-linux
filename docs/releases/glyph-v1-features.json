@@ -1,0 +1,1019 @@
+{
+  "schema_version": 1,
+  "model_id": 3059,
+  "release": "Glyph v1",
+  "baseline": "docs/source-releases.json",
+  "inventory_status": "provisional; individual vendor-control audit incomplete",
+  "definitions": {
+    "implementation_status": "Offline implementation/workflow status only; implemented is not physically verified.",
+    "applicability": "expected remains subject to control-level source audit; pending-audit must not be silently excluded.",
+    "completion": "Every applicable feature needs source mapping, implementation, automated evidence and applicable hardware/service results.",
+    "percentage": "No overall completion percentage is published while the denominator and applicability remain unresolved."
+  },
+  "features": [
+    {
+      "id": "G01.1",
+      "group": "G01",
+      "title": "Wired USB discovery and connect",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Catalog USB VID/PID is 3151:5002. Bluetooth is 3151:5004; do not interchange them."
+    },
+    {
+      "id": "G01.2",
+      "group": "G01",
+      "title": "Bluetooth discovery and connect",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Bluetooth framing is implemented; sysfs detected Glyph at /dev/hidraw0 on 2026-09-09. root:root mode0600 prevents command verification by this user."
+    },
+    {
+      "id": "G01.3",
+      "group": "G01",
+      "title": "2.4G receiver discovery and connect",
+      "hardware_status": "unverified",
+      "applicability": "pending-audit",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "unresolved",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G02.1",
+      "group": "G02",
+      "title": "Identity and firmware display",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G02.2",
+      "group": "G02",
+      "title": "Battery and online state",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G02.3",
+      "group": "G02",
+      "title": "Disconnect, reconnect, and stale-state reset",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G02.4",
+      "group": "G02",
+      "title": "Sleep/wake or transport-change continuity",
+      "hardware_status": "unverified",
+      "applicability": "pending-audit",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G03.1",
+      "group": "G03",
+      "title": "Read and edit normal keymap",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/keymap.jsx",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G03.2",
+      "group": "G03",
+      "title": "Fn Windows layer keymap",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/keymap.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G03.3",
+      "group": "G03",
+      "title": "Fn Mac layer keymap",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/keymap.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G03.4",
+      "group": "G03",
+      "title": "Knob/encoder actions",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/keymap.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G03.5",
+      "group": "G03",
+      "title": "Action validation, restrictions, and readback",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/keymap.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.1",
+      "group": "G04",
+      "title": "Select and persist profile",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/keymap.jsx",
+        "ui/src/settings.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.2",
+      "group": "G04",
+      "title": "Keyboard options/system-WASD settings",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/settings.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.3",
+      "group": "G04",
+      "title": "Automatic OS selection",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/settings.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.4",
+      "group": "G04",
+      "title": "Sleep timer settings",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/settings.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.5",
+      "group": "G04",
+      "title": "Debounce setting and bounds",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/settings.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G04.6",
+      "group": "G04",
+      "title": "Report-rate selection",
+      "hardware_status": "unverified",
+      "applicability": "excluded",
+      "audit_pointers": [
+        "docs/capability-gates.md"
+      ],
+      "implementation_status": "not-applicable",
+      "audit_status": "exclusion-evidenced",
+      "test_evidence": [],
+      "notes": "The vendor Glyph UI does not expose configurable report rate. Status reporting remains applicable under G02."
+    },
+    {
+      "id": "G05.1",
+      "group": "G05",
+      "title": "Macro slot storage and read/write",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/macros-editor.jsx",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G05.2",
+      "group": "G05",
+      "title": "Macro editor/import/export",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/macros-editor.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G05.3",
+      "group": "G05",
+      "title": "Macro delays, repeats, and playback modes",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/macros-editor.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G05.4",
+      "group": "G05",
+      "title": "Mouse-motion macro semantics",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/macros-editor.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G05.5",
+      "group": "G05",
+      "title": "Macro recording and playback verification",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/macros-editor.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Binding and stored macro execution configuration already exist; recording and physical playback verification remain."
+    },
+    {
+      "id": "G06.1",
+      "group": "G06",
+      "title": "Main lighting effect catalog and controls",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/lighting.jsx",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G06.2",
+      "group": "G06",
+      "title": "Side lighting effect catalog and controls",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G06.3",
+      "group": "G06",
+      "title": "Lighting persistence, off, and readback",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G06.4",
+      "group": "G06",
+      "title": "Conditional brightness, speed, RGB, rainbow, and music controls",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G07.1",
+      "group": "G07",
+      "title": "Select and persist picture bank",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G07.2",
+      "group": "G07",
+      "title": "Edit per-key RGB picture pixels",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G07.3",
+      "group": "G07",
+      "title": "Picture import/export and full bank correspondence",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G08.1",
+      "group": "G08",
+      "title": "Host live-light USB gating",
+      "hardware_status": "unverified",
+      "applicability": "pending-audit",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "unresolved",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Vendor live-light support is gated by USB and the reported light-sync flag. Reading an identity flag does not implement a live-light stream."
+    },
+    {
+      "id": "G08.2",
+      "group": "G08",
+      "title": "Live-light capture/stream lifecycle",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/lighting.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G09.1",
+      "group": "G09",
+      "title": "Still-image conversion and screen upload",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G09.2",
+      "group": "G09",
+      "title": "Animation conversion, timing, and frame capacity",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G09.3",
+      "group": "G09",
+      "title": "Display bank selection, clear, and asset editor",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G09.4",
+      "group": "G09",
+      "title": "Display transfer interruption and retry handling",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Prepare acceptance polling and bounded failure handling exist. Pixel readback has not been found; do not invent a pixel query. Recovery and actual display output still require verification."
+    },
+    {
+      "id": "G10.1",
+      "group": "G10",
+      "title": "Clock synchronization and physical display",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "A clock setter exists. A clock readback command has not been established."
+    },
+    {
+      "id": "G10.2",
+      "group": "G10",
+      "title": "Display language toggle",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "The vendor workflow uses a toggle; do not assume a named language setter or current-language readback."
+    },
+    {
+      "id": "G10.3",
+      "group": "G10",
+      "title": "Host statistics/system information",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "src/epomaker_driver/device.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/display.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G10.4",
+      "group": "G10",
+      "title": "Background refresh, suspend, and lifecycle updates",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G11.1",
+      "group": "G11",
+      "title": "Backup managed keyboard state",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/server.py",
+        "src/epomaker_driver/device.py",
+        "ui/src/backups.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G11.2",
+      "group": "G11",
+      "title": "Preserve unreferenced macro slots",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "src/epomaker_driver/snapshot.py",
+        "ui/src/backups.jsx",
+        "docs/snapshots.md"
+      ],
+      "implementation_status": "implemented",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [
+        "tests/test_glyph_backup_complete.py",
+        "tests/test_snapshot.py",
+        "ui/tests/workflows.spec.js"
+      ],
+      "notes": "Ordinary Glyph backups now capture all256slots, including raw/empty/unreferenced entries. Complete restores restore those entries; older partial snapshots preserve omitted slots. Hardware verification remains open."
+    },
+    {
+      "id": "G11.3",
+      "group": "G11",
+      "title": "Vendor snapshot import/export",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/backups.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G11.4",
+      "group": "G11",
+      "title": "Screen asset backup and readback limits",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/display.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/backups.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G12.1",
+      "group": "G12",
+      "title": "Factory reset command and safety backup",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "src/epomaker_driver/snapshot.py",
+        "tests/test_snapshot.py",
+        "docs/capability-gates.md"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "CLI reset and pre-reset backup exist. Actual factory defaults, reconnect and physical recovery remain unverified."
+    },
+    {
+      "id": "G12.2",
+      "group": "G12",
+      "title": "GUI reset/reconnect workflow",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G12.3",
+      "group": "G12",
+      "title": "Recovery restore after interrupted operation",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/backups.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G13.1",
+      "group": "G13",
+      "title": "Firmware version and bootloader awareness",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G13.2",
+      "group": "G13",
+      "title": "Firmware update and recovery",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G14.1",
+      "group": "G14",
+      "title": "Vendor account/cloud/profile workflows applicable to Glyph",
+      "hardware_status": "unverified",
+      "applicability": "pending-audit",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "unresolved",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Determine which vendor service workflows are actually part of Glyph management. No blanket exclusion is accepted."
+    },
+    {
+      "id": "G14.2",
+      "group": "G14",
+      "title": "Firmware retrieval and update-service dependencies",
+      "hardware_status": "unverified",
+      "applicability": "pending-audit",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "unresolved",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Audit the Glyph update path and service dependencies; a shared downloader alone does not establish applicability."
+    },
+    {
+      "id": "G15.1",
+      "group": "G15",
+      "title": "Install and launch desktop application",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G15.2",
+      "group": "G15",
+      "title": "USB permissions and access errors",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G15.3",
+      "group": "G15",
+      "title": "Persistence, update, and uninstall",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G15.4",
+      "group": "G15",
+      "title": "Background lifecycle and tray behavior",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G16.1",
+      "group": "G16",
+      "title": "Integrated desktop pages for keymap/light/macros/display/settings",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G16.2",
+      "group": "G16",
+      "title": "Responsive/accessibility behavior",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G16.3",
+      "group": "G16",
+      "title": "Clear unsupported-feature explanations",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/server.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G17.1",
+      "group": "G17",
+      "title": "Source evidence and protocol traceability",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/glyph-protocol.md",
+        "docs/display.md",
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/src/main.jsx"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G17.2",
+      "group": "G17",
+      "title": "Simulated end-to-end workflow coverage",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "tests/test_device.py",
+        "src/epomaker_driver/server.py",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "partial",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+    },
+    {
+      "id": "G17.3",
+      "group": "G17",
+      "title": "Physical USB/Bluetooth/receiver verification",
+      "hardware_status": "unverified",
+      "applicability": "expected",
+      "audit_pointers": [
+        "docs/releases/glyph-v1.md",
+        "src/epomaker_driver/device.py",
+        "ui/tests/workflows.spec.js"
+      ],
+      "implementation_status": "missing",
+      "audit_status": "pending-control-level-audit",
+      "test_evidence": [],
+      "notes": "No successful physical command round trips or management workflows have been recorded. Descriptor observation is not command verification."
+    }
+  ]
+}

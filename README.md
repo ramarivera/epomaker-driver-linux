@@ -123,7 +123,7 @@ Device access may require [permissions](docs/hardware.md).
 ```sh
 # Write a visible RGB setting, then read it back.
 .venv/bin/epomaker --device /dev/hidrawN light solid --rgb ff8040
-# Back up key/Fn maps, referenced macros, and settings.
+# Back up Glyph key/Fn maps, all 256 macro slots, and settings.
 .venv/bin/epomaker --device /dev/hidrawN backup ./backups/glyph.json
 # Restore after saving the current configuration to a new recovery file.
 .venv/bin/epomaker --device /dev/hidrawN restore ./backups/glyph.json --backup ./backups/before-restore.json
