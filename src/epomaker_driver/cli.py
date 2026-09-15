@@ -22,7 +22,9 @@ from . import (
     profiles,
     snapshot,
     system_info,
+    vendor_apply,
     vendor_config,
+    vendor_import,
 )
 from .device import Keyboard
 from .discovery import discover
@@ -218,6 +220,18 @@ def parser():
     vendor.add_argument(
         "--include-macros", action="store_true", help="validate and convert embedded macro payloads"
     )
+    for command, help_text in (
+        ("plan-vendor-import", "plan Glyph macro allocation using a local snapshot"),
+        ("import-vendor-config", "import one Glyph key configuration with a recovery backup"),
+    ):
+        vendor_import_parser = commands.add_parser(command, help=help_text)
+        vendor_import_parser.add_argument("path", type=Path)
+        vendor_import_parser.add_argument("--target", choices=vendor_config.TARGETS, default="Main")
+        vendor_import_parser.add_argument("--profile", type=int, choices=range(3), default=0)
+        if command == "plan-vendor-import":
+            vendor_import_parser.add_argument("--snapshot", type=Path, required=True)
+        else:
+            vendor_import_parser.add_argument("--backup", type=Path, required=True)
     return root
 
 
@@ -263,6 +277,12 @@ def execute(args):
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
         return vendor_config.preview(value, args.target, include_macros=args.include_macros)
+    if args.command == "plan-vendor-import":
+        with args.path.open("rb") as stream:
+            record = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        with args.snapshot.open("rb") as stream:
+            current = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        return vendor_import.plan(record, current, args.target, args.profile)
     # Validate local inputs before writes. Display conversion needs read-only model identity.
     prepared = None
     if args.command == "magnetic-key":
@@ -296,6 +316,9 @@ def execute(args):
         if not isinstance(value, dict) or set(value) != {"repeat", "events"}:
             raise ValueError("macro must contain exactly repeat and events")
         prepared = macros.encode(value["repeat"], value["events"])
+    elif args.command == "import-vendor-config":
+        with args.path.open("rb") as stream:
+            prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
     elif args.command == "restore":
         with args.path.open("rb") as stream:
             prepared = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
@@ -465,6 +488,10 @@ def execute(args):
         if args.command == "auto-os":
             keyboard.set_auto_os(args.enabled == "on")
             return {"ok": True}
+        if args.command == "import-vendor-config":
+            return vendor_apply.apply(
+                keyboard, prepared, args.backup, target=args.target, profile=args.profile
+            )
         if args.command == "restore":
             if is_he:
                 return he_recovery.restore(keyboard, prepared, args.backup)

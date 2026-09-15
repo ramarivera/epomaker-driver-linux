@@ -53,3 +53,43 @@ Implementation: `src/epomaker_driver/vendor_config.py`,
 `src/epomaker_driver/vendor_actions.py`, `src/epomaker_driver/vendor_macros.py`, and `src/epomaker_driver/cli.py`.
 Source evidence: [full-writer audit](releases/glyph-full-writer-audit.md) and
 [action tables](releases/vendor-action-tables.md).
+
+## Plan and import a configuration
+
+Create an offline allocation plan using a previously captured Glyph snapshot:
+
+```sh
+epomaker plan-vendor-import vendor.dat --snapshot glyph-backup.json --target Main --profile 1
+```
+
+The planner reserves macro IDs referenced by every other normal and Fn OS layer.
+It assigns each imported macro a distinct available ID in the vendor app's
+0–49 range, in action order, and rewrites its binding. Existing imported slot
+IDs are informational; records without a slot ID can also be imported.
+Each macro must carry its complete event payload. Opaque macro bindings are
+rejected, even if their ID happens to match an allocated macro. Exhaustion is
+reported before any write. Unreferenced device macro bytes may be replaced;
+the recovery copy retains all 256 slots.
+
+Apply the original vendor record to an explicitly selected device:
+
+```sh
+epomaker --device /dev/hidrawN import-vendor-config vendor.dat --target Main --profile 1 --backup before-import.json
+```
+
+Replace `/dev/hidrawN` with the path shown by discovery. For Fn use
+`--target 'Fn Windows'` or `--target 'Fn Mac'` and profile 0. The importer
+captures fresh device state and calculates allocation again; it does not accept
+a potentially stale offline plan as authorization to overwrite slots. It saves
+a new, private recovery snapshot before the first write, verifies each macro,
+then writes and verifies only the selected matrix. An existing backup path
+prevents writes. A failure reports the recovery path and possible partial
+changes; it does not silently retry or restore over the failure.
+
+This imports one key configuration and its macros. It does not switch the
+active profile or OS, import all child profiles, or change lighting and display
+assets. Empty records retain the full-writer normal-baseline behavior described
+above. Physical Glyph behavior remains unverified.
+
+Implementation: `src/epomaker_driver/vendor_import.py` and
+`src/epomaker_driver/vendor_apply.py`; recovery format: `docs/snapshots.md`.

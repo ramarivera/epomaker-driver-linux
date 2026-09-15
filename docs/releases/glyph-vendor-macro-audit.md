@@ -145,6 +145,7 @@ array-index shortcut always protects the other OS bank.
 `src/epomaker_driver/vendor_macros.py` converts explicit event/delay pairs to
 Linux events and delegates payload validation to `macros.encode`. The offline
 preview's `--include-macros` option includes these payloads, rejects conflicting
-slot contents, and reports unresolved references. Conversion retains existing
-slot IDs; allocating against all device profiles and applying the result remain
-separate work. See [preview usage](../vendor-config-preview.md).
+slot contents, and reports unresolved references. Preview conversion retains existing slot IDs. The separate
+`vendor_import` planner reserves IDs used by other layers and assigns fresh
+slots; `vendor_apply` plans from a live snapshot and saves recovery before
+verified macro and matrix writes. Hardware validation remains open. See [preview usage](../vendor-config-preview.md).
