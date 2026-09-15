@@ -7,6 +7,16 @@ import {
   RHYTHM_MODES,
   drawRhythm,
 } from "./rhythm-renderer";
+import defaultRhythmLayout, {
+  RHYTHM_CANVAS,
+  centerRhythmLayout,
+  resetRhythmRotation,
+  resetRhythmSize,
+  sampleRhythm,
+  setRhythmPosition,
+  setRhythmRotation,
+  setRhythmSize,
+} from "./rhythm-layout";
 
 const labels = {
   gain: "Gain",
@@ -38,6 +48,9 @@ export default function AudioPreview({
   const [limits, setLimits] = useState({});
   const [settings, setSettings] = useState({});
   const [rhythm, setRhythm] = useState(RHYTHM_DEFAULTS);
+  const [rhythmLayout, setRhythmLayout] = useState(defaultRhythmLayout);
+  const rhythmLayoutRef = useRef(rhythmLayout);
+  rhythmLayoutRef.current = rhythmLayout;
   const rhythmRef = useRef(rhythm);
   rhythmRef.current = rhythm;
   const [outputs, setOutputs] = useState([]);
@@ -55,6 +68,17 @@ export default function AudioPreview({
   const starting = useRef(false);
   const refreshing = useRef(false);
   const supported = connected && transport === "usb" && lightSync === true;
+
+  const updateRhythmLayout = useCallback((update) => {
+    try {
+      const next = update(rhythmLayoutRef.current);
+      rhythmLayoutRef.current = next;
+      setRhythmLayout(next);
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -122,8 +146,8 @@ export default function AudioPreview({
   const renderRhythm = useCallback((nextBands, attempt) => {
     const canvas = attempt.canvas || document.createElement("canvas");
     if (!attempt.canvas) {
-      canvas.width = 420;
-      canvas.height = 120;
+      canvas.width = RHYTHM_CANVAS.width;
+      canvas.height = RHYTHM_CANVAS.height;
     }
     attempt.canvas = canvas;
     const context = canvas.getContext("2d", { willReadFrequently: true });
@@ -134,8 +158,14 @@ export default function AudioPreview({
       output.height = 6;
     }
     attempt.outputCanvas = output;
+    const scratch = attempt.scratchCanvas || document.createElement("canvas");
+    if (!attempt.scratchCanvas) {
+      scratch.width = RHYTHM_CANVAS.width;
+      scratch.height = RHYTHM_CANVAS.height;
+    }
+    attempt.scratchCanvas = scratch;
     const outputContext = output.getContext("2d", { willReadFrequently: true });
-    outputContext.drawImage(canvas, 0, 0, 21, 6);
+    sampleRhythm(outputContext, canvas, rhythmLayoutRef.current, scratch);
     return frameColors(outputContext).match(/.{6}/g) || [];
   }, []);
 
@@ -218,6 +248,7 @@ export default function AudioPreview({
       timer: null,
       canvas: null,
       outputCanvas: null,
+      scratchCanvas: null,
       frameIndex: 0,
       stopped: false,
     };
@@ -415,6 +446,154 @@ export default function AudioPreview({
           />
         </Field>
       </div>
+      <div className="fields">
+        <Field label="Rhythm position X">
+          <input
+            type="number"
+            value={rhythmLayout.x}
+            disabled={busy}
+            onChange={(event) =>
+              updateRhythmLayout((current) =>
+                setRhythmPosition(
+                  current,
+                  Number(event.target.value),
+                  current.y,
+                ),
+              )
+            }
+          />
+        </Field>
+        <Field label="Rhythm position Y">
+          <input
+            type="number"
+            value={rhythmLayout.y}
+            disabled={busy}
+            onChange={(event) =>
+              updateRhythmLayout((current) =>
+                setRhythmPosition(
+                  current,
+                  current.x,
+                  Number(event.target.value),
+                ),
+              )
+            }
+          />
+        </Field>
+        <Field label="Rhythm width">
+          <input
+            type="number"
+            min="90"
+            value={rhythmLayout.width}
+            disabled={busy}
+            onChange={(event) =>
+              updateRhythmLayout((current) =>
+                setRhythmSize(
+                  current,
+                  Number(event.target.value),
+                  current.height,
+                ),
+              )
+            }
+          />
+        </Field>
+        <Field label="Rhythm height">
+          <input
+            type="number"
+            min="60"
+            value={rhythmLayout.height}
+            disabled={busy}
+            onChange={(event) =>
+              updateRhythmLayout((current) =>
+                setRhythmSize(
+                  current,
+                  current.width,
+                  Number(event.target.value),
+                ),
+              )
+            }
+          />
+        </Field>
+        <Field label="Rhythm rotation">
+          <input
+            type="number"
+            min="-180"
+            max="180"
+            value={rhythmLayout.rotation}
+            disabled={busy}
+            onChange={(event) =>
+              updateRhythmLayout((current) =>
+                setRhythmRotation(current, Number(event.target.value)),
+              )
+            }
+          />
+        </Field>
+      </div>
+      <div className="apply-row">
+        <Button
+          disabled={busy}
+          onClick={() =>
+            updateRhythmLayout((current) => centerRhythmLayout(current))
+          }
+        >
+          Reset rhythm position
+        </Button>
+        <Button
+          disabled={busy}
+          onClick={() => updateRhythmLayout(resetRhythmSize)}
+        >
+          Reset rhythm size
+        </Button>
+        <Button
+          disabled={busy}
+          onClick={() => updateRhythmLayout(resetRhythmRotation)}
+        >
+          Reset rhythm rotation
+        </Button>
+        <Button
+          disabled={busy}
+          onClick={() => updateRhythmLayout(() => defaultRhythmLayout())}
+        >
+          Reset rhythm layout
+        </Button>
+      </div>
+      <figure aria-label="Rhythm layout preview">
+        <svg
+          role="img"
+          aria-label="Rhythm layout preview"
+          viewBox={`0 0 ${RHYTHM_CANVAS.width} ${RHYTHM_CANVAS.height}`}
+          width="100%"
+          height="180"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <title>Rhythm layout preview</title>
+          <desc>
+            A {RHYTHM_CANVAS.width} by {RHYTHM_CANVAS.height} workspace showing
+            the sampled rhythm rectangle.
+          </desc>
+          <rect
+            x="0"
+            y="0"
+            width={RHYTHM_CANVAS.width}
+            height={RHYTHM_CANVAS.height}
+            fill="#111"
+            stroke="currentColor"
+          />
+          <rect
+            x={rhythmLayout.x}
+            y={rhythmLayout.y}
+            width={rhythmLayout.width}
+            height={rhythmLayout.height}
+            fill="currentColor"
+            fillOpacity="0.25"
+            stroke="currentColor"
+            transform={`rotate(${rhythmLayout.rotation} ${rhythmLayout.x + rhythmLayout.width / 2} ${rhythmLayout.y + rhythmLayout.height / 2})`}
+          />
+        </svg>
+        <figcaption>
+          Workspace {RHYTHM_CANVAS.width}×{RHYTHM_CANVAS.height}; sampling
+          rectangle
+        </figcaption>
+      </figure>
       <label>
         <input
           type="checkbox"

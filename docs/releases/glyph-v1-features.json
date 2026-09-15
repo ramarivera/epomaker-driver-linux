@@ -589,6 +589,7 @@
         "src/epomaker_driver/audio_preview.py",
         "src/epomaker_driver/audio_spectrum.py",
         "ui/src/rhythm-renderer.js",
+        "ui/src/rhythm-layout.js",
         "ui/src/audio-preview.jsx",
         "docs/releases/glyph-rhythm-layout-audit.md",
         "docs/releases/glyph-rhythm-audit.md"
@@ -621,6 +622,7 @@
         "src/epomaker_driver/audio_preview.py",
         "src/epomaker_driver/audio_spectrum.py",
         "ui/src/rhythm-renderer.js",
+        "ui/src/rhythm-layout.js",
         "ui/src/audio-preview.jsx",
         "docs/releases/glyph-rhythm-layout-audit.md",
         "docs/releases/glyph-rhythm-audit.md"
@@ -639,9 +641,12 @@
         "tests/test_audio_api.py",
         "ui/tests/audio-preview.spec.js",
         "ui/tests/rhythm-renderer.spec.js",
-        "ui/tests/rhythm-lighting.spec.js"
+        "ui/tests/rhythm-lighting.spec.js",
+        "ui/tests/rhythm-layout.spec.js",
+        "ui/tests/rhythm-layout-ui.spec.js",
+        "ui/tests/rhythm-layout-pixels.spec.js"
       ],
-      "notes": "Browser screen capture includes all eight vendor centered crop ratios, default/reset 2.35:1, source-resize recalculation, in-app selection retention and RGB preview. Session cleanup and stale-request rejection exist. Audio capture/preview has a five-second polling lease and cleanup, but uses synthetic/offline tests only; five rhythm renderers, scale/colors and optional keyboard streaming are integrated. Triple circle and Triangle retain an inactive rightmost shape because the native stream length/expansion remains unverified. Rhythm position/size/rotation layout, physical LED mapping, real capture/throughput and host lifecycle remain incomplete or unverified. Vendor rhythm layout controls do not apply to screen mode."
+      "notes": "Browser screen capture includes all eight vendor centered crop ratios, default/reset 2.35:1, source-resize recalculation, in-app selection retention and RGB preview. Session cleanup and stale-request rejection exist. Audio capture/preview has a five-second polling lease and cleanup, but uses synthetic/offline tests only; five rhythm renderers, scale/colors and optional keyboard streaming are integrated. Triple circle and Triangle retain an inactive rightmost shape because the native stream length/expansion remains unverified. Rhythm position/size/rotation controls, bounds and resets now transform a fixed 640x360 Linux workspace into21x6RGB; real canvas crop/rotation and browser lifecycle are tested offline. Physical LED mapping, real capture/throughput, native visual equivalence and host lifecycle remain incomplete or unverified. Vendor rhythm layout controls do not apply to screen mode."
     },
     {
       "id": "G09.1",

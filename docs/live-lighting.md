@@ -73,8 +73,26 @@ To stream the visualization, connect a wired USB Glyph with light-sync support
 and explicitly enable **Send rhythm to keyboard** before starting. Without this
 option, preview does not acquire or write a keyboard session. Audio and screen
 lighting share the same exclusive live-light session: stop one before starting
-the other. A frame is rendered into a 420×120 canvas and resized to 21×6 RGB; each
-frame transfer finishes before the next sample request is scheduled.
+the other. Frames render into a fixed 640×360 workspace, then the selected
+sampling rectangle is transformed into 21×6 RGB. Each transfer finishes before
+the next sample request is scheduled.
+
+**Rhythm position X/Y**, **Rhythm width/height**, and **Rhythm rotation** change
+which part of the visualization reaches the keyboard. The layout preview shows
+the sampling rectangle. Edits apply to the next frame without restarting capture;
+offline edits do not start capture or write to a keyboard. The default rectangle
+is 315×90 at (147,147), with no rotation. Position clamps to the available bounds,
+size has a 90×60 minimum and scales to fit, and rotation accepts −180…180 degrees.
+A rotation that would not fit reports an error and preserves the previous layout.
+Separate reset buttons center the position, restore size, or clear rotation;
+**Reset rhythm layout** restores all defaults. These choices last while the
+Lighting page is open and reset when it is reopened.
+
+The geometry follows the [painter audit](releases/glyph-rhythm-layout-audit.md),
+including its 24-pixel top and 32-pixel right margins and inverse rotation through
+a diagonal scratch canvas. The fixed Linux workspace replaces the vendor's
+viewport-dependent canvas. Rhythm scale changes the drawing itself; layout
+changes the region sampled from that drawing. Neither affects screen lighting.
 
 Stopping, leaving the page, a capture/transfer error, or losing the supported
 keyboard connection ends both sessions and requests lighting restoration. Late
@@ -102,8 +120,8 @@ lease also ends abandoned previews and closes capture.
 
 Physical LED correspondence, real desktop capture, USB throughput and restoration
 remain unverified. The DSP is an independent implementation, not a reconstruction
-of the vendor native DSP. Rhythm position/size/rotation layout controls, persistent host-service behavior,
-and suspend/resume remain unfinished. Rendered geometry and DSP still require
+of the vendor native DSP. Persistent host-service behavior and suspend/resume
+remain unfinished. Rendered geometry and DSP still require
 comparison with the vendor runtime and physical output.
 The screen workflow and audio capture component do not establish full live-light
 parity.

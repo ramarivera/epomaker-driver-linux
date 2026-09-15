@@ -143,3 +143,7 @@ stream length/expansion must be verified before these two modes count as parity.
 The gradient advances before each render, using the default color speed of one
 channel step, with RGB, GBR and BRG stops on a horizontal axis. Its duration in
 seconds depends on the Linux render cadence and is not vendor timing parity.
+
+A subsequent [native format audit](glyph-spectrum-format-audit.md) found 42-float
+working vectors in the macOS processor. Its output-to-serializer path remains
+untraced, so this evidence does not yet change the Linux 32-band implementation.
