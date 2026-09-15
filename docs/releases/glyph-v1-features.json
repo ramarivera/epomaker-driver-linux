@@ -820,8 +820,13 @@
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_glyph_backup_complete.py",
+        "tests/test_backup_preview.py",
+        "ui/tests/backup-preview.spec.js",
+        "ui/tests/legacy-backup.spec.js"
+      ],
+      "notes": "Glyph snapshots capture all256macro slots, keymaps, custom RGB banks and exposed settings. Offline restore preview validates the entire snapshot and reports counts and omissions before writes; partial legacy macro snapshots preserve omitted slots and now report their count. Screen assets and vendor configuration-file restore remain incomplete; physical verification is open."
     },
     {
       "id": "G11.2",

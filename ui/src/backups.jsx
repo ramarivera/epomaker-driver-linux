@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api, download } from "./api";
 import { Button, Field, Panel } from "./controls";
 export default function Backups({ connected, busy, run, onConnectionLost }) {
@@ -8,6 +8,16 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
     [restoreLimitations, setRestoreLimitations] = useState([]),
     [resetResult, setResetResult] = useState(null),
     [resetConfirmed, setResetConfirmed] = useState(false);
+  const [contents, setContents] = useState(null);
+  const selection = useRef(0);
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+      selection.current++;
+    },
+    [],
+  );
   return (
     <>
       <Panel title="Save configuration">
@@ -85,9 +95,12 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
           <input
             type="file"
             accept=".json"
+            disabled={busy}
             onChange={(e) => {
               const file = e.target.files[0];
+              const current = ++selection.current;
               setValue(null);
+              setContents(null);
               setRestoreLimitations([]);
               if (file)
                 run(async () => {
@@ -97,7 +110,10 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
                     value.identity?.device_id !== 3059
                   )
                     throw new Error("Choose a Glyph version 2 or 3 snapshot");
+                  const summary = await api("backup_validate", { value });
+                  if (!mounted.current || current !== selection.current) return;
                   setValue(value);
+                  setContents(summary);
                   setName(file.name);
                 });
             }}
@@ -107,6 +123,19 @@ export default function Backups({ connected, busy, run, onConnectionLost }) {
           <p>
             {name} · Snapshot version {value.schema_version}
           </p>
+        )}
+        {contents && (
+          <div role="note" aria-label="Backup contents">
+            <p>
+              {contents.profile_count} profiles · {contents.macro_slot_count}{" "}
+              macro slots · {contents.picture_bank_count} custom color banks
+            </p>
+            <ul>
+              {contents.limitations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
         )}
         <p className="muted">
           Current configuration is saved to a recovery file before restoration.

@@ -153,6 +153,8 @@ class Controller:
             )
         if operation == "macro_library_delete":
             return self.library.delete(data.get("id"), data.get("revision"))
+        if operation == "backup_validate":
+            return snapshot.describe(data.get("value"))
         if operation == "display_library":
             return {"entries": self.display_library.list()}
         if operation == "display_asset_save":
@@ -456,6 +458,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/live_light_start",
             "/api/live_light_frame",
             "/api/live_light_stop",
+            "/api/backup_validate",
             "/api/audio_preview_start",
             "/api/audio_preview_sample",
             "/api/audio_preview_stop",

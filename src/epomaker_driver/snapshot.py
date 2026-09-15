@@ -154,6 +154,32 @@ def validate(value):
         raise ValueError("snapshot has missing or malformed fields") from error
 
 
+def _restore_limitations(value, macros, pictures):
+    model_id = value["identity"]["device_id"]
+    result = _limitations(model_id)
+    if model_id == 3059 and len(macros) < 256:
+        omitted = 256 - len(macros)
+        noun = "slot" if omitted == 1 else "slots"
+        result.append(f"snapshot omits {omitted} macro {noun}; omitted slots are left unchanged")
+    if model_id == 3059 and value["debounce"] is not None:
+        result.append("legacy Glyph debounce value is not restored")
+    if not pictures:
+        result.append("version 2 snapshot leaves custom RGB pictures unchanged")
+    return result
+
+
+def describe(value):
+    """Validate and summarize restore coverage without device or filesystem I/O."""
+    matrices, _fn, macros, _settings, _sleep, pictures = validate(value)
+    return {
+        "model_id": value["identity"]["device_id"],
+        "profile_count": len(matrices),
+        "macro_slot_count": len(macros),
+        "picture_bank_count": len(pictures),
+        "limitations": _restore_limitations(value, macros, pictures),
+    }
+
+
 def restore(keyboard, value, backup_path):
     matrices, fn, macros, settings, sleep_command, pictures = validate(value)
 
@@ -206,13 +232,7 @@ def restore(keyboard, value, backup_path):
         return {
             "restored": True,
             "previous_configuration": str(backup_path),
-            "limitations": _limitations(value["identity"]["device_id"])
-            + (
-                ["legacy Glyph debounce value is not restored"]
-                if value["identity"]["device_id"] == 3059 and value["debounce"] is not None
-                else []
-            )
-            + ([] if pictures else ["version 2 snapshot leaves custom RGB pictures unchanged"]),
+            "limitations": _restore_limitations(value, macros, pictures),
         }
 
     return keyboard.transport.transaction(operation)

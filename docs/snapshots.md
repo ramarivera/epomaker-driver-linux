@@ -27,6 +27,27 @@ during Glyph restoration; the result explicitly reports the ignored legacy value
 No debounce query is needed to capture Glyph state. Other models retain their
 existing snapshot behavior. See [capability gates](capability-gates.md#glyph-debounce).
 
+## Offline Glyph restore preview
+
+On the Backups page, selecting a version 2/3 Glyph snapshot runs complete
+backend validation before enabling restoration. The preview lists profile,
+macro-slot and custom-color-bank counts, plus limitations. It works without a
+connected keyboard and performs no device or filesystem access. Malformed files
+clear the candidate; file selection is locked while validation is pending.
+
+A partial Glyph snapshot now reports the number of omitted macro slots in both
+the preview and restore result. Omitted slots are preserved, not erased. Screen
+pixels remain excluded; retaining a source image in the display library does not
+automatically put it into a keyboard configuration snapshot.
+
+The authenticated endpoint is `POST /api/backup_validate` with `{value: snapshot}`.
+It returns `model_id`, `profile_count`, `macro_slot_count`, `picture_bank_count`
+and `limitations`. The actual restore revalidates the snapshot and connected
+identity before writing; the preview does not replace those checks.
+Implementation: `src/epomaker_driver/snapshot.py`, `src/epomaker_driver/server.py`
+and `ui/src/backups.jsx`. Tests: `tests/test_backup_preview.py` and
+`ui/tests/backup-preview.spec.js`.
+
 ## YC3121 schema version 6
 
 RT100 and Dynatab75X-UK backups use schema version 6. They contain all three normal
