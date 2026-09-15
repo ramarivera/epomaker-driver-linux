@@ -4,6 +4,7 @@ import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
 import { layoutKeys } from "./keyboard-layout";
 import ConfigLibrary from "./config-library";
+import VendorImport from "./vendor-import";
 const hex = (values) =>
   values.map((n) => n.toString(16).padStart(2, "0")).join("");
 function decode(raw, catalog) {
@@ -361,6 +362,30 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
             }
           }, "Configuration applied and verified.");
           if (failure) throw failure;
+        }}
+      />
+      <VendorImport
+        layer={layer}
+        profile={profile}
+        epoch={epoch}
+        connected={connected}
+        busy={busy}
+        onApply={async (token) => {
+          let failure;
+          let result;
+          await run(async () => {
+            try {
+              result = await api("write", { kind: "vendor_import", token });
+              const next = (await api("read", { section: "keymap", ...target }))
+                .raw;
+              if (mounted.current) setMatrix(next);
+            } catch (error) {
+              failure = error;
+              throw error;
+            }
+          }, "Configuration imported and verified.");
+          if (failure) throw failure;
+          return result;
         }}
       />
     </>

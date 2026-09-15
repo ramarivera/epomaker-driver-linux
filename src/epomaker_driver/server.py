@@ -1,6 +1,7 @@
 """Loopback-only control API and packaged UI. See docs/control-interface.md."""
 
 import base64
+import copy
 import io
 import json
 import mimetypes
@@ -12,7 +13,17 @@ from importlib.resources import files
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-from . import actions, codec, macros, media, snapshot, system_info
+from . import (
+    actions,
+    codec,
+    macros,
+    media,
+    profiles,
+    snapshot,
+    system_info,
+    vendor_apply,
+    vendor_import,
+)
 from .audio_capture import AudioCaptureError, PipeWireCapture
 from .audio_devices import list_audio_outputs
 from .audio_preview import AudioPreview
@@ -56,9 +67,11 @@ class Controller:
         self.live_light = LiveLightSession()
         self.audio_preview = AudioPreview(audio_capture_factory)
         self.audio_discovery = audio_discovery
+        self.vendor_preview = None
 
     def close(self):
         with self.lock:
+            self.vendor_preview = None
             self.audio_preview.stop()
             self.live_light.cancel()
             self.system_info_refresh.stop()
@@ -231,6 +244,25 @@ class Controller:
         keyboard = self.keyboard
         if keyboard is None:
             raise DeviceUnavailable("connect a keyboard first")
+        if operation == "vendor_import_preview":
+            self.vendor_preview = None
+            content = data.get("content")
+            if not isinstance(content, str) or not content:
+                raise ValueError("vendor configuration content must be base64 text")
+            if len(content) > 4 * ((profiles.MAX_PROFILE_BYTES + 2) // 3):
+                raise ValueError("vendor configuration exceeds size limit")
+            record = profiles.decode(base64.b64decode(content, validate=True))
+            if keyboard.identify().get("device_id") != 3059:
+                raise UnsupportedDevice("vendor configuration import supports Glyph only")
+            planned = vendor_import.plan(
+                record,
+                snapshot.capture(keyboard),
+                data.get("target", "Main"),
+                data.get("profile", 0),
+            )
+            token = secrets.token_urlsafe(24)
+            self.vendor_preview = (token, record, planned)
+            return {"token": token, "plan": copy.deepcopy(planned)}
         if operation == "live_light_start":
             return self.live_light.start(keyboard)
         if operation == "live_light_frame":
@@ -277,6 +309,20 @@ class Controller:
                 self.live_light.cancel()
             else:
                 self.live_light.stop(self.live_light.session)
+        if kind == "vendor_import":
+            pending = self.vendor_preview
+            if pending is None or data.get("token") != pending[0]:
+                raise ValueError("preview the vendor configuration before importing")
+            self.vendor_preview = None
+            _, record, planned = pending
+            return vendor_apply.apply(
+                keyboard,
+                record,
+                self.backup_dir / f"recovery-{uuid.uuid4().hex}.json",
+                target=planned["target"],
+                profile=planned["profile"],
+                expected_plan=planned,
+            )
         if kind == "factory_reset":
             self.system_info_refresh.stop()
             backup = self.backup_dir / f"recovery-{uuid.uuid4().hex}.json"
@@ -488,6 +534,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/live_light_frame",
             "/api/live_light_stop",
             "/api/backup_validate",
+            "/api/vendor_import_preview",
             "/api/audio_preview_start",
             "/api/audio_preview_sample",
             "/api/audio_preview_stop",

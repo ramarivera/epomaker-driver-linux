@@ -4,7 +4,7 @@ from . import profiles, snapshot, vendor_import
 from .errors import ProtocolError, UnsupportedDevice
 
 
-def apply(keyboard, record, backup_path, *, target="Main", profile=0):
+def apply(keyboard, record, backup_path, *, target="Main", profile=0, expected_plan=None):
     """Allocate from live state, save it, then write macros before their bindings."""
 
     def operation():
@@ -12,6 +12,8 @@ def apply(keyboard, record, backup_path, *, target="Main", profile=0):
             raise UnsupportedDevice("vendor configuration import supports Glyph only")
         current = snapshot.capture(keyboard)
         planned = vendor_import.plan(record, current, target, profile)
+        if expected_plan is not None and planned != expected_plan:
+            raise ValueError("macro allocation changed; preview the configuration again")
         profiles.save(backup_path, current)
         try:
             for slot, payload in planned["macros"].items():

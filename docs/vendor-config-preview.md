@@ -93,3 +93,17 @@ above. Physical Glyph behavior remains unverified.
 
 Implementation: `src/epomaker_driver/vendor_import.py` and
 `src/epomaker_driver/vendor_apply.py`; recovery format: `docs/snapshots.md`.
+
+## Graphical import
+
+In **Keymap → Import vendor configuration**, choose a local file and select
+**Preview import** while connected to Glyph. The selected layer and Main
+profile determine the destination. Review the macro allocation, then select
+**Apply preview to keyboard**. The result shows the saved recovery path and
+refreshes the displayed keymap.
+
+The API retains only the latest preview, binds its token to the decoded record
+and target, and consumes the token on an apply attempt. Disconnecting clears it.
+Apply captures device state again and rejects changed allocation before saving
+a recovery copy or writing. A failed or stale preview must be repeated.
+Files use the same bounded decoder as the CLI; they are processed locally.
