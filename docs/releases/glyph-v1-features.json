@@ -868,7 +868,10 @@
         "docs/releases/glyph-action-serializer-audit.md",
         "docs/releases/glyph-full-writer-audit.md",
         "docs/releases/vendor-action-tables.md",
-        "src/epomaker_driver/vendor_actions.py"
+        "src/epomaker_driver/vendor_actions.py",
+        "src/epomaker_driver/vendor_config.py",
+        "docs/vendor-config-preview.md",
+        "docs/releases/glyph-vendor-macro-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
@@ -876,9 +879,11 @@
         "tests/test_config_library.py",
         "tests/test_config_api.py",
         "ui/tests/config-library.spec.js",
-        "tests/test_vendor_actions.py"
+        "tests/test_vendor_actions.py",
+        "tests/test_vendor_config.py",
+        "tests/test_vendor_config_cli.py"
       ],
-      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. Vendor action arrays and shared Fn OS identity still need a proven matrix adapter; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange. Shared action-byte encoding and lookup tables are now migrated; full-layer baseline is normal defaultMatrix even for Fn. Embedded ConfigMacro payload hydration/allocation and record import remain unfinished."
+      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. An offline vendor-record preview now resolves action identities and duplicate occurrences with explicit Fn OS targeting; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange. Shared action-byte encoding and lookup tables are now migrated; full-layer baseline is normal defaultMatrix even for Fn. Embedded ConfigMacro payload hydration/allocation is audited but conversion and device import remain unfinished. Preview output is explicitly not write-ready."
     },
     {
       "id": "G11.4",

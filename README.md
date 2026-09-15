@@ -168,6 +168,8 @@ JSON. See [macro and binding commands](docs/macros.md).
 Still images are converted
 to the display's column-major RGB565 format. The `animation` command accepts 2–46
 frames with the vendor's averaged frame timing. See [display behavior](docs/display.md).
+Use [vendor configuration preview](docs/vendor-config-preview.md) to inspect a Glyph
+record offline before implementing its import dependencies.
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 See [system-information collection](docs/system-info.md) for units and sensor selection.
 

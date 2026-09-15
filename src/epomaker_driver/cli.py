@@ -22,6 +22,7 @@ from . import (
     profiles,
     snapshot,
     system_info,
+    vendor_config,
 )
 from .device import Keyboard
 from .discovery import discover
@@ -207,8 +208,13 @@ def parser():
     restore.add_argument(
         "--backup", type=Path, required=True, help="new file for current configuration"
     )
-    info = commands.add_parser("inspect-profile", help="decode a local JSON/raw-DEFLATE profile")
+    info = commands.add_parser("inspect-profile", help="decode a local JSON or compressed profile")
     info.add_argument("path", type=Path)
+    vendor = commands.add_parser(
+        "preview-vendor-config", help="resolve a vendor Glyph record to an offline matrix preview"
+    )
+    vendor.add_argument("path", type=Path)
+    vendor.add_argument("--target", choices=vendor_config.TARGETS, default="Main")
     return root
 
 
@@ -250,6 +256,10 @@ def execute(args):
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+    if args.command == "preview-vendor-config":
+        with args.path.open("rb") as stream:
+            value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        return vendor_config.preview(value, args.target)
     # Validate local inputs before writes. Display conversion needs read-only model identity.
     prepared = None
     if args.command == "magnetic-key":

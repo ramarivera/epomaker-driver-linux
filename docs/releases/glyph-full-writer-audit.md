@@ -111,3 +111,8 @@ arrays still needs tracing; a record may instead carry an empty list. A complete
 importer must validate and preserve any embedded payload, establish allocation
 and slot-collision behavior, and report absent payloads. Converting only the
 four-byte binding is not equivalent to the vendor’s full configuration write.
+
+The offline [vendor configuration preview](../vendor-config-preview.md) now
+resolves explicit action arrays using this baseline. It rejects ambiguous or
+unknown targets and reports macro dependencies; it does not perform any device
+writes or claim complete importer parity.
