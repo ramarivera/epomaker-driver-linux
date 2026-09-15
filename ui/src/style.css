@@ -299,7 +299,18 @@ header p {
 .assignment-grid .fields {
   margin-bottom: 14px;
   gap: 20px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+.assignment-grid .field {
+  flex-basis: 140px;
+}
+.assignment-grid .field:has(.checks) {
+  flex-basis: 100%;
+}
+.assignment-grid .checks {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 44px;
 }
 .field {
   display: flex;

@@ -206,9 +206,24 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
                     ])}
                   />
                 </Field>
+                <Field label="Second key">
+                  <Select
+                    value={draft.second || 0}
+                    onChange={(e) =>
+                      setDraft({ ...draft, second: Number(e.target.value) })
+                    }
+                    options={[
+                      [0, "None"],
+                      ...Object.entries(catalog.keys).map(([k, v]) => [
+                        v,
+                        k.toUpperCase(),
+                      ]),
+                    ]}
+                  />
+                </Field>
                 <Field label="Modifiers">
                   <div className="checks">
-                    {["ctrl", "shift", "alt", "meta"].map((name) => (
+                    {Object.keys(catalog.modifiers).map((name) => (
                       <label key={name}>
                         <input
                           type="checkbox"

@@ -39,3 +39,8 @@ The Linux decoder implementation now accepts bounded gzip, zlib and raw-DEFLATE
 objects; see `src/epomaker_driver/profiles.py` and `tests/test_profiles.py`. This
 is codec compatibility only. The next required trace is from profile `configs`
 actions through the Glyph-specific key writer into each four-byte binding.
+
+The subsequent [action serializer audit](glyph-action-serializer-audit.md)
+identifies per-action byte formulas and the normal-matrix identity used for Fn
+keys. Its remaining lookup-table and full-writer constraints still apply before
+claiming general record-to-matrix interchange.

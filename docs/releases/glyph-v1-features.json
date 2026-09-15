@@ -139,12 +139,15 @@
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
         "ui/src/keymap.jsx",
-        "ui/tests/workflows.spec.js"
+        "ui/tests/workflows.spec.js",
+        "docs/releases/glyph-action-serializer-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "ui/tests/key-combinations.spec.js"
+      ],
+      "notes": "The graphical keyboard action editor exposes both key bytes and all eight modifier bits, with simulator readback and narrow-viewport checks. Other action types and vendor restrictions still require control-level reconciliation; hardware verification remains pending."
     },
     {
       "id": "G03.2",
@@ -861,7 +864,8 @@
         "docs/releases/glyph-backup-workflow-audit.md",
         "src/epomaker_driver/config_library.py",
         "ui/src/config-library.jsx",
-        "docs/releases/glyph-config-interchange-audit.md"
+        "docs/releases/glyph-config-interchange-audit.md",
+        "docs/releases/glyph-action-serializer-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
