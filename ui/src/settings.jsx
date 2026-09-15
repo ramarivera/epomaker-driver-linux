@@ -1,24 +1,33 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
+import Firmware from "./firmware";
 const firmwareCode = (code) =>
   code ? `${code} (0x${code.toString(16).padStart(4, "0")})` : "Unavailable";
 export default function Settings({ connected, transport, busy, run, epoch }) {
   const [value, setValue] = useState(null);
   const [versions, setVersions] = useState(null);
+  const versionsGeneration = useRef(0);
   const load = async () => setValue(await api("read", { section: "settings" }));
   useEffect(() => {
+    versionsGeneration.current += 1;
     setVersions(null);
     if (connected) run(load);
     else setValue(null);
+    return () => {
+      versionsGeneration.current += 1;
+    };
   }, [connected, epoch]);
   if (!value)
     return (
-      <Panel title="Keyboard settings">
-        <p className="muted">
-          Connect a keyboard to read its current settings.
-        </p>
-      </Panel>
+      <>
+        <Panel title="Keyboard settings">
+          <p className="muted">
+            Connect a keyboard to read its current settings.
+          </p>
+        </Panel>
+        <Firmware busy={busy} run={run} epoch={epoch} />
+      </>
     );
   const write = (data, message) =>
     run(async () => {
@@ -50,8 +59,10 @@ export default function Settings({ connected, transport, busy, run, epoch }) {
           disabled={busy || !connected}
           onClick={() =>
             run(async () => {
+              const generation = versionsGeneration.current;
               setVersions(null);
-              setVersions(await api("read", { section: "firmware_versions" }));
+              const next = await api("read", { section: "firmware_versions" });
+              if (generation === versionsGeneration.current) setVersions(next);
             })
           }
         >
@@ -77,6 +88,12 @@ export default function Settings({ connected, transport, busy, run, epoch }) {
           </div>
         )}
       </Panel>
+      <Firmware
+        busy={busy}
+        run={run}
+        epoch={epoch}
+        currentVersions={versions}
+      />
       <div className="two-columns">
         <Panel title="Profile and response">
           <div className="fields">

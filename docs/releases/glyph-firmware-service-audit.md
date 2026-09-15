@@ -31,7 +31,8 @@ firmware exists. The service's current model mapping, record availability and
 any additional server-side requirements remain unresolved. Do not guess another
 model ID or flash another keyboard's image to work around this response.
 
-The Linux `firmware-metadata` command implements this exact model-3059 request,
+The Linux `firmware-metadata` command and explicit Settings metadata button
+implement this exact model-3059 request,
 with bounded response size and explicit errors. It does not download the returned
 `file_path`, validate an image's identity, or apply updates. The service supplies
 no captured successful Glyph record in this investigation. Synthetic client

@@ -41,3 +41,26 @@ an `usbv` prefix. Digit runs are interpreted as hexadecimal, matching the vendor
 selector. The result explains newer versions, missing images, unknown current
 versions, and unsupported dispatchers. Every result remains `write_ready: false`;
 a comparison does not establish image authenticity or model applicability.
+
+## Settings interface
+
+The Settings page exposes the same read-only tools, including while disconnected:
+
+1. Use **Check vendor firmware metadata** to request the Glyph model-3059 record.
+   This is an explicit network operation. A failed lookup leaves update
+   availability unknown; it does not mean the keyboard is up to date.
+2. Select a local firmware container and enter its exact vendor version string.
+   Inspect the file to see component sizes and SHA-256 hashes. The 32 MiB input
+   limit and bounded decompression rules also apply to the interface.
+3. When connected, use **Read component versions** before inspecting to compare
+   the image against those captured raw codes. A comparison explains missing
+   images and unavailable version fields as well as newer codes.
+
+Metadata lookup does not download an image. Local inspection sends the file to
+this application's authenticated loopback server, never to the vendor service,
+and does not save it or touch the device. Results do not authorize flashing;
+image authenticity, Glyph applicability, and update/recovery remain unverified.
+
+The interface and API are implemented in `ui/src/firmware.jsx` and
+`src/epomaker_driver/server.py`. Regression coverage lives in
+`ui/tests/firmware.spec.js` and `tests/test_firmware_api.py`.

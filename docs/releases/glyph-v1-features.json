@@ -1019,15 +1019,18 @@
         "docs/releases/glyph-firmware-workflow-audit.md",
         "docs/releases/glyph-firmware-image-audit.md",
         "docs/firmware-inspection.md",
-        "src/epomaker_driver/firmware.py"
+        "src/epomaker_driver/firmware.py",
+        "ui/src/firmware.jsx"
       ],
       "implementation_status": "missing",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "tests/test_firmware.py",
-        "tests/test_firmware_cli.py"
+        "tests/test_firmware_cli.py",
+        "tests/test_firmware_api.py",
+        "ui/tests/firmware.spec.js"
       ],
-      "notes": "Offline container inspection provides bounded raw-DEFLATE/ZIP parsing, image hashes and source-backed main/OLED payload chunk counts and additive checksums. Firmware update/recovery is still missing. Authentic Glyph metadata/images, image identity and component applicability remain unresolved; synthetic inspection tests do not validate flashing."
+      "notes": "CLI and disconnected Settings container inspection provide bounded raw-DEFLATE/ZIP parsing, image hashes and source-backed main/OLED payload chunk counts and additive checksums. Firmware update/recovery is still missing. Authentic Glyph metadata/images, image identity and component applicability remain unresolved; synthetic inspection tests do not validate flashing."
     },
     {
       "id": "G14.1",
@@ -1064,9 +1067,11 @@
       "test_evidence": [
         "tests/test_firmware_service.py",
         "tests/test_firmware_versions.py",
-        "tests/test_firmware_cli.py"
+        "tests/test_firmware_cli.py",
+        "tests/test_firmware_api.py",
+        "ui/tests/firmware.spec.js"
       ],
-      "notes": "Explicit read-only model-3059 metadata query and offline source-backed version comparison implemented. Actual lookup returned HTTP500 Record not found on 2026-09-16 Europe/Berlin. Update availability remains unknown; no authentic image, download workflow, or firmware write/recovery is validated."
+      "notes": "Explicit read-only model-3059 metadata query and offline source-backed version comparison are available in the CLI and Settings. Metadata queries do not hold the device transaction lock. Actual lookup returned HTTP500 Record not found on 2026-09-16 Europe/Berlin. Update availability remains unknown; no authentic image, download workflow, or firmware write/recovery is validated."
     },
     {
       "id": "G15.1",

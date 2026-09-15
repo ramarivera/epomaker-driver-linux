@@ -133,6 +133,13 @@ button:disabled {
   padding: 10px 7px;
   font-size: 14px;
 }
+.firmware-inspection {
+  min-width: 0;
+}
+.firmware-inspection p,
+.firmware-inspection span {
+  overflow-wrap: anywhere;
+}
 .sidebar footer {
   text-align: center;
   font-size: 13px;

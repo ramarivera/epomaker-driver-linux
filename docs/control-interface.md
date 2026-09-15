@@ -12,6 +12,10 @@ service. Settings omits the vendor-inapplicable debounce control; restoring an o
 backup reports that its legacy debounce value was skipped.
 Custom colors supports offline pattern creation, painting, fill, and validated
 JSON import/export. See [Glyph pattern files and bank selection](glyph-patterns.md).
+Settings also offers explicit vendor firmware metadata lookup and local container
+inspection, with optional comparison against queried component versions. These
+tools work while disconnected and do not flash firmware; see
+[firmware inspection](firmware-inspection.md).
 All device support and hardware-validation limits in [parity.md](parity.md) apply.
 
 ## Build and run

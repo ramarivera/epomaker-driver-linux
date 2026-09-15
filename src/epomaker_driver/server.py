@@ -16,6 +16,9 @@ from urllib.parse import unquote, urlsplit
 from . import (
     actions,
     codec,
+    firmware,
+    firmware_service,
+    firmware_versions,
     macros,
     media,
     profiles,
@@ -40,6 +43,7 @@ from .system_info_refresh import SystemInfoRefresh
 from .transport import Transport
 
 MAX_BODY = 20 * 1024 * 1024
+MAX_FIRMWARE_INSPECT_BODY = 4 * ((firmware.MAX_SIZE + 2) // 3) + 4096
 
 
 class Controller:
@@ -82,6 +86,9 @@ class Controller:
                 keyboard.transport.close()
 
     def call(self, operation, data):
+        # Metadata may block on the remote service; keep it outside the controller lock.
+        if operation in ("firmware_metadata", "firmware_inspect"):
+            return self._firmware_call(operation, data)
         with self.lock:
             try:
                 return self._call(operation, data)
@@ -90,6 +97,33 @@ class Controller:
                 if operation != "connect":
                     self.close()
                 raise
+
+    @staticmethod
+    def _firmware_call(operation, data):
+        if not isinstance(data, dict):
+            raise ValueError("request must be an object")
+        if operation == "firmware_metadata":
+            return firmware_service.fetch_metadata()
+        content = data.get("content")
+        if not isinstance(content, str) or not content:
+            raise ValueError("firmware content must be a base64 string")
+        encoded_limit = 4 * ((firmware.MAX_SIZE + 2) // 3)
+        if len(content) > encoded_limit:
+            raise ValueError("firmware content exceeds size limit")
+        try:
+            raw = base64.b64decode(content, validate=True)
+        except (ValueError, TypeError) as error:
+            raise ValueError("firmware content must be valid base64") from error
+        if len(raw) > firmware.MAX_SIZE:
+            raise ValueError("firmware content exceeds size limit")
+        version = data.get("version")
+        if not isinstance(version, str) or not version.strip() or len(version) > 256:
+            raise ValueError("firmware version must be nonempty and at most 256 characters")
+        result = firmware.inspect_container(raw, version=version)
+        if "current_versions" in data:
+            current = data["current_versions"]
+            result["comparison"] = firmware_versions.analyze(version, current, result["components"])
+        return result
 
     def _call(self, operation, data):
         if operation == "audio_outputs":
@@ -512,6 +546,7 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/system_info_refresh",
                 "/api/audio_outputs",
                 "/api/audio_config",
+                "/api/firmware_metadata",
             ):
                 self._reply(404, {"error": "unknown endpoint"})
                 return
@@ -557,12 +592,14 @@ class Handler(BaseHTTPRequestHandler):
             "/api/audio_preview_start",
             "/api/audio_preview_sample",
             "/api/audio_preview_stop",
+            "/api/firmware_inspect",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= MAX_BODY or self.headers.get("Transfer-Encoding"):
+            body_limit = MAX_FIRMWARE_INSPECT_BODY if path == "/api/firmware_inspect" else MAX_BODY
+            if not 0 < length <= body_limit or self.headers.get("Transfer-Encoding"):
                 self._reply(413, {"error": "request body outside supported size"})
                 return
             if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
