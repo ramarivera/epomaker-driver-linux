@@ -588,6 +588,9 @@
         "src/epomaker_driver/audio_capture.py",
         "src/epomaker_driver/audio_preview.py",
         "src/epomaker_driver/audio_spectrum.py",
+        "ui/src/rhythm-renderer.js",
+        "ui/src/audio-preview.jsx",
+        "docs/releases/glyph-rhythm-layout-audit.md",
         "docs/releases/glyph-rhythm-audit.md"
       ],
       "implementation_status": "partial",
@@ -597,7 +600,7 @@
         "tests/test_live_light_session.py",
         "ui/tests/live-lighting.spec.js"
       ],
-      "notes": "Wired USB and firmware-flag-gated RGB frames plus explicit browser screen capture, per-session stale-request rejection and stop restoration. Audio now has explicit PipeWire output-monitor discovery/capture and an independent 32-band preview DSP with the seven vendor-bounded controls; it performs no keyboard writes and does not save PCM. Physical LED mapping, real capture/throughput and full vendor layout/audio/lifecycle parity remain unverified or incomplete."
+      "notes": "Wired USB and firmware-flag-gated RGB frames plus explicit browser screen capture, per-session stale-request rejection and stop restoration. Audio now has explicit PipeWire output-monitor discovery/capture and an independent 32-band preview DSP with the seven vendor-bounded controls; it does not save PCM. Five rhythm modes, scale/colors and explicit optional audio-to-keyboard streaming now share the USB live-light session. Physical LED mapping, real capture/throughput and full vendor layout/audio/lifecycle parity remain unverified or incomplete."
     },
     {
       "id": "G08.2",
@@ -617,6 +620,9 @@
         "src/epomaker_driver/audio_capture.py",
         "src/epomaker_driver/audio_preview.py",
         "src/epomaker_driver/audio_spectrum.py",
+        "ui/src/rhythm-renderer.js",
+        "ui/src/audio-preview.jsx",
+        "docs/releases/glyph-rhythm-layout-audit.md",
         "docs/releases/glyph-rhythm-audit.md"
       ],
       "implementation_status": "partial",
@@ -631,9 +637,11 @@
         "tests/test_audio_spectrum.py",
         "tests/test_audio_devices.py",
         "tests/test_audio_api.py",
-        "ui/tests/audio-preview.spec.js"
+        "ui/tests/audio-preview.spec.js",
+        "ui/tests/rhythm-renderer.spec.js",
+        "ui/tests/rhythm-lighting.spec.js"
       ],
-      "notes": "Browser screen capture includes all eight vendor centered crop ratios, default/reset 2.35:1, source-resize recalculation, in-app selection retention and RGB preview. Session cleanup and stale-request rejection exist. Audio capture/preview has a five-second polling lease and cleanup, but uses synthetic/offline tests only; it is not connected to rhythm lighting. Five rhythm renderers, colors, layout and audio-to-keyboard streaming, physical LED mapping, real capture/throughput and host lifecycle remain incomplete or unverified. Vendor rhythm layout controls do not apply to screen mode."
+      "notes": "Browser screen capture includes all eight vendor centered crop ratios, default/reset 2.35:1, source-resize recalculation, in-app selection retention and RGB preview. Session cleanup and stale-request rejection exist. Audio capture/preview has a five-second polling lease and cleanup, but uses synthetic/offline tests only; five rhythm renderers, scale/colors and optional keyboard streaming are integrated. Triple circle and Triangle retain an inactive rightmost shape because the native stream length/expansion remains unverified. Rhythm position/size/rotation layout, physical LED mapping, real capture/throughput and host lifecycle remain incomplete or unverified. Vendor rhythm layout controls do not apply to screen mode."
     },
     {
       "id": "G09.1",

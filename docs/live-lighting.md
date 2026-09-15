@@ -61,7 +61,26 @@ The Lighting page also offers **Audio preview**, usable without a connected
 keyboard. Choose **Refresh audio outputs** to discover playback sinks, select
 an output (or Automatic output), adjust the seven analysis controls, then choose
 **Start audio preview**. **Stop audio preview** ends capture; changing pages also
-stops it. Settings can be adjusted while stopped and reset to the audited defaults.
+stops it. Analysis settings can be adjusted while stopped and reset to the audited defaults.
+
+The five rhythm modes (Spectrum, Circle, Triple circle, Matrix and Triangle) render
+an RGB preview. Triple circle and Triangle currently leave the rightmost shape
+inactive because the audited vendor renderer references bands absent from the
+32-band DSP; these modes remain incomplete pending native-stream verification.
+See the [rhythm audit](releases/glyph-rhythm-audit.md). Scale, animated gradient/solid color and mode can change while
+running. **Reset rhythm settings** restores Spectrum, 100% scale and gradient.
+To stream the visualization, connect a wired USB Glyph with light-sync support
+and explicitly enable **Send rhythm to keyboard** before starting. Without this
+option, preview does not acquire or write a keyboard session. Audio and screen
+lighting share the same exclusive live-light session: stop one before starting
+the other. A frame is rendered into a 420×120 canvas and resized to 21×6 RGB; each
+frame transfer finishes before the next sample request is scheduled.
+
+Stopping, leaving the page, a capture/transfer error, or losing the supported
+keyboard connection ends both sessions and requests lighting restoration. Late
+start responses are cleaned up and stale frame callbacks cannot affect a newer
+run. The audio polling lease ends forgotten capture; after a browser crash,
+keyboard restoration has the same limitation as screen lighting above.
 
 `PipeWireCapture` in `src/epomaker_driver/audio_capture.py` provides bounded,
 in-memory float PCM from a PipeWire output monitor using
@@ -69,7 +88,7 @@ in-memory float PCM from a PipeWire output monitor using
 independent 32-band DSP in `src/epomaker_driver/audio_spectrum.py`, with a
 five-second polling lease that stops and cleans up capture when the browser
 stops polling. Tests use fake processes and synthetic PCM only; no real capture
-was performed. PCM is not saved and this preview performs no keyboard writes.
+was performed. PCM is not saved. Keyboard writes require the explicit streaming option.
 The host needs both `pw-dump` for output discovery and `pw-cat` for the monitor
 stream; missing tools or an unavailable monitor are reported as capture errors.
 
@@ -83,8 +102,8 @@ lease also ends abandoned previews and closes capture.
 
 Physical LED correspondence, real desktop capture, USB throughput and restoration
 remain unverified. The DSP is an independent implementation, not a reconstruction
-of the vendor native DSP. The five rhythm renderers, colors, layout controls and
-audio-to-keyboard streaming, persistent host-service behavior, and suspend/resume
-remain unfinished.
+of the vendor native DSP. Rhythm position/size/rotation layout controls, persistent host-service behavior,
+and suspend/resume remain unfinished. Rendered geometry and DSP still require
+comparison with the vendor runtime and physical output.
 The screen workflow and audio capture component do not establish full live-light
 parity.

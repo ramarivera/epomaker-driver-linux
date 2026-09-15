@@ -276,7 +276,12 @@ export default function Lighting({
         onScreenRatioChange={onScreenRatioChange}
         busy={busy}
       />
-      <AudioPreview busy={busy} />
+      <AudioPreview
+        busy={busy}
+        connected={connected}
+        transport={transport}
+        lightSync={lightSync}
+      />
     </>
   );
 }

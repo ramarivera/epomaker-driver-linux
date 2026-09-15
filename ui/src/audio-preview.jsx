@@ -1,6 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
+import { frameColors } from "./live-lighting";
+import {
+  DEFAULT_RHYTHM_SETTINGS,
+  RHYTHM_MODES,
+  drawRhythm,
+} from "./rhythm-renderer";
 
 const labels = {
   gain: "Gain",
@@ -11,7 +17,6 @@ const labels = {
   max_db: "Maximum dB",
   attack_frames: "Attack frames",
 };
-
 const settingOrder = [
   "gain",
   "tilt",
@@ -21,32 +26,44 @@ const settingOrder = [
   "max_db",
   "attack_frames",
 ];
+const RHYTHM_DEFAULTS = DEFAULT_RHYTHM_SETTINGS;
 
-export default function AudioPreview({ busy = false }) {
+export default function AudioPreview({
+  busy = false,
+  connected = false,
+  transport,
+  lightSync = false,
+}) {
   const [defaults, setDefaults] = useState(null);
   const [limits, setLimits] = useState({});
   const [settings, setSettings] = useState({});
+  const [rhythm, setRhythm] = useState(RHYTHM_DEFAULTS);
+  const rhythmRef = useRef(rhythm);
+  rhythmRef.current = rhythm;
   const [outputs, setOutputs] = useState([]);
   const [target, setTarget] = useState("auto");
   const [bands, setBands] = useState(null);
+  const [colors, setColors] = useState(null);
   const [sequence, setSequence] = useState(null);
   const [frameCount, setFrameCount] = useState(0);
   const [phase, setPhase] = useState("stopped");
   const [error, setError] = useState("");
+  const [sendRhythm, setSendRhythm] = useState(false);
   const mounted = useRef(true);
   const generation = useRef(0);
   const attemptRef = useRef(null);
   const starting = useRef(false);
   const refreshing = useRef(false);
+  const supported = connected && transport === "usb" && lightSync === true;
 
   useEffect(() => {
     let active = true;
     api("audio_config")
       .then((result) => {
         if (!active || !mounted.current) return;
-        const nextDefaults = result.defaults || {};
-        setDefaults(nextDefaults);
-        setSettings({ ...nextDefaults });
+        const next = result.defaults || {};
+        setDefaults(next);
+        setSettings({ ...next });
         setLimits(result.limits || {});
       })
       .catch((reason) => {
@@ -57,47 +74,94 @@ export default function AudioPreview({ busy = false }) {
     };
   }, []);
 
-  const stopAttempt = useCallback(
-    async (attempt, reason = "") => {
-      if (!attempt || attempt.stopped) return;
-      attempt.stopped = true;
-      if (attempt.timer !== null) clearTimeout(attempt.timer);
-      const wasCurrent = attemptRef.current === attempt;
-      if (wasCurrent) {
-        attemptRef.current = null;
-        starting.current = false;
-      }
-      const current =
-        attemptRef.current === null || attemptRef.current === attempt;
-      if (current && mounted.current) {
-        // Release the controls immediately; cleanup remains serialized below.
-        // A new generation prevents this cleanup's result from touching it.
+  const stopAttempt = useCallback(async (attempt, reason = "") => {
+    if (!attempt || attempt.stopped) return;
+    attempt.stopped = true;
+    if (attempt.timer !== null) clearTimeout(attempt.timer);
+    const current = attemptRef.current === attempt;
+    if (current) {
+      generation.current++;
+      attemptRef.current = null;
+      starting.current = false;
+      if (mounted.current) {
         setPhase("stopped");
         setBands(null);
+        setColors(null);
         setSequence(null);
       }
-      let cleanupError = "";
-      if (attempt.session) {
+    }
+    const cleanupGeneration = generation.current;
+    const failures = [];
+    for (const [operation, session, fallback] of [
+      ["audio_preview_stop", attempt.session, "Could not stop audio preview."],
+      [
+        "live_light_stop",
+        attempt.lightSession,
+        "Could not restore keyboard lighting.",
+      ],
+    ])
+      if (session) {
         try {
-          const result = await api("audio_preview_stop", {
-            session: attempt.session,
-          });
-          if (result?.ok === false)
-            cleanupError = result.error || "Could not stop audio preview.";
-          else if (result?.error) cleanupError = result.error;
+          const result = await api(operation, { session });
+          if (result?.ok === false || result?.error)
+            failures.push(result.error || fallback);
         } catch (stopError) {
-          cleanupError = stopError.message;
+          failures.push(stopError.message);
         }
       }
-      if (!mounted.current || generation.current !== attempt.generation) return;
-      setPhase("stopped");
-      setBands(null);
-      setSequence(null);
-      if (cleanupError)
-        setError(`Audio preview cleanup failed: ${cleanupError}`);
-      else if (reason) setError(reason);
+    if (
+      !mounted.current ||
+      !current ||
+      generation.current !== cleanupGeneration
+    )
+      return;
+    if (failures.length) setError(`Cleanup failed: ${failures.join("; ")}`);
+    else if (reason) setError(reason);
+  }, []);
+
+  const renderRhythm = useCallback((nextBands, attempt) => {
+    const canvas = attempt.canvas || document.createElement("canvas");
+    if (!attempt.canvas) {
+      canvas.width = 420;
+      canvas.height = 120;
+    }
+    attempt.canvas = canvas;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    drawRhythm(context, nextBands, rhythmRef.current, attempt.frameIndex++);
+    const output = attempt.outputCanvas || document.createElement("canvas");
+    if (!attempt.outputCanvas) {
+      output.width = 21;
+      output.height = 6;
+    }
+    attempt.outputCanvas = output;
+    const outputContext = output.getContext("2d", { willReadFrequently: true });
+    outputContext.drawImage(canvas, 0, 0, 21, 6);
+    return frameColors(outputContext).match(/.{6}/g) || [];
+  }, []);
+
+  const stopLateSession = useCallback(
+    async (operation, session, attempt, fallback) => {
+      if (!session) return;
+      try {
+        const result = await api(operation, { session });
+        const failure = result?.ok === false || result?.error;
+        if (
+          failure &&
+          mounted.current &&
+          attemptRef.current === null &&
+          generation.current === attempt.generation + 1
+        )
+          setError(result.error || fallback);
+      } catch (reason) {
+        if (
+          mounted.current &&
+          attemptRef.current === null &&
+          generation.current === attempt.generation + 1
+        )
+          setError(`Cleanup failed: ${reason.message}`);
+      }
     },
-    [defaults],
+    [],
   );
 
   const poll = useCallback(
@@ -113,39 +177,55 @@ export default function AudioPreview({ busy = false }) {
           generation.current !== attempt.generation
         )
           return;
-        if (sample.error) {
-          await stopAttempt(attempt, sample.error);
+        if (sample.error) return stopAttempt(attempt, sample.error);
+        if (sample.running === false) return stopAttempt(attempt);
+        if (!Array.isArray(sample.bands)) {
+          if (!attempt.stopped && attemptRef.current === attempt)
+            attempt.timer = setTimeout(() => poll(attempt), 100);
           return;
         }
-        if (sample.running === false) {
-          await stopAttempt(attempt);
-          return;
-        }
-        setBands(Array.isArray(sample.bands) ? sample.bands : null);
+        const nextBands = sample.bands;
+        const nextColors = renderRhythm(nextBands, attempt);
+        setBands(nextBands);
+        setColors(nextColors);
         setSequence(sample.sequence ?? null);
         setFrameCount((count) => count + 1);
-        attempt.timer = setTimeout(() => poll(attempt), 100);
+        if (attempt.lightSession)
+          await api("live_light_frame", {
+            session: attempt.lightSession,
+            colors: nextColors.join(""),
+          });
+        if (!attempt.stopped && attemptRef.current === attempt)
+          attempt.timer = setTimeout(() => poll(attempt), 100);
       } catch (pollError) {
-        if (attempt.stopped || attemptRef.current !== attempt) return;
-        await stopAttempt(attempt, pollError.message);
+        if (!attempt.stopped && attemptRef.current === attempt)
+          await stopAttempt(attempt, pollError.message);
       }
     },
-    [stopAttempt],
+    [renderRhythm, stopAttempt],
   );
 
   const start = async () => {
     if (starting.current || phase !== "stopped" || !defaults) return;
+    const supported = connected && transport === "usb" && lightSync === true;
+    const sending = sendRhythm && supported;
     starting.current = true;
     const attempt = {
       generation: ++generation.current,
       session: null,
+      lightSession: null,
+      sending,
       timer: null,
+      canvas: null,
+      outputCanvas: null,
+      frameIndex: 0,
       stopped: false,
     };
     attemptRef.current = attempt;
     setPhase("starting");
     setError("");
     setBands(null);
+    setColors(null);
     setSequence(null);
     setFrameCount(0);
     try {
@@ -153,33 +233,47 @@ export default function AudioPreview({ busy = false }) {
       attempt.session = result.session;
       if (
         !mounted.current ||
-        generation.current !== attempt.generation ||
-        attemptRef.current !== attempt
+        attemptRef.current !== attempt ||
+        generation.current !== attempt.generation
       ) {
-        if (attempt.session) {
-          try {
-            await api("audio_preview_stop", { session: attempt.session });
-          } catch {
-            // The attempt was cancelled or the page is leaving.
-          }
-        }
+        await stopLateSession(
+          "audio_preview_stop",
+          attempt.session,
+          attempt,
+          "Could not stop audio preview.",
+        );
         return;
+      }
+      if (sending) {
+        const created = await api("live_light_start", {});
+        if (
+          !mounted.current ||
+          attemptRef.current !== attempt ||
+          generation.current !== attempt.generation ||
+          attempt.stopped
+        ) {
+          await stopLateSession(
+            "live_light_stop",
+            created.session,
+            attempt,
+            "Could not restore keyboard lighting.",
+          );
+          return stopAttempt(attempt);
+        }
+        attempt.lightSession = created.session;
       }
       setPhase("running");
       await poll(attempt);
     } catch (startError) {
-      if (
-        mounted.current &&
-        generation.current === attempt.generation &&
-        attemptRef.current === attempt
-      )
+      if (attemptRef.current === attempt && mounted.current)
         await stopAttempt(attempt, startError.message);
-      else if (attempt.session) {
-        try {
-          await api("audio_preview_stop", { session: attempt.session });
-        } catch {
-          // The page is already leaving; there is no state left to report.
-        }
+      else {
+        await stopLateSession(
+          "audio_preview_stop",
+          attempt.session,
+          attempt,
+          "Could not stop audio preview.",
+        );
       }
     } finally {
       starting.current = false;
@@ -191,11 +285,18 @@ export default function AudioPreview({ busy = false }) {
       mounted.current = false;
       generation.current++;
       const attempt = attemptRef.current;
-      if (attempt?.session)
-        void api("audio_preview_stop", { session: attempt.session }).catch(
-          () => {},
-        );
-      if (attempt && attempt.timer !== null) clearTimeout(attempt.timer);
+      if (attempt) {
+        attempt.stopped = true;
+        if (attempt.timer !== null) clearTimeout(attempt.timer);
+        if (attempt.session)
+          void api("audio_preview_stop", { session: attempt.session }).catch(
+            () => {},
+          );
+        if (attempt.lightSession)
+          void api("live_light_stop", { session: attempt.lightSession }).catch(
+            () => {},
+          );
+      }
       attemptRef.current = null;
     };
     window.addEventListener("pagehide", leave);
@@ -207,18 +308,19 @@ export default function AudioPreview({ busy = false }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!supported && attemptRef.current?.sending)
+      void stopAttempt(attemptRef.current);
+  }, [supported, stopAttempt]);
   const refreshOutputs = async () => {
     if (refreshing.current || phase !== "stopped" || busy) return;
     refreshing.current = true;
     setError("");
     try {
       const result = await api("audio_outputs");
-      const nextOutputs = Array.isArray(result) ? result : [];
-      setOutputs(nextOutputs);
-      if (
-        target !== "auto" &&
-        !nextOutputs.some((output) => output.id === target)
-      )
+      const next = Array.isArray(result) ? result : [];
+      setOutputs(next);
+      if (target !== "auto" && !next.some((output) => output.id === target))
         setTarget("auto");
     } catch (reason) {
       setError(reason.message);
@@ -230,10 +332,16 @@ export default function AudioPreview({ busy = false }) {
   return (
     <Panel title="Audio preview">
       <p className="muted">
-        Monitors output audio through PipeWire. No microphone input is used, no
-        recording is saved, and this preview currently does not control the
-        keyboard.
+        Monitors output audio through PipeWire. No microphone input is used and
+        no recording is saved. Rhythm frames can be sent to a connected USB
+        keyboard when explicitly enabled.
       </p>
+      {(rhythm.mode === "tri-cicle" || rhythm.mode === "triangle") && (
+        <p className="muted">
+          The rightmost shape is currently inactive. These two modes still need
+          validation against the vendor audio stream.
+        </p>
+      )}
       {error && (
         <p role="alert" className="error">
           {error}
@@ -252,7 +360,70 @@ export default function AudioPreview({ busy = false }) {
             onChange={(event) => setTarget(event.target.value)}
           />
         </Field>
+        <Field label="Rhythm mode">
+          <Select
+            value={rhythm.mode}
+            disabled={busy}
+            options={RHYTHM_MODES}
+            onChange={(event) =>
+              setRhythm((current) => ({ ...current, mode: event.target.value }))
+            }
+          />
+        </Field>
+        <Field label="Rhythm scale">
+          <input
+            type="number"
+            min="0"
+            max="100"
+            value={rhythm.scale}
+            disabled={busy}
+            onChange={(event) =>
+              setRhythm((current) => ({
+                ...current,
+                scale: Number(event.target.value),
+              }))
+            }
+          />
+        </Field>
+        <Field label="Rhythm color mode">
+          <Select
+            value={rhythm.colorMode}
+            disabled={busy}
+            options={[
+              ["gradient", "Gradient"],
+              ["solid", "Solid"],
+            ]}
+            onChange={(event) =>
+              setRhythm((current) => ({
+                ...current,
+                colorMode: event.target.value,
+              }))
+            }
+          />
+        </Field>
+        <Field label="Rhythm color">
+          <input
+            type="color"
+            value={rhythm.color}
+            disabled={busy}
+            onChange={(event) =>
+              setRhythm((current) => ({
+                ...current,
+                color: event.target.value,
+              }))
+            }
+          />
+        </Field>
       </div>
+      <label>
+        <input
+          type="checkbox"
+          checked={sendRhythm}
+          disabled={!supported || phase !== "stopped" || busy}
+          onChange={(event) => setSendRhythm(event.target.checked)}
+        />{" "}
+        Send rhythm to keyboard
+      </label>
       <div className="apply-row">
         <Button disabled={busy || phase !== "stopped"} onClick={refreshOutputs}>
           Refresh audio outputs
@@ -262,6 +433,12 @@ export default function AudioPreview({ busy = false }) {
           onClick={() => setSettings({ ...defaults })}
         >
           Reset audio settings
+        </Button>
+        <Button
+          disabled={busy || phase !== "stopped"}
+          onClick={() => setRhythm(RHYTHM_DEFAULTS)}
+        >
+          Reset rhythm settings
         </Button>
         <Button
           primary
@@ -312,10 +489,8 @@ export default function AudioPreview({ busy = false }) {
             height="160"
             preserveAspectRatio="none"
           >
-            <title id="audio-preview-title">Audio spectrum preview</title>
-            <desc id="audio-preview-description">
-              Current output audio levels across 32 frequency bands.
-            </desc>
+            <title>Audio spectrum preview</title>
+            <desc>Current output audio levels across 32 frequency bands.</desc>
             {bands.map((value, index) => (
               <rect
                 key={index}
@@ -324,6 +499,26 @@ export default function AudioPreview({ busy = false }) {
                 width="8"
                 height={Math.max(0, Math.min(1, Number(value) || 0)) * 96}
                 rx="1"
+              />
+            ))}
+          </svg>
+        )}
+        {colors && (
+          <svg
+            role="img"
+            aria-label="Rhythm RGB preview"
+            viewBox="0 0 21 6"
+            width="100%"
+            height="120"
+          >
+            {colors.map((color, index) => (
+              <rect
+                key={index}
+                x={index % 21}
+                y={Math.floor(index / 21)}
+                width="1"
+                height="1"
+                fill={`#${color}`}
               />
             ))}
           </svg>

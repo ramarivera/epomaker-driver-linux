@@ -73,17 +73,19 @@ stream length and any native expansion remain unverified. Do not infer a normal
 41-bin stream from these slice expressions alone.
 
 `drawCircle` at byte **9829** filters values greater than zero, computes their
-average with the imported `Gt` helper, and uses `average*dw` as the circle
-diameter before the canvas center is applied. `drawTripleCircle` at byte
+average with the imported summation helper, and uses `average*dw` as the circle
+radius (the source expression is `average*2*dw/2`). `drawTripleCircle` at byte
 **10134** averages positive values from slices `0:8`, `9:17`, and `36:41`, then
-draws three circles across thirds of the canvas with per-circle scale factors
-1.5, 1.2, and 1.5 and a half-width radius cap.
+draws circles at the center, left and right thirds respectively, with per-circle
+scale factors 1.5, 1.2 and 1.5. Each radius is the smaller of half a third-width
+and the group average times half a third-width times its factor.
 
 `drawMatrix` at byte **10839** averages positive values across the input, clamps
 `average*2.5` to 1, and fills a horizontal rectangle of that fraction of `dw`.
 `drawTriangle` at byte **11100** uses the same three positive slices as the
 triple-circle renderer, computes their averages, and draws three adjacent
-triangles with heights scaled by 0.8. Empty positive sets are not guarded in
+triangles with heights scaled by 0.8, 1.3 and 1.5 respectively, without clamping
+their height to the scaled drawing rectangle. Empty positive sets are not guarded in
 the source; a defensive Linux implementation should define its zero-input
 behavior explicitly.
 
@@ -130,3 +132,14 @@ control ranges, convert the canvas into the existing 21×6 RGB output, and send
 it through the Glyph live-light transport. Audio capture and DSP quality remain
 separate implementation work; the vendor bundle alone does not establish
 equivalence for those layers.
+
+## Linux implementation boundary
+
+`ui/src/rhythm-renderer.js` follows these host geometry formulas, with empty
+positive groups defined as zero. Its independent DSP returns exactly 32 bands:
+the vendor's `36:41` group therefore remains empty, so the rightmost shape in
+Triple circle and Triangle is inactive. The app labels this limitation. Native
+stream length/expansion must be verified before these two modes count as parity.
+The gradient advances before each render, using the default color speed of one
+channel step, with RGB, GBR and BRG stops on a horizontal axis. Its duration in
+seconds depends on the Linux render cadence and is not vendor timing parity.
