@@ -51,7 +51,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G10.4 | Background refresh, suspend, and lifecycle updates | partial | expected |
 | G11.1 | Backup managed keyboard state | partial | expected |
 | G11.2 | Preserve unreferenced macro slots | implemented | expected |
-| G11.3 | Vendor snapshot import/export | missing | expected |
+| G11.3 | Vendor local configurations and interchange | missing | expected |
 | G11.4 | Screen asset backup and readback limits | partial | expected |
 | G12.1 | Factory reset command and safety backup | partial | expected |
 | G12.2 | GUI reset/reconnect workflow | partial | expected |

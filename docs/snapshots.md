@@ -180,3 +180,9 @@ after the private recovery file exists. See [ry6602.md](ry6602.md) for commands.
 All fourteen migrated magnetic models have a separate [schema 7](he-recovery.md)
 with per-profile submodes and full raw magnetic state. It includes every macro
 slot and requires identical model and firmware versions for USB restoration.
+
+The [vendor configuration audit](releases/glyph-backup-workflow-audit.md) distinguishes
+Local Config database records from these Linux backup files. Its inspected vendor
+screen exposes write/delete/rename/share, with no file import/export controls;
+screen assets use a separate store. Named local configuration management and cloud
+sharing remain separate v1 work, not proof of backup-file compatibility.
