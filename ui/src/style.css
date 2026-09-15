@@ -121,6 +121,13 @@ button:disabled {
   font-size: 14px;
   color: #475569;
 }
+.connection-telemetry {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
 .device-card .button {
   margin-top: 12px;
   padding: 10px 7px;

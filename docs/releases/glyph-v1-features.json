@@ -55,12 +55,13 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-receiver-audit.md"
       ],
       "implementation_status": "unresolved",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Vendor generic 24G status resolves a runtime keyboard ID through the shared model catalog and forwards commands through a paired dongle. No Glyph-specific receiver PID/pairing fixture has been established; receiver support and hardware verification remain pending."
     },
     {
       "id": "G02.1",
@@ -89,12 +90,20 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-battery-audit.md",
+        "docs/connection-lifecycle.md",
+        "src/epomaker_driver/transport.py",
+        "ui/src/connection-telemetry.jsx"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_transport_telemetry.py",
+        "tests/test_connection_lifecycle.py",
+        "ui/tests/connection-telemetry.spec.js"
+      ],
+      "notes": "Bounded passive Bluetooth notification reads update raw battery and online state under the transport lock, with separate report ages. UI exposes only valid0\u2013100 battery reports and last online status; USB/absent reports are not synthesized. Charging, active status-request native framing and physical telemetry remain unverified."
     },
     {
       "id": "G02.3",

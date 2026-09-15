@@ -234,6 +234,7 @@ class Controller:
                 identity["transport"] = getattr(transport, "kind", None)
                 identity["path"] = info.path
                 identity["session"] = uuid.uuid4().hex
+                identity["telemetry"] = None
                 if identity["device_id"] != 3059:
                     raise UnsupportedDevice(
                         "The graphical interface currently supports Glyph; use the CLI for RT85/RT75 and RY6602 core"
@@ -250,11 +251,15 @@ class Controller:
             self.close()
             return {"ok": True}
         if operation == "connection":
-            # Metadata-only polling: never probe or wake the keyboard with HID commands.
+            # Poll metadata and queued notifications without sending HID commands.
             # Compare the full command collection, since hidraw paths can be reused.
             if self.connection_info is not None and self.connection_info not in self.discovery():
                 self.close()
-            return copy.deepcopy(self.identity)
+            identity = copy.deepcopy(self.identity)
+            if identity is not None:
+                telemetry = getattr(self.keyboard.transport, "telemetry", None)
+                identity["telemetry"] = telemetry() if telemetry is not None else None
+            return identity
         keyboard = self.keyboard
         if keyboard is None:
             raise DeviceUnavailable("connect a keyboard first")

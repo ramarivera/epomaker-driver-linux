@@ -119,6 +119,8 @@ class Transport:
         self.clock = clock
         self.battery: int | None = None
         self.online = True
+        self._battery_observed = None
+        self._online_observed = None
         self.closed = False
 
     @classmethod
@@ -170,13 +172,41 @@ class Transport:
             return None
         if raw[1] == 0x77 and len(raw) >= 3:
             self.battery, self.online = raw[2], True
+            self._battery_observed = self._online_observed = self.clock()
         elif raw[1] == 0x88:
             self.online = False
+            self._online_observed = self.clock()
         elif raw[1] == 0x55:
             if len(raw) != 66:
                 raise ProtocolError("Bluetooth command reply must contain 64 payload bytes")
             return raw[2:]
         return None
+
+    def telemetry(self):
+        """Drain bounded queued notifications without sending commands or retaining key reports."""
+
+        def operation():
+            self._check(bytes(64))
+            if self.kind == "bluetooth":
+                for _ in range(32):
+                    raw = self.io.read(0)
+                    if raw is None:
+                        break
+                    if len(raw) >= 2 and raw[0] == 6 and raw[1] in (0x77, 0x88):
+                        self._decode(raw)
+            now = self.clock()
+            return {
+                "battery_raw": self.battery if self._battery_observed is not None else None,
+                "battery_age_seconds": None
+                if self._battery_observed is None
+                else max(0, now - self._battery_observed),
+                "online": self.online if self._online_observed is not None else None,
+                "online_age_seconds": None
+                if self._online_observed is None
+                else max(0, now - self._online_observed),
+            }
+
+        return self.transaction(operation)
 
     def exchange(
         self,

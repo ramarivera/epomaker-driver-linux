@@ -18,6 +18,7 @@ import MacrosEditor from "./macros-editor";
 import Display from "./display";
 import Settings from "./settings";
 import Backups from "./backups";
+import ConnectionTelemetry from "./connection-telemetry";
 import "./style.css";
 const pages = [
   ["Keymap", Keyboard, Keymap, "Select a key to change its assignment."],
@@ -194,6 +195,7 @@ function App() {
         <div className="device-card">
           <strong>{identity?.model || "Epomaker Glyph"}</strong>
           <span>{connected ? "Connected" : "Offline preview"}</span>
+          <ConnectionTelemetry identity={identity} />
           <Button disabled={busy} onClick={refresh}>
             Refresh devices
           </Button>

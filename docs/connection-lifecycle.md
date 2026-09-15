@@ -1,6 +1,10 @@
 # Connection disappearance and reconnect
 
 The control interface refreshes device metadata and connection state while idle.
+For an open Bluetooth transport it also consumes at most 32 queued reports per
+poll under the same lock as configuration transfers. Only recognized status
+notifications update telemetry; keyboard input and stale command reports are
+discarded without logging. This polling sends no HID commands.
 If the selected command collection disappears or its descriptor/transport changes,
 the controller closes the session, invalidates pending vendor-import previews,
 cancels live lighting, and stops audio capture and system-information refresh.
@@ -25,3 +29,22 @@ Regression evidence: `tests/test_connection_lifecycle.py` and
 checks are not physical hotplug, suspend, or receiver validation. A removed and
 replaced device with identical metadata between polls cannot be distinguished
 by metadata polling alone; transport I/O errors remain necessary evidence.
+
+
+## Battery and device reports
+
+For a connected Bluetooth Glyph, the sidebar shows the last received battery
+report (only integer values 0–100) and the last reported online/offline state,
+with separate report ages. A `0x88` offline notification retains the previous
+battery and its original age; it does not turn that value into a new reading.
+An absent report, an invalid battery value, or USB transport does not become a
+synthetic 100% reading. No charging status is inferred.
+
+These values are the last device reports, distinct from whether the application
+still has an open connection. The timestamp is when Linux received a report,
+not a device clock. Passive polling may leave telemetry unavailable: the vendor
+also sends an active status request, whose native on-wire padding remains
+unresolved. The Linux client does not send a guessed status packet.
+
+See [battery evidence](releases/glyph-battery-audit.md) and
+[receiver applicability](releases/glyph-receiver-audit.md).

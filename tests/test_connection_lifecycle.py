@@ -111,3 +111,20 @@ def test_discovery_failure_is_not_disappearance(connected, monkeypatch):
         controller.call("connection", {})
     assert controller.keyboard is not None
     assert not firmware.closed
+
+
+def test_connection_exposes_notifications_and_disconnects_on_poll_failure(connected, monkeypatch):
+    controller, _, firmware = connected
+    data = {"battery_raw": 66, "battery_age_seconds": 0, "online": True, "online_age_seconds": 0}
+    monkeypatch.setattr(firmware, "telemetry", lambda: dict(data), raising=False)
+    before = list(firmware.sent)
+    assert controller.call("connection", {})["telemetry"] == data
+    assert firmware.sent == before
+
+    def fail():
+        raise DeviceUnavailable("notification device disappeared")
+
+    monkeypatch.setattr(firmware, "telemetry", fail)
+    with pytest.raises(DeviceUnavailable):
+        controller.call("connection", {})
+    assert controller.keyboard is None and firmware.closed
