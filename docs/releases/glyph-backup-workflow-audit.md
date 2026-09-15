@@ -38,8 +38,11 @@ write path applies `value` to the current profile and can also reconstruct
 magnetic-switch settings from `magnetismModes`; this is generic shared driver
 machinery and does not make magnetic controls applicable to Glyph. The record
 also carries `deviceType` identity and optional `reportRate`, but no display
-pixels, GIF frames, still-image bytes, lighting picture bytes, or macro event
-stream.
+pixels, GIF frames, still-image bytes, or lighting picture bytes. Macro data
+may be nested inside `value` action objects: the subsequent
+[full-writer audit](glyph-full-writer-audit.md) confirms that full configuration
+writes consume `ConfigMacro.macro` and `repeatCount`. Separate macro database
+namespaces do not prove that records omit those nested payloads.
 
 The exact codec is: stringify the complete record as UTF-8 JSON, then apply
 raw DEFLATE (`deflateRaw`), storing the resulting bytes. The decoder selects zlib-wrapped DEFLATE for the header `78 9c`, gzip for

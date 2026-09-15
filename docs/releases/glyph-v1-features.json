@@ -865,16 +865,20 @@
         "src/epomaker_driver/config_library.py",
         "ui/src/config-library.jsx",
         "docs/releases/glyph-config-interchange-audit.md",
-        "docs/releases/glyph-action-serializer-audit.md"
+        "docs/releases/glyph-action-serializer-audit.md",
+        "docs/releases/glyph-full-writer-audit.md",
+        "docs/releases/vendor-action-tables.md",
+        "src/epomaker_driver/vendor_actions.py"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
       "test_evidence": [
         "tests/test_config_library.py",
         "tests/test_config_api.py",
-        "ui/tests/config-library.spec.js"
+        "ui/tests/config-library.spec.js",
+        "tests/test_vendor_actions.py"
       ],
-      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. Vendor action arrays and shared Fn OS identity still need a proven matrix adapter; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange."
+      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. Vendor action arrays and shared Fn OS identity still need a proven matrix adapter; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange. Shared action-byte encoding and lookup tables are now migrated; full-layer baseline is normal defaultMatrix even for Fn. Embedded ConfigMacro payload hydration/allocation and record import remain unfinished."
     },
     {
       "id": "G11.4",

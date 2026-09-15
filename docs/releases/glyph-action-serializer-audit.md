@@ -135,7 +135,15 @@ adapter must reject ambiguous duplicate resolution, missing macro indices,
 unknown named functions without a four-byte `value`, and Fn records lacking an
 explicit OS mapping. An empty normal action list represents normal defaults.
 Fn defaults are differences between the normal identity matrix and the selected
-Fn default matrix, so they are not generally empty lists. The full device
-writer’s behavior for absent entries still needs tracing before implementing
-replacement of a complete imported layer. Do not treat the cloud record's `value` as a
+Fn default matrix, so they are not generally empty lists. The subsequent [full-writer audit](glyph-full-writer-audit.md) confirms that
+full normal and Fn writes both start from the normal default matrix. It also
+shows that embedded macro payloads require writes beyond binding conversion. Do not treat the cloud record's `value` as a
 512-byte matrix, and do not infer a physical slot from `original` alone.
+
+## Migrated offline codec
+
+The [lookup-table migration](vendor-action-tables.md) now records the matching
+Windows/macOS function, mouse and gamepad entries. `vendor_actions.encode`
+implements the byte forms with strict validation and rejects unresolved empty
+entries. This closes the table dependency for encoding; it does not handle macro
+payloads, target selection, or make shared-driver actions applicable to Glyph.

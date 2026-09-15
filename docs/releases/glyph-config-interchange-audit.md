@@ -44,3 +44,7 @@ The subsequent [action serializer audit](glyph-action-serializer-audit.md)
 identifies per-action byte formulas and the normal-matrix identity used for Fn
 keys. Its remaining lookup-table and full-writer constraints still apply before
 claiming general record-to-matrix interchange.
+
+The [full-writer audit](glyph-full-writer-audit.md) now establishes the normal
+default baseline for full normal and Fn conversion. It also identifies embedded
+macro payload consumption, which a matrix-only adapter would omit.
