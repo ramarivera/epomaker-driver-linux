@@ -53,12 +53,13 @@ def test_refuses_unrelated_and_symlink_launcher(tmp_path):
     assert target.read_text() == "owned target"
 
 
-def test_desktop_file_validator_when_available(tmp_path):
+@pytest.mark.parametrize("background", [False, True])
+def test_desktop_file_validator_when_available(tmp_path, background):
     validator = shutil.which("desktop-file-validate")
     if not validator:
         pytest.skip("desktop-file-validate unavailable")
     path = tmp_path / "xdg" / "applications" / FILENAME
-    install(path.parents[1], executable(tmp_path))
+    install(path.parents[1], executable(tmp_path), background=background)
     subprocess.run([validator, str(path)], check=True)
 
 
@@ -74,6 +75,28 @@ def test_update_preserves_venv_symlink_path(tmp_path):
     entry = (home / "applications" / FILENAME).read_text()
     assert f'Exec="{python}" -m epomaker_driver.cli' in entry
     assert str(original) not in entry
+
+
+def test_background_mode_switches_owned_entry(tmp_path):
+    home = tmp_path / "xdg"
+    python = executable(tmp_path)
+    path = home / "applications" / FILENAME
+    install(home, python)
+    assert "Terminal=true" in path.read_text()
+    install(home, python, background=True)
+    content = path.read_text()
+    assert "Terminal=false" in content
+    assert "service-launch" in content
+    assert "serve --open-browser" not in content
+    install(home, python, background=False)
+    assert "Terminal=true" in path.read_text()
+
+
+def test_background_requires_strict_boolean_before_writes(tmp_path):
+    home = tmp_path / "xdg"
+    with pytest.raises(ValueError):
+        install(home, executable(tmp_path), background=1)
+    assert not (home / "applications" / FILENAME).exists()
 
 
 def test_equals_in_executable_is_rejected(tmp_path):

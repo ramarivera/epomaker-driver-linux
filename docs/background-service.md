@@ -19,7 +19,7 @@ idempotent while it is running. It does not connect a keyboard or restore an old
 stream. Wait for the service to start before opening it; an unavailable socket
 produces an error and can be retried. Closing the browser leaves the service
 running. `service-status` returns systemd's load, active, and substate fields,
-including inactive/failed states.
+including inactive/failed states and the unit-file enablement state.
 
 Installation writes the marker-owned unit at
 `$XDG_CONFIG_HOME/systemd/user/epomaker-driver-linux.service`, defaulting to
@@ -56,14 +56,41 @@ automatically replay keyboard writes. If graceful shutdown exceeds 15 seconds,
 systemd may terminate remaining processes. User backups and libraries survive
 unit removal. A daemon-reload failure leaves the saved unit in place and reports
 that partial installation; retry after restoring access to the user manager.
-Uninstall stops the service before removing the owned unit and reloads the
-manager. Unrelated files and symlinks at the unit path are refused.
+Uninstall stops and disables the service before removing the owned unit and
+reloading the manager. A failed stop or disable leaves the unit file in place;
+the service may already be stopped when a later removal step fails. Unrelated files and symlinks at the unit path are refused.
 
-This is explicitly started service support. Login autostart, tray controls,
-service-backed application-menu activation, suspend/resume restoration, and
-physical device lifecycle verification remain unfinished. The existing desktop
-menu entry still starts a foreground server; use either that workflow or these
-service commands to avoid competing instances. Systems without a working systemd
+## Application-menu activation and login startup
+
+After installing the service in the same Python environment, switch the owned
+menu entry to background activation:
+
+```sh
+epomaker desktop-install --background
+```
+
+The menu invokes `service-launch`: it starts the fixed user unit, waits briefly
+for the private socket, and opens the running instance. Repeated activations
+reuse that instance. It does not print the session URL into desktop-launcher
+output; if browser launch fails, use `epomaker service-open` in a terminal for
+the URL. A missing user manager, failed service start, invalid private socket,
+or readiness timeout is an error, with no foreground fallback that could open
+a competing device connection. Run `epomaker desktop-install` without the flag
+to return the menu entry to foreground launch.
+
+Login startup is opt-in and independent of the menu mode:
+
+```sh
+epomaker service-enable     # Enable startup on subsequent user-manager logins.
+epomaker service-disable    # Disable future startup; does not stop a running unit.
+```
+
+Use `service-start` or `service-stop` for the current session. Neither enabling
+startup nor launching the driver restores a device connection or starts capture.
+No system-wide unit or lingering user manager is configured. User-manager
+lifetime can differ from graphical-login lifetime on an already-lingering system.
+Tray controls, suspend/resume restoration, and physical device lifecycle
+verification remain unfinished. Systems without a working systemd
 user manager can continue to use `epomaker serve --open-browser`.
 
 ## Verification

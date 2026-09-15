@@ -38,8 +38,13 @@ def _exec_arg(value: Path) -> str:
     return f'"{escaped}"'
 
 
-def _content(python_executable: Path) -> str:
+def _content(python_executable: Path, *, background: bool = False) -> str:
     executable = _exec_arg(python_executable)
+    command = (
+        f"{executable} -m epomaker_driver.cli service-launch"
+        if background
+        else f"{executable} -m epomaker_driver.cli serve --open-browser --port 0"
+    )
     return "\n".join(
         (
             "[Desktop Entry]",
@@ -47,10 +52,10 @@ def _content(python_executable: Path) -> str:
             MARKER,
             "Name=EPOMAKER Linux driver",
             "Type=Application",
-            "Terminal=true",
+            f"Terminal={'false' if background else 'true'}",
             "Icon=input-keyboard",
             "Categories=Settings;HardwareSettings;",
-            f"Exec={executable} -m epomaker_driver.cli serve --open-browser --port 0",
+            f"Exec={command}",
             "",
         )
     )
@@ -65,10 +70,12 @@ def _owned(path: Path) -> bool:
         return False
 
 
-def install(data_home: Path, python_executable: Path) -> dict:
+def install(data_home: Path, python_executable: Path, *, background: bool = False) -> dict:
     """Atomically install or update the marker-owned desktop entry."""
     home = _path(data_home, "data_home")
     executable = _path(python_executable, "python_executable")
+    if type(background) is not bool:
+        raise ValueError("background must be a boolean")
     if not executable.is_file() or not os.access(executable, os.X_OK):
         raise ValueError("python_executable must be an existing executable file")
     path = _launcher(home)
@@ -76,7 +83,7 @@ def install(data_home: Path, python_executable: Path) -> dict:
     if path.exists() or path.is_symlink():
         if not _owned(path):
             raise ValueError(f"refusing to replace unrelated launcher: {path}")
-    content = _content(executable)
+    content = _content(executable, background=background)
     fd, temporary = tempfile.mkstemp(prefix=f".{FILENAME}.", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as output:

@@ -24,7 +24,7 @@ def test_install_and_uninstall_are_atomic_and_owned(tmp_path, monkeypatch):
     assert 'ExecStart="' in text
     assert calls == ["daemon-reload"]
     assert user_service.uninstall(home)["removed"] is True
-    assert calls == ["daemon-reload", "stop", "daemon-reload"]
+    assert calls == ["daemon-reload", "stop", "disable", "daemon-reload"]
 
 
 def test_refuses_unrelated_and_symlink_unit(tmp_path, monkeypatch):
@@ -59,7 +59,7 @@ def test_control_uses_user_systemd_and_parses_status(monkeypatch):
     assert status["ActiveState"] == "active"
     assert seen == ["start", "status"]
     with pytest.raises(ValueError):
-        user_service.control("enable")
+        user_service.control("restart")
 
 
 def test_rejects_bad_paths_and_daemon_reload_failure(tmp_path, monkeypatch):
@@ -92,7 +92,7 @@ def test_systemctl_status_uses_show_and_error_is_actionable(monkeypatch):
         "systemctl",
         "--user",
         "show",
-        "--property=LoadState,ActiveState,SubState",
+        "--property=LoadState,ActiveState,SubState,UnitFileState",
         user_service.UNIT,
     ]
     assert seen[0][1]["check"] and seen[0][1]["timeout"] == 10

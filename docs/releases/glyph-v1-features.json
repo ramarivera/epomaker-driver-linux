@@ -1139,9 +1139,10 @@
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "tests/test_user_service.py",
-        "tests/test_control_socket.py"
+        "tests/test_control_socket.py",
+        "tests/test_service_activation.py"
       ],
-      "notes": "Explicit systemd user service install/start/stop/status/uninstall and private in-memory URL activation are implemented. Generated unit validated with systemd-analyze; standalone socket activation and SIGINT cleanup checked. No live user unit installation tested. Tray, menu integration, login autostart and suspend/resume remain missing."
+      "notes": "Explicit systemd user service lifecycle, optional login enable/disable, private in-memory URL activation, and opt-in service-backed application-menu launch are implemented. Repeated activation uses the same fixed unit; startup/socket errors remain visible. Generated unit validated, standalone socket/SIGINT cleanup checked; no live user-unit installation tested. Tray and suspend/resume remain missing."
     },
     {
       "id": "G16.1",

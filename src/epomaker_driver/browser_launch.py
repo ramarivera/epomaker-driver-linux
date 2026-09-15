@@ -5,17 +5,17 @@ import threading
 import webbrowser
 
 
-def open_browser(url):
+def open_browser(url, *, fallback="Open the printed session URL manually."):
     def operation():
         try:
             if not webbrowser.open(url, new=2):
                 print(
-                    "Could not open a browser; open the printed session URL manually.",
+                    f"Could not open a browser. {fallback}",
                     file=sys.stderr,
                 )
         except Exception as error:
             print(
-                f"Could not open a browser: {error}. Open the printed session URL manually.",
+                f"Could not open a browser: {str(error).replace(url, '<session URL>')}. {fallback}",
                 file=sys.stderr,
             )
 

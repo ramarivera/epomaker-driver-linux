@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import os
+import stat
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
+from . import control_socket
 from .errors import DriverError
 
 UNIT = "epomaker-driver-linux.service"
@@ -73,7 +76,12 @@ def _owned(path: Path) -> bool:
 def _systemctl(action: str) -> subprocess.CompletedProcess:
     command = ["systemctl", "--user", action]
     if action == "status":
-        command = ["systemctl", "--user", "show", "--property=LoadState,ActiveState,SubState"]
+        command = [
+            "systemctl",
+            "--user",
+            "show",
+            "--property=LoadState,ActiveState,SubState,UnitFileState",
+        ]
     if action != "daemon-reload":
         command.append(UNIT)
     try:
@@ -129,14 +137,15 @@ def uninstall(config_home: Path) -> dict:
     if not _owned(path):
         raise ValueError(f"refusing to remove unrelated unit: {path}")
     _systemctl("stop")
+    _systemctl("disable")
     path.unlink()
     _systemctl("daemon-reload")
     return {"removed": True, "path": str(path)}
 
 
 def control(action: str) -> dict:
-    if action not in ("start", "stop", "status"):
-        raise ValueError("action must be start, stop, or status")
+    if action not in ("start", "stop", "status", "enable", "disable"):
+        raise ValueError("action must be start, stop, status, enable, or disable")
     result = _systemctl(action)
     if action != "status":
         return {"action": action, "unit": UNIT, "ok": True}
@@ -146,3 +155,26 @@ def control(action: str) -> dict:
         if separator:
             values[key] = value
     return {"action": action, "unit": UNIT, "ok": True, **values}
+
+
+READY_TIMEOUT = 5.0
+
+
+def activate(runtime_dir: Path) -> str:
+    """Start the one user unit and obtain its private activation URL, without HID I/O."""
+    runtime = _path(runtime_dir, "runtime_dir")
+    info = runtime.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise ValueError("runtime directory must be private and owned by this user")
+    control("start")
+    deadline = time.monotonic() + READY_TIMEOUT
+    path = runtime / "epomaker-driver-linux/control.sock"
+    while True:
+        try:
+            return control_socket.read_url(path)
+        except (FileNotFoundError, ConnectionRefusedError, TimeoutError) as error:
+            if time.monotonic() >= deadline:
+                raise ServiceError(
+                    "service activation timed out; inspect service-status and the user journal"
+                ) from error
+            time.sleep(0.05)

@@ -15,8 +15,8 @@ environment and opens the local control interface in your default browser.
 A terminal remains open for diagnostics and shutdown with Ctrl+C. Closing the
 browser tab alone does not stop the driver. Each launch currently creates its
 own server on an available port; close the previous terminal before launching
-again to avoid competing device connections. Tray controls and single-instance
-menu activation remain unimplemented. For an explicitly started single service,
+again to avoid competing device connections. Tray controls remain unimplemented. For menu activation that reuses one
+background instance, install the user service and use `desktop-install --background`;
 see [background service commands](background-service.md).
 
 `desktop-install` writes

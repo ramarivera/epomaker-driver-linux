@@ -95,10 +95,22 @@ def parser():
         entry.add_argument(
             "--data-home", type=Path, default=None, help="override the XDG data directory"
         )
+        if command == "desktop-install":
+            entry.add_argument(
+                "--background", action="store_true", help="activate the installed user service"
+            )
     for command in ("service-install", "service-uninstall"):
         entry = commands.add_parser(command)
         entry.add_argument("--config-home", type=Path)
-    for command in ("service-start", "service-stop", "service-status", "service-open"):
+    for command in (
+        "service-start",
+        "service-stop",
+        "service-status",
+        "service-open",
+        "service-launch",
+        "service-enable",
+        "service-disable",
+    ):
         commands.add_parser(command)
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
@@ -305,8 +317,23 @@ def execute(args):
         if args.command == "service-install":
             return user_service.install(config_home, Path(sys.executable))
         return user_service.uninstall(config_home)
-    if args.command in ("service-start", "service-stop", "service-status"):
+    if args.command in (
+        "service-start",
+        "service-stop",
+        "service-status",
+        "service-enable",
+        "service-disable",
+    ):
         return user_service.control(args.command.removeprefix("service-"))
+    if args.command == "service-launch":
+        runtime = os.environ.get("XDG_RUNTIME_DIR")
+        if not runtime:
+            raise ValueError("XDG_RUNTIME_DIR is required; run inside your desktop login session")
+        url = user_service.activate(Path(runtime))
+        browser_launch.open_browser(
+            url, fallback="Run epomaker service-open in a terminal for the session URL."
+        ).join(timeout=5)
+        return {"browser_requested": True}
     if args.command == "service-open":
         runtime = os.environ.get("XDG_RUNTIME_DIR")
         if not runtime:
@@ -319,7 +346,7 @@ def execute(args):
             os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share"
         )
         if args.command == "desktop-install":
-            return desktop.install(data_home, Path(sys.executable))
+            return desktop.install(data_home, Path(sys.executable), background=args.background)
         if args.command == "desktop-uninstall":
             return desktop.uninstall(data_home)
         return desktop.status(data_home)
