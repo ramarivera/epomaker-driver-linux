@@ -53,8 +53,25 @@ function App() {
     [notice, setNotice] = useState(null),
     [epoch, setEpoch] = useState(0);
   const pending = useRef(0);
+  const mounted = useRef(true);
+  const pollInFlight = useRef(false);
+  const generation = useRef(0);
+  const busyRef = useRef(false);
+  const identityRef = useRef(null);
+  const pollErrorShown = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    busyRef.current = busy;
+  }, [busy]);
   const run = useCallback(async (fn, message) => {
     pending.current++;
+    generation.current += 1;
+    busyRef.current = true;
     setBusy(true);
     setNotice(null);
     try {
@@ -64,9 +81,13 @@ function App() {
       setNotice({ message: error.message, error: true });
     } finally {
       pending.current--;
-      setBusy(pending.current > 0);
+      busyRef.current = pending.current > 0;
+      setBusy(busyRef.current);
     }
   }, []);
+  useEffect(() => {
+    identityRef.current = identity;
+  }, [identity]);
   useEffect(() => {
     run(async () => {
       const [catalog, devices, connection] = await Promise.all([
@@ -76,14 +97,73 @@ function App() {
       ]);
       setCatalog(catalog);
       setDevices(devices);
+      identityRef.current = connection;
       setIdentity(connection);
     });
   }, []);
-  const refresh = () =>
+  const poll = useCallback(async () => {
+    if (!mounted.current || busyRef.current || pollInFlight.current) return;
+    pollInFlight.current = true;
+    const pollGeneration = generation.current;
+    try {
+      const [nextDevices, nextIdentity] = await Promise.all([
+        api("devices"),
+        api("connection"),
+      ]);
+      if (!mounted.current || pollGeneration !== generation.current) return;
+      const previous = identityRef.current;
+      pollErrorShown.current = false;
+      setDevices(nextDevices);
+      identityRef.current = nextIdentity;
+      setIdentity(nextIdentity);
+      if (previous && !nextIdentity) {
+        setNotice({ message: "Keyboard connection lost.", error: true });
+      }
+      if (path && !nextDevices.some((device) => device.path === path)) {
+        setPath("");
+      }
+      if (
+        Boolean(previous) !== Boolean(nextIdentity) ||
+        previous?.session !== nextIdentity?.session ||
+        previous?.path !== nextIdentity?.path
+      )
+        setEpoch((value) => value + 1);
+    } catch (error) {
+      if (
+        mounted.current &&
+        pollGeneration === generation.current &&
+        !pollErrorShown.current
+      ) {
+        pollErrorShown.current = true;
+        setNotice({
+          message: `Connection status unavailable: ${error.message}`,
+          error: true,
+        });
+      }
+    } finally {
+      pollInFlight.current = false;
+    }
+  }, [path]);
+  useEffect(() => {
+    const timer = setInterval(poll, 2000);
+    return () => clearInterval(timer);
+  }, [poll]);
+  const refresh = () => {
+    generation.current += 1;
     run(async () => {
-      setDevices(await api("devices"));
+      const [nextDevices, nextIdentity] = await Promise.all([
+        api("devices"),
+        api("connection"),
+      ]);
+      if (!mounted.current) return;
+      setDevices(nextDevices);
+      identityRef.current = nextIdentity;
+      setIdentity(nextIdentity);
+      if (path && !nextDevices.some((device) => device.path === path))
+        setPath("");
       setEpoch((e) => e + 1);
     });
+  };
   const selected = pages.find((page) => page[0] === tab),
     Page = selected[2];
   const connected = Boolean(identity);
@@ -122,8 +202,11 @@ function App() {
               disabled={busy}
               onClick={() =>
                 run(async () => {
+                  generation.current += 1;
                   await api("disconnect", {});
+                  identityRef.current = null;
                   setIdentity(null);
+                  setEpoch((e) => e + 1);
                 }, "Disconnected.")
               }
             >
@@ -151,14 +234,20 @@ function App() {
                   `${d.name} · ${d.command_transport}`,
                 ]),
               ]}
-              onChange={(e) => setPath(e.target.value)}
+              onChange={(e) => {
+                generation.current += 1;
+                setPath(e.target.value);
+              }}
             />
             <Button
               primary
               disabled={busy || !path}
               onClick={() =>
                 run(async () => {
-                  setIdentity(await api("connect", { path }));
+                  generation.current += 1;
+                  const nextIdentity = await api("connect", { path });
+                  identityRef.current = nextIdentity;
+                  setIdentity(nextIdentity);
                   setEpoch((e) => e + 1);
                 }, "Keyboard connected.")
               }
@@ -194,6 +283,8 @@ function App() {
             run={run}
             epoch={epoch}
             onConnectionLost={() => {
+              generation.current += 1;
+              identityRef.current = null;
               setIdentity(null);
               setEpoch((e) => e + 1);
             }}

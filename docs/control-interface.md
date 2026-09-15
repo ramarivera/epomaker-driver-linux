@@ -93,3 +93,6 @@ reactive host lighting, background refresh, and richer display controls. Additio
 keyboard models and unrelated protocol families are deferred under the
 [Glyph-only v1 scope](releases/glyph-v1.md). A successful simulated readback does not
 establish hardware parity.
+
+See [connection lifecycle](connection-lifecycle.md) for disappearance detection,
+session cleanup, and explicit reconnect behavior.

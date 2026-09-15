@@ -14,7 +14,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G02.1 | Identity and firmware display | partial | expected |
 | G02.2 | Battery and online state | partial | expected |
 | G02.3 | Disconnect, reconnect, and stale-state reset | partial | expected |
-| G02.4 | Sleep/wake or transport-change continuity | missing | pending-audit |
+| G02.4 | Sleep/wake or transport-change continuity | partial | pending-audit |
 | G03.1 | Read and edit normal keymap | partial | expected |
 | G03.2 | Fn Windows layer keymap | partial | expected |
 | G03.3 | Fn Mac layer keymap | partial | expected |

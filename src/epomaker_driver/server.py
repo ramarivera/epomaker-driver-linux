@@ -62,6 +62,7 @@ class Controller:
         self.discovery, self.transport_factory = discovery, transport_factory
         self.keyboard = None
         self.identity = None
+        self.connection_info = None
         self.lock = threading.RLock()
         self.system_info_refresh = SystemInfoRefresh(self, collector_factory)
         self.live_light = LiveLightSession()
@@ -75,14 +76,20 @@ class Controller:
             self.audio_preview.stop()
             self.live_light.cancel()
             self.system_info_refresh.stop()
-            if self.keyboard is not None:
-                self.keyboard.transport.close()
-                self.keyboard = None
-                self.identity = None
+            keyboard, self.keyboard = self.keyboard, None
+            self.identity = self.connection_info = None
+            if keyboard is not None:
+                keyboard.transport.close()
 
     def call(self, operation, data):
         with self.lock:
-            return self._call(operation, data)
+            try:
+                return self._call(operation, data)
+            except DeviceUnavailable:
+                # A failed replacement connection must not discard a still-open device.
+                if operation != "connect":
+                    self.close()
+                raise
 
     def _call(self, operation, data):
         if operation == "audio_outputs":
@@ -225,6 +232,8 @@ class Controller:
                 # The transport kind comes from the opened command collection;
                 # expose it so the UI can gate Glyph animation controls.
                 identity["transport"] = getattr(transport, "kind", None)
+                identity["path"] = info.path
+                identity["session"] = uuid.uuid4().hex
                 if identity["device_id"] != 3059:
                     raise UnsupportedDevice(
                         "The graphical interface currently supports Glyph; use the CLI for RT85/RT75 and RY6602 core"
@@ -234,13 +243,18 @@ class Controller:
                 raise
             self.close()
             self.keyboard, self.identity = keyboard, identity
+            self.connection_info = info
             return identity
         if operation == "disconnect":
             self.system_info_refresh.stop()
             self.close()
             return {"ok": True}
         if operation == "connection":
-            return self.identity
+            # Metadata-only polling: never probe or wake the keyboard with HID commands.
+            # Compare the full command collection, since hidraw paths can be reused.
+            if self.connection_info is not None and self.connection_info not in self.discovery():
+                self.close()
+            return copy.deepcopy(self.identity)
         keyboard = self.keyboard
         if keyboard is None:
             raise DeviceUnavailable("connect a keyboard first")

@@ -105,12 +105,16 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/connection-lifecycle.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_connection_lifecycle.py",
+        "ui/tests/connection-lifecycle.spec.js"
+      ],
+      "notes": "Idle UI polling refreshes device metadata and session state. A missing or changed command collection or DeviceUnavailable operation clears the session, pending vendor import, audio/live lighting and system refresh. New connections get a distinct session identity. Stale poll results cannot overwrite explicit connection actions; physical hotplug and transport switches remain unverified."
     },
     {
       "id": "G02.4",
@@ -121,12 +125,13 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/connection-lifecycle.md"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Returned/new transport collections appear through metadata polling and can be explicitly connected. No writes or streams replay automatically. Sleep/wake telemetry, automatic resume and physical suspend behavior remain unfinished; a sleeping device retained in sysfs may still appear connected."
     },
     {
       "id": "G03.1",
@@ -1024,12 +1029,13 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/releases/glyph-service-profile-audit.md"
       ],
       "implementation_status": "unresolved",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Determine which vendor service workflows are actually part of Glyph management. No blanket exclusion is accepted."
+      "notes": "Static Windows handlers separate account-independent local configuration/macro storage from login-gated cloud sharing and session-based community operations. Linux local libraries exist; vendor cloud sharing/community, full service applicability and macOS control comparison remain unresolved. No blanket exclusion is accepted."
     },
     {
       "id": "G14.2",
