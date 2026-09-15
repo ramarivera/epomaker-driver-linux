@@ -1002,12 +1002,13 @@
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
         "ui/src/main.jsx",
-        "docs/releases/glyph-firmware-workflow-audit.md"
+        "docs/releases/glyph-firmware-workflow-audit.md",
+        "docs/releases/glyph-firmware-image-audit.md"
       ],
       "implementation_status": "missing",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison. Image audit identifies Glyph USB 65536-byte prefix handling and shared container/component routing; authentic Glyph metadata/images and image identity validation remain unresolved."
     },
     {
       "id": "G14.1",
@@ -1051,12 +1052,19 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "src/epomaker_driver/desktop.py",
+        "src/epomaker_driver/browser_launch.py",
+        "docs/desktop-installation.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_desktop.py",
+        "tests/test_desktop_cli.py",
+        "tests/test_browser_launch.py"
+      ],
+      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Desktop-session activation, native installer packaging, tray and single-instance behavior remain unverified or unfinished."
     },
     {
       "id": "G15.2",
@@ -1083,12 +1091,19 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "src/epomaker_driver/desktop.py",
+        "src/epomaker_driver/browser_launch.py",
+        "docs/desktop-installation.md"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_desktop.py",
+        "tests/test_desktop_cli.py",
+        "tests/test_browser_launch.py"
+      ],
+      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Desktop-session activation, native installer packaging, tray and single-instance behavior remain unverified or unfinished."
     },
     {
       "id": "G15.4",

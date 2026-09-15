@@ -103,7 +103,8 @@ Mouse commands use their own protocol and are rejected on keyboards.
 
 ## Run
 
-For the graphical interface, follow the [build and launch instructions](docs/control-interface.md).
+For the graphical interface, follow the [build and launch instructions](docs/control-interface.md)
+or [install an application-menu launcher](docs/desktop-installation.md).
 The Glyph Lighting page includes [live screen lighting](docs/live-lighting.md)
 on wired USB firmware that advertises support; the Display page offers
 [continuous host statistics](docs/system-info.md). Physical output remains unverified.

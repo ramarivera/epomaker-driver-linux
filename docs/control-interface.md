@@ -26,7 +26,9 @@ npm run build --prefix ui
 .venv/bin/epomaker serve
 ```
 
-Open the URL printed by the command. Its fragment contains a per-process session
+For a persistent application-menu entry and package lifecycle, see
+[desktop installation](desktop-installation.md). `serve --open-browser` opens
+the interface automatically. Otherwise open the URL printed by the command. Its fragment contains a per-process session
 token. Select the discovered command device and press Connect. Offline preview allows
 local editing but disables device writes. Device permissions are documented in
 [hardware.md](hardware.md). The server does not elevate privileges or install rules.

@@ -62,7 +62,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G14.2 | Firmware retrieval and update-service dependencies | unresolved | pending-audit |
 | G15.1 | Install and launch desktop application | partial | expected |
 | G15.2 | USB permissions and access errors | partial | expected |
-| G15.3 | Persistence, update, and uninstall | missing | expected |
+| G15.3 | Persistence, update, and uninstall | partial | expected |
 | G15.4 | Background lifecycle and tray behavior | missing | expected |
 | G16.1 | Integrated desktop pages for keymap/light/macros/display/settings | partial | expected |
 | G16.2 | Responsive/accessibility behavior | partial | expected |

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -11,7 +12,9 @@ from pathlib import Path
 from . import (
     __version__,
     actions,
+    browser_launch,
     codec,
+    desktop,
     he_recovery,
     he_snapshot,
     legacy_snapshot,
@@ -59,6 +62,9 @@ def parser():
     serve = commands.add_parser("serve", help="start the local control interface")
     serve.add_argument("--port", type=int, default=8932)
     serve.add_argument(
+        "--open-browser", action="store_true", help="open the local interface in a browser"
+    )
+    serve.add_argument(
         "--backup-dir",
         type=Path,
         default=Path.home() / ".local/state/epomaker-driver-linux/backups",
@@ -75,6 +81,11 @@ def parser():
         default=Path.home() / ".local/share/epomaker-driver-linux/display-assets",
         help="persistent Glyph display asset library directory",
     )
+    for command in ("desktop-install", "desktop-uninstall", "desktop-status"):
+        entry = commands.add_parser(command)
+        entry.add_argument(
+            "--data-home", type=Path, default=None, help="override the XDG data directory"
+        )
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     mouse_cli.parsers(commands)
@@ -258,6 +269,15 @@ def select_device(path):
 
 
 def execute(args):
+    if args.command in ("desktop-install", "desktop-uninstall", "desktop-status"):
+        data_home = args.data_home or Path(
+            os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share"
+        )
+        if args.command == "desktop-install":
+            return desktop.install(data_home, Path(sys.executable))
+        if args.command == "desktop-uninstall":
+            return desktop.uninstall(data_home)
+        return desktop.status(data_home)
     if args.command == "serve":
         from .server import Controller, ControlServer
 
@@ -266,7 +286,10 @@ def execute(args):
             Controller(args.backup_dir, library_dir=args.library_dir, assets_dir=args.assets_dir),
             port=args.port,
         ) as server:
-            print(f"http://127.0.0.1:{server.server_port}/#token={server.token}", flush=True)
+            url = f"http://127.0.0.1:{server.server_port}/#token={server.token}"
+            print(url, flush=True)
+            if args.open_browser:
+                browser_launch.open_browser(url)
             server.serve_forever()
         return {"stopped": True}
     if args.command == "discover":
