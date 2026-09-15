@@ -103,7 +103,7 @@
         "tests/test_connection_lifecycle.py",
         "ui/tests/connection-telemetry.spec.js"
       ],
-      "notes": "Bounded passive Bluetooth notification reads update raw battery and online state under the transport lock, with separate report ages. UI exposes only valid0\u2013100 battery reports and last online status; USB/absent reports are not synthesized. Charging, active status-request native framing and physical telemetry remain unverified."
+      "notes": "Rate-limited five-second Bluetooth status requests and bounded notification reads update raw battery and online state under the transport lock, with separate report ages. UI exposes only valid 0\u2013100 battery reports and last online status; USB/absent reports are not synthesized. Request framing is traced to the macOS bridge; charging and physical telemetry remain unverified."
     },
     {
       "id": "G02.3",

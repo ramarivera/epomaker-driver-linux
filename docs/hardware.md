@@ -6,11 +6,15 @@ collection closes the handle and requires rediscovery.
 
 No configuration feature is hardware-verified yet. The connected Glyph's Bluetooth descriptor
 matches report 6 with 65-byte input/output payloads, VID/PID 3151:5004, usage page FF55/usage 0202.
-The current user's `/dev/hidraw3` is root-only, so live command validation has not run.
+Live command validation has not run. Wired USB is the selected first test transport;
+metadata discovery on 2026-09-16 still found only the Bluetooth Glyph collection.
+Hidraw paths are assigned dynamically and must be rediscovered.
 
 Discover dynamically. VID/PID and descriptor matching precede opening; the firmware's internal
 ID must be 3059 before the current Glyph configuration API writes anything. USB uses feature
-report 0, 64 payload bytes; Bluetooth uses output/input report 6 with the extra 55 marker.
+report 0, 64 payload bytes; normal Bluetooth commands use output/input report 6
+with the extra 55 marker. Bluetooth status queries instead use `06 77` plus 64
+zero bytes; see [the bridge evidence](releases/glyph-battery-audit.md).
 
 The driver does not require a root GUI. Device permissions should be granted to the active user
 for the specific command collection using the distribution's udev/ACL mechanism. No broad

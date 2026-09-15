@@ -4,7 +4,9 @@ The control interface refreshes device metadata and connection state while idle.
 For an open Bluetooth transport it also consumes at most 32 queued reports per
 poll under the same lock as configuration transfers. Only recognized status
 notifications update telemetry; keyboard input and stale command reports are
-discarded without logging. This polling sends no HID commands.
+discarded without logging. Bluetooth telemetry also sends a status request at
+most once every five seconds, under that same lock. USB telemetry sends no
+commands. Requests do not wait for a reply or interrupt configuration transfers.
 If the selected command collection disappears or its descriptor/transport changes,
 the controller closes the session, invalidates pending vendor-import previews,
 cancels live lighting, and stops audio capture and system-information refresh.
@@ -42,9 +44,9 @@ synthetic 100% reading. No charging status is inferred.
 
 These values are the last device reports, distinct from whether the application
 still has an open connection. The timestamp is when Linux received a report,
-not a device clock. Passive polling may leave telemetry unavailable: the vendor
-also sends an active status request, whose native on-wire padding remains
-unresolved. The Linux client does not send a guessed status packet.
+not a device clock. A missing reply leaves the last value and its age intact;
+it does not establish a disconnect or create a fresh reading. Request framing
+is traced to the vendor macOS bridge, but physical responses remain unverified.
 
 See [battery evidence](releases/glyph-battery-audit.md) and
 [receiver applicability](releases/glyph-receiver-audit.md).

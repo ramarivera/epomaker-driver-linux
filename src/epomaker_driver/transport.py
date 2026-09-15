@@ -18,6 +18,9 @@ from collections.abc import Callable
 from .discovery import DeviceInfo
 from .errors import DevicePermissionError, DeviceUnavailable, ProtocolError, ResponseTimeout
 
+TELEMETRY_INTERVAL = 5.0
+TELEMETRY_READ_BUDGET = 32
+
 
 def feature_ioctl(number: int, length: int) -> int:
     if number not in (6, 7) or not 2 <= length < 16384:
@@ -121,6 +124,7 @@ class Transport:
         self.online = True
         self._battery_observed = None
         self._online_observed = None
+        self._telemetry_attempt = None
         self.closed = False
 
     @classmethod
@@ -183,12 +187,21 @@ class Transport:
         return None
 
     def telemetry(self):
-        """Drain bounded queued notifications without sending commands or retaining key reports."""
+        """Poll Bluetooth status at most every five seconds and drain queued reports."""
 
         def operation():
             self._check(bytes(64))
             if self.kind == "bluetooth":
-                for _ in range(32):
+                now = self.clock()
+                if (
+                    self._telemetry_attempt is None
+                    or now - self._telemetry_attempt >= TELEMETRY_INTERVAL
+                ):
+                    self._telemetry_attempt = now
+                    # Vendor evidence: docs/releases/glyph-battery-audit.md.
+                    # This query bypasses the normal 0x55 command encoder.
+                    self.io.write(b"\x06\x77" + bytes(64))
+                for _ in range(TELEMETRY_READ_BUDGET):
                     raw = self.io.read(0)
                     if raw is None:
                         break

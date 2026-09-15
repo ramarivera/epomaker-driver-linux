@@ -7,14 +7,20 @@ from epomaker_driver.transport import Transport
 
 
 class QueuedIO:
-    def __init__(self, queue):
+    def __init__(self, queue=()):
         self.queue = list(queue)
         self.reads = 0
+        self.read_timeouts = []
+        self.writes = []
 
     def read(self, timeout):
         assert timeout == 0
         self.reads += 1
+        self.read_timeouts.append(timeout)
         return self.queue.pop(0) if self.queue else None
+
+    def write(self, data):
+        self.writes.append(data)
 
     def close(self):
         pass
@@ -30,6 +36,8 @@ def test_notifications_have_separate_ages_and_unknown_is_not_online():
         "online": None,
         "online_age_seconds": None,
     }
+    assert io.writes == [b"\x06\x77" + bytes(64)]
+    assert len(io.writes[0]) == 66
     io.queue.extend([b"\x01keypress", b"\x06\x77\x42", b"\x06\x55stale reply"])
     assert transport.telemetry()["battery_raw"] == 66
     now[0] = 14
@@ -44,6 +52,39 @@ def test_notifications_have_separate_ages_and_unknown_is_not_online():
     now[0] = 16
     assert transport.telemetry()["online_age_seconds"] == 2
     assert not io.queue
+
+
+def test_telemetry_query_rate_limit_and_usb_no_write():
+    now = [10.0]
+    io = QueuedIO()
+    transport = Transport(io, "bluetooth", clock=lambda: now[0])
+    transport.telemetry()
+    transport.telemetry()
+    assert len(io.writes) == 1
+    now[0] += 4.999
+    transport.telemetry()
+    assert len(io.writes) == 1
+    now[0] = 15.0
+    transport.telemetry()
+    assert len(io.writes) == 2
+
+    usb = QueuedIO()
+    assert Transport(usb, "usb").telemetry()["online"] is None
+    assert usb.writes == [] and usb.reads == 0
+
+
+def test_missing_response_stays_unknown_on_later_poll():
+    now = [0.0]
+    io = QueuedIO()
+    transport = Transport(io, "bluetooth", clock=lambda: now[0])
+    assert transport.telemetry()["online"] is None
+    now[0] = 5.0
+    value = transport.telemetry()
+    assert value["battery_raw"] is None
+    assert value["battery_age_seconds"] is None
+    assert value["online"] is None
+    assert value["online_age_seconds"] is None
+    assert len(io.writes) == 2
 
 
 def test_input_budget_is_bounded_and_unrelated_reports_are_not_saved():
@@ -64,7 +105,11 @@ def test_usb_does_not_read_input_and_closed_or_removed_device_fails():
     with pytest.raises(DeviceUnavailable):
         transport.telemetry()
     transport = Transport(io, "bluetooth")
-    io.read = lambda _: (_ for _ in ()).throw(OSError(errno.ENODEV, "gone"))
+    io.write = lambda _: (_ for _ in ()).throw(OSError(errno.ENODEV, "gone"))
+    with pytest.raises(DeviceUnavailable):
+        transport.telemetry()
+    transport = Transport(QueuedIO(), "bluetooth")
+    transport.io.read = lambda _: (_ for _ in ()).throw(OSError(errno.ENODEV, "gone"))
     with pytest.raises(DeviceUnavailable):
         transport.telemetry()
 
@@ -92,7 +137,7 @@ def test_notifications_wait_until_configuration_transaction_finishes():
         worker.start()
         assert started.wait(1)
         assert not finished.wait(0.02)
-        assert io.reads == 0
+        assert io.reads == 0 and io.writes == []
         return worker
 
     worker = transport.transaction(transfer)

@@ -1,7 +1,7 @@
 # Glyph battery, charging, and online audit
 
 This is a static comparison of the existing Linux transport with the archived
-EPOMAKER Windows bundle. No vendor executable, network request, HID write, or
+EPOMAKER Windows and macOS bundles. No vendor executable, network request, HID write, or
 hardware operation was used.
 
 ## Evidence
@@ -47,11 +47,24 @@ The status poll calls `___write(new Uint8Array([119]))` directly; it does not
 go through `sendMsg` or `___encodeCmd`. The native HID wrapper at byte offset
 **1,695,159** passes that one-byte payload, the selected output report ID,
 the report's `reportCount` (default 64), and the exclusivity flag to the
-bridge's `write` method. The bundle does not expose the native bridge's
-padding or report framing, so the exact on-wire packet must not be inferred
-from the separate command encoder. The response is then received by the
-decoder above; the periodic poll is an active status request rather than
-passive-only telemetry.
+bridge's `write` method. The status response is received by the decoder above.
+
+The macOS bundle `index.5af2e057.js` has SHA-256
+`06c91320e6e5b0249fa9f80f055aa5e19099aa5762402cf7098ef8752a832286`.
+Its `checkStatus` at UTF-8 byte **1,723,678** likewise sends the one-byte
+payload directly. The bridge `write` at byte **1,700,604** builds
+`[reportId, ...payload, ...zeros(reportCount - payload.length)]` and sends
+that array as the protobuf `data` field. `hid.WriteRequest` at byte
+**1,679,370** contains path, data, exclusive, and session_id; there is no
+separate report ID field. With report ID 6 and report count 65, this proves
+the bridge data is **66 bytes: `06 77` followed by 64 zero bytes**. It does
+not contain the normal command prefix `55` or command checksums.
+
+This establishes the vendor application's request framing, not a physical
+capture or proof that every Glyph firmware responds. Linux uses the same
+report-ID-prefixed output buffer through hidraw, with a five-second minimum
+between requests while connection telemetry is polled. It does not wait for
+a reply or synthesize a new reading after a successful write.
 
 Device discovery emits a newly recognized device as online at offset
 **2,009,264**, with its reported battery (defaulting to zero); removal at
