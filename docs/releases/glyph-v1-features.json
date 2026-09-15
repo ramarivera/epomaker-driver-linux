@@ -1130,12 +1130,18 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
-        "ui/src/main.jsx"
+        "ui/src/main.jsx",
+        "docs/background-service.md",
+        "src/epomaker_driver/user_service.py",
+        "src/epomaker_driver/control_socket.py"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_user_service.py",
+        "tests/test_control_socket.py"
+      ],
+      "notes": "Explicit systemd user service install/start/stop/status/uninstall and private in-memory URL activation are implemented. Generated unit validated with systemd-analyze; standalone socket activation and SIGINT cleanup checked. No live user unit installation tested. Tray, menu integration, login autostart and suspend/resume remain missing."
     },
     {
       "id": "G16.1",

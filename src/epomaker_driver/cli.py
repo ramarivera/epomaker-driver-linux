@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 from . import (
@@ -14,6 +15,7 @@ from . import (
     actions,
     browser_launch,
     codec,
+    control_socket,
     desktop,
     firmware,
     firmware_service,
@@ -28,6 +30,7 @@ from . import (
     profiles,
     snapshot,
     system_info,
+    user_service,
     vendor_apply,
     vendor_config,
     vendor_export,
@@ -65,6 +68,9 @@ def parser():
     serve = commands.add_parser("serve", help="start the local control interface")
     serve.add_argument("--port", type=int, default=8932)
     serve.add_argument(
+        "--control-socket", type=Path, help="private Unix socket for browser activation"
+    )
+    serve.add_argument(
         "--open-browser", action="store_true", help="open the local interface in a browser"
     )
     serve.add_argument(
@@ -89,6 +95,11 @@ def parser():
         entry.add_argument(
             "--data-home", type=Path, default=None, help="override the XDG data directory"
         )
+    for command in ("service-install", "service-uninstall"):
+        entry = commands.add_parser(command)
+        entry.add_argument("--config-home", type=Path)
+    for command in ("service-start", "service-stop", "service-status", "service-open"):
+        commands.add_parser(command)
     commands.add_parser("identify", help="query internal model ID and firmware")
     commands.add_parser("status")
     mouse_cli.parsers(commands)
@@ -287,6 +298,22 @@ def select_device(path):
 
 
 def execute(args):
+    if args.command in ("service-install", "service-uninstall"):
+        config_home = args.config_home or Path(
+            os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
+        )
+        if args.command == "service-install":
+            return user_service.install(config_home, Path(sys.executable))
+        return user_service.uninstall(config_home)
+    if args.command in ("service-start", "service-stop", "service-status"):
+        return user_service.control(args.command.removeprefix("service-"))
+    if args.command == "service-open":
+        runtime = os.environ.get("XDG_RUNTIME_DIR")
+        if not runtime:
+            raise ValueError("XDG_RUNTIME_DIR is required; run inside your desktop login session")
+        url = control_socket.read_url(Path(runtime) / "epomaker-driver-linux/control.sock")
+        browser_launch.open_browser(url).join()
+        return {"browser_requested": True, "url": url}
     if args.command in ("desktop-install", "desktop-uninstall", "desktop-status"):
         data_home = args.data_home or Path(
             os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share"
@@ -305,10 +332,17 @@ def execute(args):
             port=args.port,
         ) as server:
             url = f"http://127.0.0.1:{server.server_port}/#token={server.token}"
-            print(url, flush=True)
-            if args.open_browser:
-                browser_launch.open_browser(url)
-            server.serve_forever()
+            activation = (
+                control_socket.ControlSocket(args.control_socket, url)
+                if args.control_socket is not None
+                else nullcontext()
+            )
+            with activation:
+                if args.control_socket is None:
+                    print(url, flush=True)
+                if args.open_browser:
+                    browser_launch.open_browser(url)
+                server.serve_forever()
         return {"stopped": True}
     if args.command == "discover":
         return [d.public_dict() for d in discover()]

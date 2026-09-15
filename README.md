@@ -175,6 +175,8 @@ See [offline firmware inspection](docs/firmware-inspection.md) for structural co
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 See [system-information collection](docs/system-info.md) for units and sensor selection.
 
+See [background service commands](docs/background-service.md) for optional systemd user lifecycle support.
+
 ## Test
 
 ```sh

@@ -16,7 +16,8 @@ A terminal remains open for diagnostics and shutdown with Ctrl+C. Closing the
 browser tab alone does not stop the driver. Each launch currently creates its
 own server on an available port; close the previous terminal before launching
 again to avoid competing device connections. Tray controls and single-instance
-activation remain unimplemented.
+menu activation remain unimplemented. For an explicitly started single service,
+see [background service commands](background-service.md).
 
 `desktop-install` writes
 `$XDG_DATA_HOME/applications/org.epomaker.DriverLinux.desktop`, defaulting to
