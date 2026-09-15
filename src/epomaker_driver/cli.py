@@ -16,6 +16,8 @@ from . import (
     codec,
     desktop,
     firmware,
+    firmware_service,
+    firmware_versions,
     he_recovery,
     he_snapshot,
     legacy_snapshot,
@@ -223,12 +225,20 @@ def parser():
     restore.add_argument(
         "--backup", type=Path, required=True, help="new file for current configuration"
     )
+    commands.add_parser(
+        "firmware-metadata", help="query vendor Glyph metadata; no download or device access"
+    )
     inspector = commands.add_parser(
         "inspect-firmware", help="inspect a vendor firmware container offline; never flash"
     )
     inspector.add_argument("path", type=Path)
     inspector.add_argument(
         "--version", required=True, help="service version_str selecting container format"
+    )
+    inspector.add_argument(
+        "--current-versions",
+        type=Path,
+        help="optional JSON map of device component version integers",
     )
     info = commands.add_parser("inspect-profile", help="decode a local JSON or compressed profile")
     info.add_argument("path", type=Path)
@@ -314,11 +324,23 @@ def execute(args):
         }
     if args.command == "host-info":
         return system_info.Collector(disk=args.disk, interface=args.interface).collect()
+    if args.command == "firmware-metadata":
+        return firmware_service.fetch_metadata()
     if args.command == "inspect-firmware":
         with args.path.open("rb") as stream:
-            return firmware.inspect_container(
+            result = firmware.inspect_container(
                 stream.read(firmware.MAX_SIZE + 1), version=args.version
             )
+        if args.current_versions is not None:
+            with args.current_versions.open("rb") as stream:
+                value = stream.read(4097)
+            if len(value) > 4096:
+                raise ValueError("current versions JSON exceeds 4096 bytes")
+            current = json.loads(value)
+            result["version_comparison"] = firmware_versions.analyze(
+                args.version, current, result["components"]
+            )
+        return result
     if args.command == "inspect-profile":
         with args.path.open("rb") as stream:
             return profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))

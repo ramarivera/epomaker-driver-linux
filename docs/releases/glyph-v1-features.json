@@ -1047,12 +1047,17 @@
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
         "ui/src/main.jsx",
-        "docs/releases/glyph-firmware-workflow-audit.md"
+        "docs/releases/glyph-firmware-workflow-audit.md",
+        "docs/releases/glyph-firmware-service-audit.md"
       ],
-      "implementation_status": "unresolved",
+      "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Audit the Glyph update path and service dependencies; a shared downloader alone does not establish applicability."
+      "test_evidence": [
+        "tests/test_firmware_service.py",
+        "tests/test_firmware_versions.py",
+        "tests/test_firmware_cli.py"
+      ],
+      "notes": "Explicit read-only model-3059 metadata query and offline source-backed version comparison implemented. Actual lookup returned HTTP500 Record not found on 2026-09-16 Europe/Berlin. Update availability remains unknown; no authentic image, download workflow, or firmware write/recovery is validated."
     },
     {
       "id": "G15.1",

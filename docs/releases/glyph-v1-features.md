@@ -59,7 +59,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G13.1 | Firmware version and bootloader awareness | partial | expected |
 | G13.2 | Firmware update and recovery | missing | expected |
 | G14.1 | Vendor account/cloud/profile workflows applicable to Glyph | unresolved | pending-audit |
-| G14.2 | Firmware retrieval and update-service dependencies | unresolved | pending-audit |
+| G14.2 | Firmware retrieval and update-service dependencies | partial | pending-audit |
 | G15.1 | Install and launch desktop application | partial | expected |
 | G15.2 | USB permissions and access errors | partial | expected |
 | G15.3 | Persistence, update, and uninstall | partial | expected |
