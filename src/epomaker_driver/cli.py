@@ -215,6 +215,9 @@ def parser():
     )
     vendor.add_argument("path", type=Path)
     vendor.add_argument("--target", choices=vendor_config.TARGETS, default="Main")
+    vendor.add_argument(
+        "--include-macros", action="store_true", help="validate and convert embedded macro payloads"
+    )
     return root
 
 
@@ -259,7 +262,7 @@ def execute(args):
     if args.command == "preview-vendor-config":
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
-        return vendor_config.preview(value, args.target)
+        return vendor_config.preview(value, args.target, include_macros=args.include_macros)
     # Validate local inputs before writes. Display conversion needs read-only model identity.
     prepared = None
     if args.command == "magnetic-key":

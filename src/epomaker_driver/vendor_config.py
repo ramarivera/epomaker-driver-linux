@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from . import vendor_macros
 from .models import data_file, glyph_matrix
 from .vendor_actions import encode
 
@@ -33,7 +34,7 @@ def _identities(baseline: bytes) -> dict[int, list[int]]:
     return identities
 
 
-def preview(record: Mapping, target: str = "Main") -> dict:
+def preview(record: Mapping, target: str = "Main", *, include_macros: bool = False) -> dict:
     """Preview a vendor profile record without HID I/O or record mutation."""
     if not isinstance(record, Mapping):
         raise ValueError("record must be an object")
@@ -55,6 +56,7 @@ def preview(record: Mapping, target: str = "Main") -> dict:
     output = bytearray(baseline)
     used: set[int] = set()
     macro_payload_actions: list[int] = []
+    macro_payloads: dict[int, dict] = {}
     for action_index, action in enumerate(actions):
         if not isinstance(action, Mapping):
             raise ValueError(f"action {action_index} must be an object")
@@ -79,6 +81,12 @@ def preview(record: Mapping, target: str = "Main") -> dict:
         output[slot * 4 : slot * 4 + 4] = encode(action)
         if action.get("type") == "ConfigMacro" and "macro" in action:
             macro_payload_actions.append(action_index)
+        if include_macros and action.get("type") == "ConfigMacro":
+            converted = vendor_macros.convert(action)
+            macro_slot = output[slot * 4 + 2]
+            if macro_slot in macro_payloads and macro_payloads[macro_slot] != converted:
+                raise ValueError(f"conflicting macro payloads for slot {macro_slot}")
+            macro_payloads[macro_slot] = converted
     changed_slots = [
         slot
         for slot in range(128)
@@ -87,7 +95,11 @@ def preview(record: Mapping, target: str = "Main") -> dict:
     macro_slots = sorted({output[slot * 4 + 2] for slot in range(128) if output[slot * 4] == 9})
     limitations = [
         "Offline byte preview only; hardware applicability and verification are not performed.",
-        "Embedded macro data is reported but not converted or applied.",
+        (
+            "Embedded macro payloads are converted; slot allocation and device application are not performed."
+            if include_macros
+            else "Embedded macro data is reported but not converted or applied."
+        ),
     ]
     if target != "Main":
         limitations.append(
@@ -102,6 +114,9 @@ def preview(record: Mapping, target: str = "Main") -> dict:
         "changed_slots": changed_slots,
         "macro_slots": macro_slots,
         "macro_payload_actions": sorted(macro_payload_actions),
+        "macro_payloads": {str(slot): value for slot, value in sorted(macro_payloads.items())},
+        "macros_converted": include_macros,
+        "unresolved_macro_slots": sorted(set(macro_slots) - macro_payloads.keys()),
         "write_ready": False,
         "limitations": limitations,
     }

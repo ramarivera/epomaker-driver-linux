@@ -126,3 +126,43 @@ def test_preview_rejects_non_object_actions_and_unknown_target():
         preview(record(None))
     with pytest.raises(ValueError):
         preview(record({"type": "forbidden", "original": 4}), "Linux")
+
+
+def macro_action(original=4, repeat=1):
+    return {
+        "original": original,
+        "type": "ConfigMacro",
+        "macroIndex": 7,
+        "macroType": "on_off",
+        "repeatCount": repeat,
+        "macro": [],
+    }
+
+
+def test_macro_conversion_deduplicates_identical_payloads():
+    result = preview(record(macro_action(), macro_action(5)), include_macros=True)
+    assert result["macro_payloads"]["7"]["payload"] == "0100" + "00" * 254
+    assert list(result["macro_payloads"]) == ["7"]
+    assert result["unresolved_macro_slots"] == []
+
+
+def test_macro_conversion_rejects_conflicting_payloads():
+    with pytest.raises(ValueError, match="conflicting macro payloads"):
+        preview(record(macro_action(), macro_action(5, 2)), include_macros=True)
+
+
+def test_macro_conversion_requires_payload_even_if_binding_valid():
+    action = macro_action()
+    del action["macro"]
+    assert preview(record(action))["unresolved_macro_slots"] == [7]
+    with pytest.raises(ValueError):
+        preview(record(action), include_macros=True)
+
+
+def test_raw_macro_binding_remains_unresolved_in_conversion_mode():
+    result = preview(
+        record({"type": "ConfigUnknown", "original": 4, "value": [9, 1, 23, 0]}),
+        include_macros=True,
+    )
+    assert result["unresolved_macro_slots"] == [23]
+    assert result["macro_payloads"] == {}

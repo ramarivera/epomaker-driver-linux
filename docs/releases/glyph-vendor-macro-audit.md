@@ -138,3 +138,13 @@ Fn selection does not explicitly filter `fnSys` in the inspected full-update
 path. A Linux allocator must validate actual normal/Fn target identity and
 reserve occupied slots from device state, rather than assuming the vendor
 array-index shortcut always protects the other OS bank.
+
+
+## Implemented conversion
+
+`src/epomaker_driver/vendor_macros.py` converts explicit event/delay pairs to
+Linux events and delegates payload validation to `macros.encode`. The offline
+preview's `--include-macros` option includes these payloads, rejects conflicting
+slot contents, and reports unresolved references. Conversion retains existing
+slot IDs; allocating against all device profiles and applying the result remain
+separate work. See [preview usage](../vendor-config-preview.md).

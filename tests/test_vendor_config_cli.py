@@ -46,3 +46,33 @@ def test_fn_requires_explicit_target_even_with_gzip(tmp_path, capsys):
     assert "target" in capsys.readouterr().err.lower()
     assert cli.main(["preview-vendor-config", str(path), "--target", "Fn Mac"]) == 0
     assert json.loads(capsys.readouterr().out)["target"] == "Fn Mac"
+
+
+def test_preview_converts_embedded_macros_without_hardware(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(cli, "discover", lambda: pytest.fail("must stay offline"))
+    path = tmp_path / "record.json"
+    path.write_text(
+        json.dumps(
+            {
+                "deviceType": {"id": 3059},
+                "value": [
+                    {
+                        "original": 4,
+                        "type": "ConfigMacro",
+                        "macroIndex": 7,
+                        "macroType": "on_off",
+                        "repeatCount": 2,
+                        "macro": [
+                            {"type": "keyboard", "value": 4, "action": "down"},
+                            {"type": "delay", "value": 50},
+                        ],
+                    }
+                ],
+            }
+        )
+    )
+    assert cli.main(["preview-vendor-config", str(path), "--include-macros"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["macro_payloads"]["7"]["payload"] == "020004b2" + "00" * 252
+    assert result["unresolved_macro_slots"] == []
+    assert result["write_ready"] is False
