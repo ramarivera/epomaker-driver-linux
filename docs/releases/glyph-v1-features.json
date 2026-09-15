@@ -858,12 +858,18 @@
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
         "ui/src/backups.jsx",
-        "docs/releases/glyph-backup-workflow-audit.md"
+        "docs/releases/glyph-backup-workflow-audit.md",
+        "src/epomaker_driver/config_library.py",
+        "ui/src/config-library.jsx"
       ],
-      "implementation_status": "missing",
+      "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
-      "test_evidence": [],
-      "notes": "The inspected vendor Local Config screen exposes local record write/delete/rename/share; no file import/export was found in that screen or its codec path. Records are compressed JSON and exclude display assets and macro event streams. Local named-configuration and service-sharing compatibility remain unfinished; Linux snapshot files are a separate format."
+      "test_evidence": [
+        "tests/test_config_library.py",
+        "tests/test_config_api.py",
+        "ui/tests/config-library.spec.js"
+      ],
+      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending."
     },
     {
       "id": "G11.4",

@@ -287,3 +287,25 @@ def test_rt85_does_not_enter_glyph_interface(controller, firmware):
     assert firmware.closed
     assert controller.keyboard is None
     assert firmware.sent == []
+
+
+def test_http_named_configurations(http_server):
+    path = "/api/config_library"
+    assert request(http_server, path)[1] == b'{"entries": []}'
+    payload = json.dumps({"name": "Work", "matrix": "00000400" * 128, "layer": "Main"})
+    assert (
+        request(
+            http_server,
+            path + "_save",
+            method="POST",
+            body=payload,
+            headers={"X-Epomaker-Token": ""},
+        )[0]
+        == 403
+    )
+    status, body, _ = request(http_server, path + "_save", method="POST", body=payload)
+    assert status == 200
+    entry = json.loads(body)
+    assert json.loads(request(http_server, path)[1])["entries"] == [entry]
+    assert request(http_server, path + "_delete", method="POST", body=json.dumps(entry))[0] == 200
+    assert request(http_server, path)[1] == b'{"entries": []}'

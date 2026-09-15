@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Volume1, Volume2, Play } from "lucide-react";
 import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
 import { layoutKeys } from "./keyboard-layout";
+import ConfigLibrary from "./config-library";
 const hex = (values) =>
   values.map((n) => n.toString(16).padStart(2, "0")).join("");
 function decode(raw, catalog) {
@@ -33,6 +34,13 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
       modifiers: 0,
       second: 0,
     });
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
   const target = {
     profile: layer === "Main" ? profile : 0,
     fn: layer !== "Main",
@@ -44,9 +52,10 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
   }, [keys]);
   useEffect(() => {
     if (connected)
-      run(async () =>
-        setMatrix((await api("read", { section: "keymap", ...target })).raw),
-      );
+      run(async () => {
+        const next = (await api("read", { section: "keymap", ...target })).raw;
+        if (mounted.current) setMatrix(next);
+      });
     else
       setMatrix(
         catalog.matrices[layer === "Main" ? 0 : layer === "Fn Windows" ? 1 : 2],
@@ -302,6 +311,43 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
             : "Connect a keyboard to apply changes."}
         </span>
       </div>
+      <ConfigLibrary
+        matrix={hex(matrix)}
+        layer={layer}
+        connected={connected}
+        busy={busy}
+        onPreview={(savedMatrix) => {
+          const bytes = savedMatrix
+            .match(/[0-9a-f]{2}/gi)
+            ?.map((value) => parseInt(value, 16));
+          if (bytes?.length === 512) setMatrix(bytes);
+        }}
+        onApply={async (entry) => {
+          const targetProfile = layer === "Main" ? profile : 0;
+          let failure;
+          await run(async () => {
+            try {
+              await api("write", {
+                kind: "config",
+                id: entry.id,
+                revision: entry.revision,
+                profile: targetProfile,
+              });
+              const next = (
+                await api("read", {
+                  section: "keymap",
+                  ...target,
+                })
+              ).raw;
+              if (mounted.current) setMatrix(next);
+            } catch (error) {
+              failure = error;
+              throw error;
+            }
+          }, "Configuration applied and verified.");
+          if (failure) throw failure;
+        }}
+      />
     </>
   );
 }

@@ -17,6 +17,7 @@ from .audio_capture import AudioCaptureError, PipeWireCapture
 from .audio_devices import list_audio_outputs
 from .audio_preview import AudioPreview
 from .audio_spectrum import DEFAULT_SETTINGS, SETTINGS_LIMITS
+from .config_library import ConfigLibrary
 from .device import Keyboard
 from .discovery import discover
 from .display_library import DisplayLibrary
@@ -45,6 +46,7 @@ class Controller:
     ):
         self.backup_dir = Path(backup_dir)
         self.library = MacroLibrary(library_dir or self.backup_dir / "macro-library")
+        self.config_library = ConfigLibrary(self.backup_dir / "key-configurations")
         self.display_library = DisplayLibrary(assets_dir or self.backup_dir / "display-assets")
         self.discovery, self.transport_factory = discovery, transport_factory
         self.keyboard = None
@@ -141,6 +143,18 @@ class Controller:
             value = data["value"]
             macros.encode(value["repeat"], value["events"])
             return value
+        if operation == "config_library":
+            return {"entries": self.config_library.list()}
+        if operation == "config_library_save":
+            return self.config_library.save(
+                data.get("name"),
+                data.get("matrix"),
+                data.get("layer"),
+                data.get("id"),
+                data.get("revision"),
+            )
+        if operation == "config_library_delete":
+            return self.config_library.delete(data.get("id"), data.get("revision"))
         if operation == "macro_library":
             return {"entries": self.library.list()}
         if operation == "macro_library_save":
@@ -293,6 +307,18 @@ class Controller:
                 fn=data.get("fn", False),
                 os_mode=data.get("os_mode", 0),
             )
+        elif kind == "config":
+            entry = self.config_library.get(data.get("id"), data.get("revision"))
+            profile = codec.bounded(data.get("profile", 0), 2, "profile")
+            if keyboard.identify().get("device_id") != 3059:
+                raise UnsupportedDevice("saved key configurations support Glyph only")
+            matrix = bytes.fromhex(entry["matrix"])
+            if entry["layer"] == "Main":
+                keyboard.write_matrix(matrix, profile)
+            else:
+                if profile != 0:
+                    raise ValueError("Fn configurations require profile 0")
+                keyboard.write_fn_matrix(matrix, os_mode=int(entry["layer"] == "Fn Mac"))
         elif kind == "lighting":
             return keyboard.set_light(
                 data["mode"],
@@ -415,6 +441,7 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/devices",
                 "/api/catalog",
                 "/api/connection",
+                "/api/config_library",
                 "/api/macro_library",
                 "/api/display_library",
                 "/api/system_info_refresh",
@@ -445,6 +472,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/read",
             "/api/write",
             "/api/validate_macro",
+            "/api/config_library_save",
+            "/api/config_library_delete",
             "/api/macro_library_save",
             "/api/macro_library_delete",
             "/api/display_prepare",

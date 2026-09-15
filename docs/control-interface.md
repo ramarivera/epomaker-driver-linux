@@ -35,6 +35,14 @@ The named macro library defaults to `~/.local/share/epomaker-driver-linux/macros
 change this independently with `--library-dir`. Library operations are available
 offline and persist across browser/server restarts. See
 [library and device-slot semantics](macros.md#named-macro-library).
+Keymap also provides named local configurations: save the displayed 512-byte layer,
+rename or delete an entry, load a preview, and apply a saved entry with readback.
+Entries persist under `<backup-dir>/key-configurations`. Main entries can be applied
+to any selected normal profile; Fn entries retain their Windows or Mac layer.
+Saving excludes the un-applied single-key draft. Macro bindings reference device
+slots and do not bundle their event data. The library uses an independent Linux
+JSON format; vendor database interchange and cloud sharing remain unimplemented.
+
 A successful restore displays the recovery path. Downloaded backups go through the
 browser's normal download flow. Glyph backups include all 256 macro slots, including
 unreferenced and empty slots. Screen pixels are not included.
