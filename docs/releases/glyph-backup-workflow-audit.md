@@ -13,11 +13,12 @@ numbers and the vendor code is paraphrased here.
 | --- | --- | ---: | --- | --- |
 | Windows | `resources/app/dist/js/index.feaf50e4.js` | 2,556,505 | `72fb76b3c19e013d81e450d5245bc62bb5a275fcf6623530a5a652b9c7182be5` | DB namespaces 1,149,342; config codec 1,502,459; config record class 1,500,641; save/write path 1,503,863 |
 | Windows | `resources/app/dist/js/6a8dfe90.js` | 6,386 | `f6a37264f77f77fd21c7fa36d156ce645ecc0d2b7a0b5a0ebea08a52c161de41` | Local Config screen and controls, file start (0–6,385) |
-| macOS | `Contents/Resources/app/dist/js/index.5af2e057.js` | 2,565,198 | `06c91320e6e5b0249fa9f80f055aa5e19099aa5762402cf7098ef8752a832286` | DB namespaces 1,154,783; config codec 1,511,271; config record class 1,511,567 (bundled as `Sp`); save path 1,512,675 |
+| macOS | `Contents/Resources/app/dist/js/index.5af2e057.js` | 2,565,198 | `06c91320e6e5b0249fa9f80f055aa5e19099aa5762402cf7098ef8752a832286` | DB namespaces 1,154,783; config codec 1,511,271; config record class 1,509,453 (bundled as `Fy`); save path 1,512,675 |
 | macOS | `Contents/Resources/app/dist/js/5360a4c7.js` | 6,386 | `f3b3b5c0c18bed71cafd9005707d5688044988b87a56186b95d6d96246cc53c7` | Local Config screen and controls, file start (0–6,385) |
 
-The macOS class is renamed by the bundle minifier (`Sp` rather than Windows'
-`Ty`); its exact declaration starts at offset 1,511,567.
+The macOS class is renamed by the bundle minifier (`Fy` rather than Windows'
+`Ty`); its exact declaration starts at offset 1,509,453. `Sp` at 1,511,567
+is the separate macro record class, not the configuration class.
 
 ## What the vendor configuration contains
 
@@ -41,9 +42,10 @@ pixels, GIF frames, still-image bytes, lighting picture bytes, or macro event
 stream.
 
 The exact codec is: stringify the complete record as UTF-8 JSON, then apply
-raw DEFLATE (`deflateRaw`), storing the resulting bytes. The decoder first
-tries zlib-wrapped DEFLATE, gzip, and raw DEFLATE, then UTF-8 JSON; vendor
-records produced by this path use raw DEFLATE. There is no schema-version
+raw DEFLATE (`deflateRaw`), storing the resulting bytes. The decoder selects zlib-wrapped DEFLATE for the header `78 9c`, gzip for
+`1f 8b`, and raw DEFLATE otherwise (Windows helper `xl`, byte 1,500,507).
+If decompression fails or returns no bytes, the record parser falls back to
+UTF-8 JSON. Records produced by this path use raw DEFLATE. There is no schema-version
 integer, magic header, checksum, or documented portable file container in the
 configuration record itself (Windows index offsets 1,500,641 and 1,502,459;
 macOS index offsets 1,511,567 and 1,511,271).
@@ -114,6 +116,15 @@ evidence here adds screen pixels to config records.
    restored.
 
 ## Reusable current Linux implementation
+
+The independent named key-layer library now implements save, rename, delete,
+preview and verified apply; see `src/epomaker_driver/config_library.py` and
+`ui/src/config-library.jsx`. It does not yet consume vendor records or represent
+all vendor subprofile/sharing metadata. `profiles.decode` accepts bounded JSON,
+raw DEFLATE, gzip, and valid zlib wrappers (including zlib headers beyond the
+vendor helper’s `78 9c` heuristic). It rejects truncated streams, trailing bytes,
+concatenated members, invalid checksums and oversized expansion. Decoding is
+separate from model-specific validation and does not authorize device writes.
 
 The existing snapshot capture/validation/restore and recovery-copy path in
 `src/epomaker_driver/snapshot.py`, `src/epomaker_driver/server.py`, and

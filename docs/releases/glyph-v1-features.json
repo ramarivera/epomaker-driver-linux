@@ -860,7 +860,8 @@
         "ui/src/backups.jsx",
         "docs/releases/glyph-backup-workflow-audit.md",
         "src/epomaker_driver/config_library.py",
-        "ui/src/config-library.jsx"
+        "ui/src/config-library.jsx",
+        "docs/releases/glyph-config-interchange-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
@@ -869,7 +870,7 @@
         "tests/test_config_api.py",
         "ui/tests/config-library.spec.js"
       ],
-      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending."
+      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. Vendor action arrays and shared Fn OS identity still need a proven matrix adapter; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange."
     },
     {
       "id": "G11.4",

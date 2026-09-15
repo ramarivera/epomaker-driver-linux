@@ -49,3 +49,36 @@ def test_compression_limits(monkeypatch):
     data = compressor.compress(b"[]") + compressor.flush()
     with pytest.raises(ValueError):
         profiles.decode(data)
+
+
+@pytest.mark.parametrize("wbits", [15, 31, -15])
+@pytest.mark.parametrize("level", [0, 1, 6, 9])
+def test_vendor_compression_wrappers(wbits, level):
+    value = {"name": "Glyph 漢", "value": [0, 1, 2, 255]}
+    compressor = zlib.compressobj(level=level, wbits=wbits)
+    encoded = compressor.compress(json.dumps(value).encode()) + compressor.flush()
+    assert profiles.decode(encoded) == value
+
+
+@pytest.mark.parametrize("wbits", [15, 31])
+def test_wrapped_stream_rejects_truncation_trailing_data_and_bad_checksum(wbits):
+    compressor = zlib.compressobj(wbits=wbits)
+    encoded = compressor.compress(b'{"name":"Glyph"}') + compressor.flush()
+    for invalid in (
+        encoded[:-1],
+        encoded + b"trailing",
+        encoded + encoded,
+        encoded[:-1] + bytes([encoded[-1] ^ 255]),
+    ):
+        with pytest.raises(ValueError):
+            profiles.decode(invalid)
+
+
+@pytest.mark.parametrize("wbits", [15, 31])
+def test_wrapped_expansion_limits(monkeypatch, wbits):
+    compressor = zlib.compressobj(wbits=wbits)
+    encoded = compressor.compress(b'{"name":"' + b"x" * 10000 + b'"}') + compressor.flush()
+    monkeypatch.setattr(profiles, "MAX_PROFILE_BYTES", 128)
+    assert len(encoded) < profiles.MAX_PROFILE_BYTES
+    with pytest.raises(ValueError, match="decompressed profile exceeds"):
+        profiles.decode(encoded)

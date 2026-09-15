@@ -12,7 +12,10 @@ preserved. Files are atomically created with user-only permissions.
 Screen pixels are not captured. Non-Glyph ordinary backups also omit unreferenced
 macro slots. These omissions are recorded in the file. A snapshot is not a
 firmware image or a complete device-memory dump. The current importer can inspect vendor
-JSON/raw-DEFLATE files but restoration accepts this project's version 2, 3, 4, 5 and 6 schemas.
+JSON, raw-DEFLATE, zlib and gzip files with `epomaker inspect-profile <path>`.
+Compressed inputs are size-bounded and must contain a single complete stream;
+trailing data and invalid checksums are rejected. Decoding vendor JSON does not
+convert its field semantics: restoration accepts this project's version 2, 3, 4, 5 and 6 schemas.
 Restoring version 2 leaves custom RGB pictures unchanged and reports that limitation.
 Earlier version 1 snapshots can still be inspected; create a new backup before restoring.
 

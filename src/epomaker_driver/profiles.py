@@ -1,4 +1,4 @@
-"""Portable local profiles and bounded raw-DEFLATE vendor JSON import."""
+"""Portable local profiles and bounded compressed vendor JSON decoding."""
 
 from __future__ import annotations
 
@@ -17,11 +17,21 @@ def decode(data: bytes) -> dict:
     if data.lstrip().startswith(b"{"):
         raw = data
     else:
-        decoder = zlib.decompressobj(-15)
+        # Vendor local-record decoding accepts gzip/zlib/raw DEFLATE; see
+        # docs/releases/glyph-backup-workflow-audit.md. Keep wrapper checks and
+        # decompression bounds here, separate from device-specific validation.
+        gzip = data.startswith(b"\x1f\x8b")
+        zlib_header = (
+            len(data) >= 2
+            and data[0] & 15 == 8
+            and data[0] >> 4 <= 7
+            and int.from_bytes(data[:2], "big") % 31 == 0
+        )
+        decoder = zlib.decompressobj(47 if gzip or zlib_header else -15)
         try:
             raw = decoder.decompress(data, MAX_PROFILE_BYTES + 1)
         except zlib.error as error:
-            raise ValueError("profile is neither JSON nor raw DEFLATE") from error
+            raise ValueError("profile is neither JSON nor valid DEFLATE/gzip data") from error
         if len(raw) > MAX_PROFILE_BYTES or decoder.unconsumed_tail:
             raise ValueError("decompressed profile exceeds size limit")
         if not decoder.eof or decoder.unused_data:
