@@ -1003,12 +1003,17 @@
         "src/epomaker_driver/device.py",
         "ui/src/main.jsx",
         "docs/releases/glyph-firmware-workflow-audit.md",
-        "docs/releases/glyph-firmware-image-audit.md"
+        "docs/releases/glyph-firmware-image-audit.md",
+        "docs/firmware-inspection.md",
+        "src/epomaker_driver/firmware.py"
       ],
       "implementation_status": "missing",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison. Image audit identifies Glyph USB 65536-byte prefix handling and shared container/component routing; authentic Glyph metadata/images and image identity validation remain unresolved."
+      "test_evidence": [
+        "tests/test_firmware.py",
+        "tests/test_firmware_cli.py"
+      ],
+      "notes": "Offline container inspection provides bounded raw-DEFLATE/ZIP parsing, image hashes and source-backed main/OLED payload chunk counts and additive checksums. Firmware update/recovery is still missing. Authentic Glyph metadata/images, image identity and component applicability remain unresolved; synthetic inspection tests do not validate flashing."
     },
     {
       "id": "G14.1",

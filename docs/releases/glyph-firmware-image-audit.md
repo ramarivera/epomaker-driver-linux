@@ -65,7 +65,10 @@ s.upgrade_usb(e, 65536, 10, progress)
 The shared uploader is `upgradeFirmware=async` at main-bundle byte **1,924,429**.
 Its full body rejects only when `image.length <= headerOffset`, slices the image
 at that offset, sends the remainder in 64-byte chunks, and computes a checksum
-over the sliced remainder. The Glyph wrapper therefore treats the first **65,536
+over the sliced remainder. The checksum helper `zo` at Windows main-bundle byte
+**219,141** sums byte values (`reduce` from zero); the completion packet
+serializes the sum modulo 2^32 as a little-endian uint32. This is an additive
+checksum, not a cryptographic integrity check. The Glyph wrapper therefore treats the first **65,536
 bytes** as a non-uploaded header/prefix; it does not establish what fields that
 prefix contains or validate its contents. The `BA C0` start packet puts the
 little-endian chunk count at byte 8; the `BA C2` completion packet puts chunk
