@@ -13,6 +13,10 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from . import actions, codec, macros, media, snapshot, system_info
+from .audio_capture import AudioCaptureError, PipeWireCapture
+from .audio_devices import list_audio_outputs
+from .audio_preview import AudioPreview
+from .audio_spectrum import DEFAULT_SETTINGS, SETTINGS_LIMITS
 from .device import Keyboard
 from .discovery import discover
 from .display_library import DisplayLibrary
@@ -36,6 +40,8 @@ class Controller:
         discovery=discover,
         transport_factory=Transport.open,
         collector_factory=system_info.Collector,
+        audio_capture_factory=PipeWireCapture,
+        audio_discovery=list_audio_outputs,
     ):
         self.backup_dir = Path(backup_dir)
         self.library = MacroLibrary(library_dir or self.backup_dir / "macro-library")
@@ -46,9 +52,12 @@ class Controller:
         self.lock = threading.RLock()
         self.system_info_refresh = SystemInfoRefresh(self, collector_factory)
         self.live_light = LiveLightSession()
+        self.audio_preview = AudioPreview(audio_capture_factory)
+        self.audio_discovery = audio_discovery
 
     def close(self):
         with self.lock:
+            self.audio_preview.stop()
             self.live_light.cancel()
             self.system_info_refresh.stop()
             if self.keyboard is not None:
@@ -61,6 +70,34 @@ class Controller:
             return self._call(operation, data)
 
     def _call(self, operation, data):
+        if operation == "audio_outputs":
+            return self.audio_discovery()
+        if operation == "audio_config":
+            return {
+                "defaults": DEFAULT_SETTINGS,
+                "limits": {
+                    key: dict(zip(("min", "max", "step"), bounds, strict=True))
+                    for key, bounds in SETTINGS_LIMITS.items()
+                },
+            }
+        if operation == "audio_preview_start":
+            settings = data.get("settings", {})
+            if not isinstance(settings, dict) or set(settings) - set(DEFAULT_SETTINGS):
+                raise ValueError("unsupported audio settings")
+            target = data.get("target", "auto")
+            if not isinstance(target, str) or (
+                target != "auto"
+                and target not in {output["id"] for output in self.audio_discovery()}
+            ):
+                raise ValueError("select an available audio output")
+            return self.audio_preview.start(target, **settings)
+        if operation in ("audio_preview_sample", "audio_preview_stop"):
+            session = data.get("session")
+            if not isinstance(session, str) or not session:
+                raise ValueError("audio preview session is required")
+            if operation == "audio_preview_sample":
+                return self.audio_preview.sample(session)
+            return self.audio_preview.stop(session)
         if operation == "system_info_refresh":
             return self.system_info_refresh.status()
         if operation == "system_info_refresh_start":
@@ -379,6 +416,8 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/macro_library",
                 "/api/display_library",
                 "/api/system_info_refresh",
+                "/api/audio_outputs",
+                "/api/audio_config",
             ):
                 self._reply(404, {"error": "unknown endpoint"})
                 return
@@ -417,6 +456,9 @@ class Handler(BaseHTTPRequestHandler):
             "/api/live_light_start",
             "/api/live_light_frame",
             "/api/live_light_stop",
+            "/api/audio_preview_start",
+            "/api/audio_preview_sample",
+            "/api/audio_preview_stop",
         ):
             self._reply(404, {"error": "unknown endpoint"})
             return
@@ -439,7 +481,7 @@ class Handler(BaseHTTPRequestHandler):
     def _call(self, operation, value):
         try:
             result = self.server.controller.call(operation, value)
-        except (DriverError, ValueError, TypeError, KeyError, OSError) as error:
+        except (DriverError, AudioCaptureError, ValueError, TypeError, KeyError, OSError) as error:
             self._reply(400, {"error": str(error), "type": type(error).__name__})
             return
         self._reply(200, result)

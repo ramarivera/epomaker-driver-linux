@@ -3,6 +3,7 @@ import { api } from "./api";
 import { Button, Field, Panel, Select, titleCase } from "./controls";
 import CustomPattern from "./custom-pattern";
 import LiveLighting from "./live-lighting";
+import AudioPreview from "./audio-preview";
 const initial = {
   mode: "solid",
   rgb: 0xffffff,
@@ -275,6 +276,7 @@ export default function Lighting({
         onScreenRatioChange={onScreenRatioChange}
         busy={busy}
       />
+      <AudioPreview busy={busy} />
     </>
   );
 }

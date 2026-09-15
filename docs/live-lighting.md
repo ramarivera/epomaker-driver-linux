@@ -57,14 +57,34 @@ bytes are padding. See the [vendor audit](releases/glyph-live-light-audit.md) an
 Implementation: `src/epomaker_driver/live_lighting.py`,
 `src/epomaker_driver/live_light_session.py` and `ui/src/live-lighting.jsx`.
 
-A separate `PipeWireCapture` component in `src/epomaker_driver/audio_capture.py`
-provides bounded, in-memory float PCM from a PipeWire output monitor using
-[`pw-cat`](https://docs.pipewire.org/page_man_pw-cat_1.html). It is not connected
-to an app audio effect yet. Tests use fake processes and synthetic PCM; no real
-capture was performed during this implementation.
+The Lighting page also offers **Audio preview**, usable without a connected
+keyboard. Choose **Refresh audio outputs** to discover playback sinks, select
+an output (or Automatic output), adjust the seven analysis controls, then choose
+**Start audio preview**. **Stop audio preview** ends capture; changing pages also
+stops it. Settings can be adjusted while stopped and reset to the audited defaults.
+
+`PipeWireCapture` in `src/epomaker_driver/audio_capture.py` provides bounded,
+in-memory float PCM from a PipeWire output monitor using
+[`pw-cat`](https://docs.pipewire.org/page_man_pw-cat_1.html). `AudioPreview` applies the seven vendor-bounded controls to the
+independent 32-band DSP in `src/epomaker_driver/audio_spectrum.py`, with a
+five-second polling lease that stops and cleans up capture when the browser
+stops polling. Tests use fake processes and synthetic PCM only; no real capture
+was performed. PCM is not saved and this preview performs no keyboard writes.
+The host needs both `pw-dump` for output discovery and `pw-cat` for the monitor
+stream; missing tools or an unavailable monitor are reported as capture errors.
+
+The authenticated API exposes `GET /api/audio_outputs` for discovered output
+monitors and `GET /api/audio_config`, which returns the seven shared defaults and
+per-control `{min, max, step}` limits. Start a preview with
+`POST /api/audio_preview_start` and `{target, settings}` (both fields optional),
+then poll `POST /api/audio_preview_sample` with `{session}` for 32 normalized
+bands. End it with `POST /api/audio_preview_stop` and `{session}`; the five-second
+lease also ends abandoned previews and closes capture.
 
 Physical LED correspondence, real desktop capture, USB throughput and restoration
-remain unverified. Rhythm layout controls, visualization and its DSP
-settings, persistent host-service behavior, and suspend/resume remain unfinished.
+remain unverified. The DSP is an independent implementation, not a reconstruction
+of the vendor native DSP. The five rhythm renderers, colors, layout controls and
+audio-to-keyboard streaming, persistent host-service behavior, and suspend/resume
+remain unfinished.
 The screen workflow and audio capture component do not establish full live-light
 parity.
