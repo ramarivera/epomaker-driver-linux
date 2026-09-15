@@ -57,10 +57,10 @@ def encode(value: dict, *, compressed=True) -> bytes:
     return encoder.compress(raw) + encoder.flush()
 
 
-def save(path: Path, value: dict, *, overwrite=False):
+def save(path: Path, value: dict, *, overwrite=False, compressed=False):
     """Atomic user-private write; no temporary partially readable profiles."""
     path = Path(path)
-    raw = encode(value, compressed=False)
+    raw = encode(value, compressed=compressed)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix="." + path.name, dir=path.parent)
     try:

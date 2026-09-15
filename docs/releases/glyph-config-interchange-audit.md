@@ -48,3 +48,13 @@ claiming general record-to-matrix interchange.
 The [full-writer audit](glyph-full-writer-audit.md) now establishes the normal
 default baseline for full normal and Fn conversion. It also identifies embedded
 macro payload consumption, which a matrix-only adapter would omit.
+
+The [child-profile audit](glyph-child-profile-audit.md) resolves the remaining
+Glyph array-count question: three normal parent profiles each have only
+`sonProfile:0`; Fn has one record for each OS. The ordinary Glyph importer
+applies selected `value`, not the outer arrays as a batch. The shared import
+function does use those arrays to reconstruct magnetic DKS/MT modes for other
+models. The Linux single-record import therefore matches Glyph's key-profile
+scope. `vendor_export.py` adds inverse conversion for representable bindings and
+macros; hidden-slot and raw-macro limitations remain explicit in the
+[interchange commands](../vendor-config-preview.md).

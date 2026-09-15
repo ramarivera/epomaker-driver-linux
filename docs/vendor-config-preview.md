@@ -107,3 +107,33 @@ and target, and consumes the token on an apply attempt. Disconnecting clears it.
 Apply captures device state again and rejects changed allocation before saving
 a recovery copy or writing. A failed or stale preview must be repeated.
 Files use the same bounded decoder as the CLI; they are processed locally.
+
+## Export a snapshot layer as a vendor record
+
+```sh
+epomaker export-vendor-config glyph-backup.json work.json --profile 1 --name 'Work'
+epomaker export-vendor-config glyph-backup.json work.dat --profile 1 --name 'Work' --compressed
+```
+
+Export is offline and writes a new private file without overwriting an existing
+path. The JSON form is readable; `--compressed` uses the vendor raw-DEFLATE
+encoding. Both forms can be inspected and imported by the Linux commands above.
+The record includes every representable changed binding, duplicate-key occurrence,
+and referenced macro's event payload. Exporting Fn requires an explicit
+`--target 'Fn Windows'` or `--target 'Fn Mac'`; the vendor envelope itself retains
+only `fn: true`, so import must also choose the OS explicitly.
+
+This is an action-record export, not an installation into the vendor app's local
+database. Acceptance through the stock Windows/macOS UI has not been verified.
+It does not carry account IDs, cloud metadata, display assets or lighting.
+
+Export rejects any matrix change that the vendor full-writer identity lookup
+cannot express, including changes to hidden Glyph slots 114 and 115. The factory
+Fn matrices differ at those slots and therefore cannot be exported exactly in
+this format. Unsupported or ambiguously encoded raw macros are also rejected.
+Use Linux snapshots to preserve those states; the exporter does not silently
+omit bindings or macro data. Representable macro events are normalized, so their
+binary encoding can differ while retaining event order and timing.
+
+Implementation: `src/epomaker_driver/vendor_export.py`; byte encoding and atomic
+output: `src/epomaker_driver/profiles.py`.

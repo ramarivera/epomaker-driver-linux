@@ -875,7 +875,9 @@
         "src/epomaker_driver/vendor_macros.py",
         "src/epomaker_driver/vendor_import.py",
         "src/epomaker_driver/vendor_apply.py",
-        "ui/src/vendor-import.jsx"
+        "ui/src/vendor-import.jsx",
+        "src/epomaker_driver/vendor_export.py",
+        "docs/releases/glyph-child-profile-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "partial-control-level-audit",
@@ -891,9 +893,11 @@
         "tests/test_vendor_apply.py",
         "tests/test_vendor_import_cli.py",
         "tests/test_vendor_import_api.py",
-        "ui/tests/vendor-import.spec.js"
+        "ui/tests/vendor-import.spec.js",
+        "tests/test_vendor_export.py",
+        "tests/test_vendor_export_cli.py"
       ],
-      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, multi-son-profile record equivalence and service sharing remain unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. An offline vendor-record preview now resolves action identities and duplicate occurrences with explicit Fn OS targeting; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange. Shared action-byte encoding and lookup tables are now migrated; full-layer baseline is normal defaultMatrix even for Fn. Embedded ConfigMacro payloads now convert offline to validated Linux events and slot bytes, including mouse buttons and motion; conflicting slot payloads are rejected and unresolved bindings are reported. CLI import now reserves macro IDs from other normal/Fn layers, allocates imported payloads, saves a complete recovery snapshot, and verifies macros before the selected matrix. GUI vendor import now previews and applies a single record using a one-use token and rejects changed macro allocation before writing. Multi-record interchange and physical validation remain unfinished. Preview output is explicitly not write-ready."
+      "notes": "Named Linux key-layer configurations support save, rename, delete, preview and verified apply. Entries retain Main/Fn OS identity and use optimistic revisions. Vendor database interchange, service sharing remains unfinished; Linux snapshots and this library are separate formats. Physical verification is pending. An offline vendor-record preview now resolves action identities and duplicate occurrences with explicit Fn OS targeting; bounded JSON/raw-DEFLATE/zlib/gzip decoding alone is not semantic interchange. Shared action-byte encoding and lookup tables are now migrated; full-layer baseline is normal defaultMatrix even for Fn. Embedded ConfigMacro payloads now convert offline to validated Linux events and slot bytes, including mouse buttons and motion; conflicting slot payloads are rejected and unresolved bindings are reported. CLI import now reserves macro IDs from other normal/Fn layers, allocates imported payloads, saves a complete recovery snapshot, and verifies macros before the selected matrix. GUI vendor import now previews and applies a single record using a one-use token and rejects changed macro allocation before writing. The child-profile audit confirms one child per normal Glyph profile and selected-value import; the outer array is not a Glyph batch import. Physical validation remains unfinished. Preview output is explicitly not write-ready. Offline vendor-record export embeds decoded macros and preserves representable bindings; hidden-slot changes and ambiguous raw macros are rejected. Exact factory Fn exports remain unrepresentable through the vendor full writer."
     },
     {
       "id": "G11.4",

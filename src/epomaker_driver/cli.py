@@ -24,6 +24,7 @@ from . import (
     system_info,
     vendor_apply,
     vendor_config,
+    vendor_export,
     vendor_import,
 )
 from .device import Keyboard
@@ -232,6 +233,18 @@ def parser():
             vendor_import_parser.add_argument("--snapshot", type=Path, required=True)
         else:
             vendor_import_parser.add_argument("--backup", type=Path, required=True)
+    exporter = commands.add_parser(
+        "export-vendor-config",
+        help="export a representable Glyph snapshot layer as a vendor record",
+    )
+    exporter.add_argument("snapshot", type=Path)
+    exporter.add_argument("path", type=Path)
+    exporter.add_argument("--target", choices=vendor_config.TARGETS, default="Main")
+    exporter.add_argument("--profile", type=int, choices=range(3), default=0)
+    exporter.add_argument("--name", default="Glyph configuration")
+    exporter.add_argument(
+        "--compressed", action="store_true", help="write vendor raw-DEFLATE encoding"
+    )
     return root
 
 
@@ -277,6 +290,18 @@ def execute(args):
         with args.path.open("rb") as stream:
             value = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
         return vendor_config.preview(value, args.target, include_macros=args.include_macros)
+    if args.command == "export-vendor-config":
+        with args.snapshot.open("rb") as stream:
+            current = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
+        record = vendor_export.export_record(current, args.target, args.profile, args.name)
+        profiles.save(args.path, record, compressed=args.compressed)
+        return {
+            "exported": str(args.path),
+            "target": args.target,
+            "profile": args.profile,
+            "action_count": len(record["value"]),
+            "compressed": args.compressed,
+        }
     if args.command == "plan-vendor-import":
         with args.path.open("rb") as stream:
             record = profiles.decode(stream.read(profiles.MAX_PROFILE_BYTES + 1))
