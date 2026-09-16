@@ -65,6 +65,21 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
   useEffect(() => {
     setDraft(decode(matrix.slice(slot * 4, slot * 4 + 4), catalog));
   }, [matrix, slot, catalog]);
+  // Glyph restrictions traced in docs/releases/glyph-knob-audit.md.
+  const isKnob = keys.some(
+    (key) => key.slot === slot && key.geometry.type === "knob",
+  );
+  const heldKnob =
+    isKnob &&
+    ((draft.type === "Macro" && Number(draft.mode) === 2) ||
+      (draft.type === "Raw" &&
+        /^0902[0-9a-f]{2}00$/i.test(draft.key.replace(/\s/g, ""))));
+  const knobRestriction =
+    isKnob && layer !== "Main"
+      ? "Knob inputs have no editable Fn assignment. Select a regular key or the Main layer."
+      : heldKnob
+        ? "Knob inputs cannot use held macro playback. Choose count or toggle playback."
+        : "";
   const current = decode(matrix.slice(slot * 4, slot * 4 + 4), catalog);
   const nameFor = (action) =>
     action.type === "Keyboard"
@@ -155,7 +170,11 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
                 key={name}
                 aria-label={`Key ${g.displayText?.join(" ") || name}`}
                 title={`${name} · slot ${keySlot}`}
-                disabled={busy || keySlot == null}
+                disabled={
+                  busy ||
+                  keySlot == null ||
+                  (g.type === "knob" && layer !== "Main")
+                }
                 aria-pressed={slot === keySlot}
                 onClick={() => setSlot(keySlot)}
                 className={`key ${slot === keySlot ? "selected" : ""} ${g.type === "knob" ? "knob" : ""}`}
@@ -274,15 +293,24 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
                   />
                 </Field>
                 <Field label="Playback">
-                  <Select
+                  <select
                     value={draft.mode || 0}
                     onChange={(e) =>
                       setDraft({ ...draft, mode: Number(e.target.value) })
                     }
-                    options={Object.entries(catalog.macro_modes).map(
-                      ([k, v]) => [v, titleCase(k)],
+                  >
+                    {Object.entries(catalog.macro_modes).map(
+                      ([name, value]) => (
+                        <option
+                          key={name}
+                          value={value}
+                          disabled={isKnob && value === 2}
+                        >
+                          {titleCase(name)}
+                        </option>
+                      ),
                     )}
-                  />
+                  </select>
                 </Field>
               </>
             )}
@@ -301,10 +329,11 @@ export default function Keymap({ catalog, connected, busy, run, epoch }) {
           <p className="muted">Changes apply to the selected profile.</p>
         </Panel>
       </div>
+      {knobRestriction && <p role="status">{knobRestriction}</p>}
       <div className="apply-row">
         <Button
           primary
-          disabled={!connected || busy}
+          disabled={!connected || busy || Boolean(knobRestriction)}
           onClick={() =>
             run(async () => {
               await api("write", {

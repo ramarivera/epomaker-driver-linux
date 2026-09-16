@@ -449,11 +449,21 @@ class Keyboard:
         return self.transport.transaction(operation)
 
     def set_key(self, slot, action, *, profile=0, fn=False, os_mode=0):
+        # Glyph knob inputs: docs/releases/glyph-knob-audit.md.
+        # This is an individual-key restriction; bulk matrix operations retain
+        # their existing behavior and validation.
+        self._supported()
         command = (
             codec.fn_single(slot, action, layer=profile, os_mode=os_mode)
             if fn
             else codec.single_key(profile, slot, action, profile_max=self._profile_max())
         )
+        if self.identity["device_id"] == 3059 and slot in (53, 108, 109):
+            encoded = command[8:12]
+            if fn:
+                raise UnsupportedDevice("Glyph knob assignments are unavailable on Fn layers")
+            if encoded[0] == 9 and encoded[1] == 2 and encoded[3] == 0:
+                raise UnsupportedDevice("Glyph knobs do not support held macro playback")
         self._write([command])
         actual = self.read_matrix(profile, fn=fn, os_mode=os_mode)[slot * 4 : slot * 4 + 4]
         if actual != bytes(action):

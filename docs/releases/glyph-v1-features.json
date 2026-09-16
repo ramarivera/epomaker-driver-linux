@@ -204,12 +204,16 @@
       "audit_pointers": [
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/device.py",
-        "ui/src/keymap.jsx"
+        "ui/src/keymap.jsx",
+        "docs/releases/glyph-knob-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_glyph_knobs.py",
+        "ui/tests/glyph-knobs.spec.js"
+      ],
+      "notes": "Three source-mapped knob inputs are selectable on Main. Individual assignment rejects held macros and Fn edits; GUI disables those choices and blocks raw held actions. Both vendor bundles confirm shared predicates apply via Glyph knobKeyCodes. Bulk configuration paths and physical knob behavior remain unverified or pending audit."
     },
     {
       "id": "G03.5",
