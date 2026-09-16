@@ -77,17 +77,26 @@ test("an old disconnected poll cannot replace a new connection", async ({
 }) => {
   let release;
   let delayed = false;
+  let settled = false;
   let calls = 0;
   const waiting = new Promise((resolve) => {
     release = resolve;
   });
   await page.route("**/api/connection", async (route) => {
-    calls += 1;
-    if (calls === 2) {
+    const callNumber = ++calls;
+    // Keep only bootstrap and the held stale poll mocked; later reads must
+    // observe the new backend session, including explicit Refresh devices.
+    if (callNumber > 2) {
+      await route.continue();
+      return;
+    }
+    const held = callNumber === 2;
+    if (held) {
       delayed = true;
       await waiting;
     }
     await route.fulfill({ contentType: "application/json", body: "null" });
+    if (held) settled = true;
   });
   await page.goto("/#token=ui-test-token");
   await page
@@ -97,8 +106,8 @@ test("an old disconnected poll cannot replace a new connection", async ({
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(page.getByText("Connected", { exact: true })).toBeVisible();
   // Future polls use the real backend's current session; only the held poll is stale.
-  await page.unrouteAll({ behavior: "ignoreErrors" });
   release();
+  await expect.poll(() => settled).toBe(true);
   await expect(
     page.getByText("Keyboard connection lost.", { exact: true }),
   ).toHaveCount(0);
