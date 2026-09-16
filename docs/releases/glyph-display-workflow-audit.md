@@ -98,12 +98,41 @@ The command constant at byte 2695 is `AC`. It sends a zero-filled 64-byte reques
 with that opcode and the normal byte-7 checksum, and checks reply prefix
 `AC AA AA 55 55`. The implementation range matches across platforms.
 
-The main renderer contains screen-event dispatch variants with 55-second progress
-timers and different event-completion handling. Resolving the active Glyph
-variant, completion semantics, concurrent-operation exclusion and failure recovery
-is still necessary before implementing the complete clearing workflow. An ACK
-alone must not be described as verified flash erasure. The feature remains open;
-no clear command has been sent to hardware.
+Glyph uses the keyboard task (`lM` in Windows), rather than the dongle screen
+task. The keyboard class starts at Windows byte 1935644, and its screen dispatcher
+starts at 1948517 (macOS 1957329). After the immediate erase ACK it starts a
+550 ms interval, incrementing progress by one percent per tick. **That estimated
+55-second progress animation is not a completion deadline.** The event stays
+in progress until an unsolicited clear-complete notification is received.
+The completion handler is at Windows byte 1955921 / macOS 1964733; it ends the
+screen-clear event and cancels the progress interval. Without that notification,
+the vendor timer can continue beyond 100 percent. The keyboard branch contains
+no separate erase-timeout failure path.
+
+The other dispatcher at Windows byte 2006093 / macOS 2014905 belongs to the dongle
+task and resets its event immediately after the call. It must not supply Glyph's
+completion semantics. Linux must wait for the actual completion notification,
+bound its wait, and retain an uncertain result after timeout or disconnection.
+The generic input callback constructs a report-ID-prefixed array (Windows byte
+1696816 / macOS 1705628). Vendor receive strips that first byte (1699373 / 1708185)
+and passes the data to the event decoder. Its clear-completion predicate is an
+exact three-byte prefix `2C 00 00` (1698556 / 1707368), independently of the rest
+of the payload. `AC AA AA 55 55` is not the completion event.
+
+This JavaScript callback does not constrain the report ID, descriptor length or
+HID collection. Linux must establish which vendor input report carries the event
+before consuming it: normal keyboard report data must not be interpreted as a
+vendor completion marker. The known command feature collection alone does not
+prove its input routing. Resolve this through the platform HID adapter/opening
+path and the actual Glyph report descriptor. Do not strip a synthetic zero report
+ID from an unnumbered Linux input report without descriptor evidence.
+
+`Keyboard.request_screen_erase()` now implements only the acknowledged command:
+it re-identifies a normal Glyph, sends one exact request and validates the
+64-byte reply and signature. It does not retry on timeout or claim completion.
+Tests: `tests/test_glyph_screen_erase.py`. This primitive is not exposed through
+the GUI or CLI until the completion-wait and exclusive-operation lifecycle are
+implemented. No clear command has been sent to hardware.
 
 Weather is excluded for this baseline. The weather visibility getter reads
 `other.screen.canWeather` (Windows byte 1844615, macOS 1853427), while its unit

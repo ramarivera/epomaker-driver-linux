@@ -248,3 +248,14 @@ little-endian GiB values, CPU/temperature bytes and two network values), and dis
 prepare/chunk metadata (current frame, frame count, delay, byte length, bounds,
 chunk index and chunk length). Format-specific opcodes remain `0xA5/0x25` for
 RGB565 and `0xA9/0x29` for RGB24. This is why the existing shared codec is reused.
+
+## Screen erase implementation status
+
+The vendor's clear-screen action erases screen flash with command `AC`; it is
+separate from clearing an offline draft. The internal
+`Keyboard.request_screen_erase()` validates the immediate ACK only, with no
+automatic retry. It is not yet exposed as an application action. A later
+unsolicited completion notification, not elapsed time or the ACK, ends Glyph's
+vendor workflow. Completion reception, operation isolation, interruption handling
+and hardware validation remain open. See
+[the active Glyph event trace](releases/glyph-display-workflow-audit.md).

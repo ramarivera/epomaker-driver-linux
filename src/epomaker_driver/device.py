@@ -588,6 +588,25 @@ class Keyboard:
         )
         self._transfer_screen(prepare, chunks, progress)
 
+    def request_screen_erase(self):
+        """Request Glyph screen erase and validate its acknowledgement.
+
+        The acknowledgement confirms protocol acceptance; it does not prove that
+        the device has finished erasing its flash. See docs/display.md.
+        """
+
+        def operation():
+            self.identify()
+            self._supported()
+            if self.identity["device_id"] != 3059:
+                raise UnsupportedDevice("screen erase is supported for Glyph only")
+            response = self.transport.exchange(codec.packet([0xAC]), expected=0xAC)
+            if len(response) != 64 or response[:5] != bytes.fromhex("acaaaa5555"):
+                raise ProtocolError("invalid Glyph screen erase acknowledgement")
+            return response
+
+        return self.transport.transaction(operation)
+
     def upload_animation(self, frames, delay, *, progress=None):
         self._supported()
         spec = display_spec(self.identity["device_id"])
