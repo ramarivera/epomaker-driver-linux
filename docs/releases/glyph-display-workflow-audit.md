@@ -156,13 +156,21 @@ received during Bluetooth ACK handling is retained for the pending wait.
 
 The complete transaction returns explicit acknowledgement/completion flags and
 `pixels_verified: false`. It does not inspect flash contents or prove visual output.
-The app-owned background operation, global device-access exclusion across HTTP
-requests, progress UI and interruption recovery are still required before exposing
-clear-screen through the GUI. No clear command has been sent to hardware.
+The app now owns a journaled background operation, excludes competing device access
+across HTTP requests and displays elapsed time in the GUI. A running journal becomes
+an uncertain, blocked operation after restart; it never resumes automatically.
+An explicit acknowledgement of that operation records the user's inspection and
+closes the cached connection, requiring reconnect. Offline editing remains available.
+Completion persistence failures retain a conservative blocked outcome. No clear
+command has been sent to hardware.
 Implementation: `src/epomaker_driver/discovery.py`, `src/epomaker_driver/transport.py`
 and `src/epomaker_driver/device.py`. Tests: `tests/test_discovery.py`,
 `tests/test_glyph_screen_erase.py`, `tests/test_screen_erase_transport.py` and
-`tests/test_screen_erase_transaction.py`.
+`tests/test_screen_erase_transaction.py`. Application lifecycle implementation:
+`src/epomaker_driver/screen_erase_operation.py`, `src/epomaker_driver/server.py`,
+`ui/src/screen-erase.jsx` and `ui/src/main.jsx`. Application tests:
+`tests/test_screen_erase_operation.py`, `tests/test_screen_erase_server.py` and
+`ui/tests/screen-erase.spec.js`.
 
 Weather is excluded for this baseline. The weather visibility getter reads
 `other.screen.canWeather` (Windows byte 1844615, macOS 1853427), while its unit

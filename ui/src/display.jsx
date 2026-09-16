@@ -5,7 +5,17 @@ import DisplayLibrary from "./display-library";
 import DisplayPreview from "./display-preview";
 import DisplayImport from "./display-import";
 import SystemInfoRefresh from "./system-info-refresh";
-export default function Display({ connected, transport, busy, run }) {
+import ScreenErase from "./screen-erase";
+export default function Display({
+  connected,
+  transport,
+  busy,
+  run,
+  identity,
+  eraseStatus,
+  onEraseStatus,
+  onEraseAcknowledged,
+}) {
   const fileInput = useRef(null);
   const history = useRef({ past: [], future: [] });
   const [sourceName, setSourceName] = useState("");
@@ -369,6 +379,15 @@ export default function Display({ connected, transport, busy, run }) {
           </Button>
         </div>
       </Panel>
+      <ScreenErase
+        connected={connected}
+        identity={identity}
+        busy={busy}
+        run={run}
+        status={eraseStatus}
+        onStatus={onEraseStatus}
+        onAcknowledged={onEraseAcknowledged}
+      />
       <SystemInfoRefresh connected={connected} busy={busy} run={run} />
       <Panel title="Display language">
         <p className="muted">

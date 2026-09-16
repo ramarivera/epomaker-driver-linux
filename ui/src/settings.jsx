@@ -4,7 +4,14 @@ import { Button, Field, Panel, Select } from "./controls";
 import Firmware from "./firmware";
 const firmwareCode = (code) =>
   code ? `${code} (0x${code.toString(16).padStart(4, "0")})` : "Unavailable";
-export default function Settings({ connected, transport, busy, run, epoch }) {
+export default function Settings({
+  connected,
+  transport,
+  busy,
+  run,
+  epoch,
+  eraseStatus,
+}) {
   const [value, setValue] = useState(null);
   const [versions, setVersions] = useState(null);
   const versionsGeneration = useRef(0);
@@ -23,7 +30,9 @@ export default function Settings({ connected, transport, busy, run, epoch }) {
       <>
         <Panel title="Keyboard settings">
           <p className="muted">
-            Connect a keyboard to read its current settings.
+            {eraseStatus?.blocked
+              ? "Keyboard settings are paused until the screen erase operation is resolved."
+              : "Connect a keyboard to read its current settings."}
           </p>
         </Panel>
         <Firmware busy={busy} run={run} epoch={epoch} />

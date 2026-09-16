@@ -752,7 +752,10 @@
         "src/epomaker_driver/display_import.py",
         "ui/src/display-import.jsx",
         "src/epomaker_driver/transport.py",
-        "src/epomaker_driver/discovery.py"
+        "src/epomaker_driver/discovery.py",
+        "src/epomaker_driver/screen_erase_operation.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/screen-erase.jsx"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -769,9 +772,12 @@
         "ui/tests/display-import.spec.js",
         "tests/test_glyph_screen_erase.py",
         "tests/test_screen_erase_transport.py",
-        "tests/test_screen_erase_transaction.py"
+        "tests/test_screen_erase_transaction.py",
+        "tests/test_screen_erase_operation.py",
+        "tests/test_screen_erase_server.py",
+        "ui/tests/screen-erase.spec.js"
       ],
-      "notes": "Five still destinations and a persistent named asset library support offline save/load/delete, original-source retention and portable JSON interchange. Frame insertion, copy-previous, deletion, clearing, painting, image placement and bounded undo/redo are implemented. Glyph screen erase now has an internal complete protocol transaction: one AC request, checked ACK and descriptor-scoped unsolicited completion reception while holding transport ownership. It never infers completion from the vendor55-second progress timer or retries erase automatically. The native adapter uses the same HID path for commands and incoming reports. App-owned erase progress, global operation exclusion, recovery, physical bank behavior and hardware verification remain open."
+      "notes": "Five still destinations and a persistent named asset library support offline save/load/delete, original-source retention and portable JSON interchange. Frame insertion, copy-previous, deletion, clearing, painting, image placement and bounded undo/redo are implemented. Glyph screen erase now has an internal complete protocol transaction: one AC request, checked ACK and descriptor-scoped unsolicited completion reception while holding transport ownership. It never infers completion from the vendor55-second progress timer or retries erase automatically. The native adapter uses the same HID path for commands and incoming reports. The GUI now uses a journaled background erase with elapsed-time progress, global device-access exclusion and explicit uncertain-outcome acknowledgement followed by reconnect. It survives browser navigation/reload and never resumes an interrupted server operation. Physical bank behavior and hardware verification remain open."
     },
     {
       "id": "G09.4",
@@ -782,12 +788,19 @@
       "audit_pointers": [
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
-        "ui/src/display.jsx"
+        "ui/src/display.jsx",
+        "src/epomaker_driver/screen_erase_operation.py",
+        "src/epomaker_driver/server.py",
+        "ui/src/screen-erase.jsx"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Prepare acceptance polling and bounded failure handling exist. Pixel readback has not been found; do not invent a pixel query. Recovery and actual display output still require verification. Internal erase waits have bounded completion deadlines, cancellation and stale-report draining; timeout or interruption does not resend AC or imply completed erasure. Application recovery and physical interruption testing remain pending."
+      "test_evidence": [
+        "tests/test_screen_erase_operation.py",
+        "tests/test_screen_erase_server.py",
+        "ui/tests/screen-erase.spec.js"
+      ],
+      "notes": "Prepare acceptance polling and bounded failure handling exist. Pixel readback has not been found; do not invent a pixel query. Recovery and actual display output still require verification. Internal erase waits have bounded completion deadlines, cancellation and stale-report draining; timeout or interruption does not resend AC or imply completed erasure. Application erase recovery now persists the operation before sending, retains blocked uncertainty on interruption or result-persistence failure and requires exact-operation acknowledgement plus reconnect. Physical interruption testing remains pending."
     },
     {
       "id": "G10.1",

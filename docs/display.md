@@ -72,8 +72,9 @@ stored separately. This avoids GIF palette loss and APNG duplicate-frame merging
 A full 46-frame TIFF is about 8.01 MiB, within the existing upload/library limits.
 Re-preparing, saving, exporting and loading retain those edited frames.
 
-The paint dialog adds brush/eraser editing of selected frames; device screen-clearing
-behavior remains open; image-import placement is available below. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
+The paint dialog adds brush/eraser editing of selected frames. Screen erase and
+image-import placement are described below; physical erase behavior remains
+unverified. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
 Implementation: `src/epomaker_driver/display_edit.py`, `src/epomaker_driver/server.py`,
 `ui/src/display.jsx`, `ui/src/display-preview.jsx`. Tests: `tests/test_display_edit.py`,
 `tests/test_display_prepare.py`, `ui/tests/display-edit.spec.js`.
@@ -262,7 +263,17 @@ or interruption. The default completion deadline is 90 seconds, configurable up
 to 300; elapsed time is not completion. Progress callbacks report elapsed seconds.
 
 A returned completion flag means the vendor completion event was received, not
-that pixels were read back or hardware behavior was verified. There is no GUI/CLI
-erase action yet: app-owned background progress, operation isolation across API
-requests and recovery still need integration. See
+that pixels were read back or hardware behavior was verified. In **Display → Clear
+keyboard screen**, confirm the storage erase, then start it. Local drafts and the
+asset library are retained. The background operation survives page navigation and
+browser reload; its banner reports elapsed seconds rather than an estimated percent.
+
+The server journals the operation to `screen-erase.json` in its backup directory
+before sending the command. Device operations are blocked while erase is running
+or its outcome is uncertain; offline editing and Disconnect remain available.
+Disconnect, timeout or server interruption leaves an uncertain result. After
+checking the keyboard, explicitly acknowledge that operation and reconnect.
+Acknowledgement records your review; it does not prove erasure completed. A server
+restart never resends the command, and a malformed journal fails startup rather
+than silently unlocking device access. There is no CLI erase action yet. See
 [the active Glyph event and native-adapter trace](releases/glyph-display-workflow-audit.md).

@@ -41,6 +41,7 @@ from .errors import DeviceUnavailable, DriverError, ProtocolError, UnsupportedDe
 from .live_light_session import LiveLightSession
 from .macro_library import MacroLibrary
 from .models import glyph_matrix
+from .screen_erase_operation import ScreenEraseOperation
 from .system_info_refresh import SystemInfoRefresh
 from .transport import Transport
 
@@ -70,6 +71,7 @@ class Controller:
         self.identity = None
         self.connection_info = None
         self.lock = threading.RLock()
+        self.screen_erase = ScreenEraseOperation(self.backup_dir / "screen-erase.json")
         self.system_info_refresh = SystemInfoRefresh(self, collector_factory)
         self.live_light = LiveLightSession()
         self.audio_preview = AudioPreview(audio_capture_factory)
@@ -78,6 +80,8 @@ class Controller:
 
     def close(self):
         with self.lock:
+            # The worker never takes this lock; stop its bounded wait before closing HID.
+            self.screen_erase.stop()
             self.vendor_preview = None
             self.audio_preview.stop()
             self.live_light.cancel()
@@ -93,6 +97,26 @@ class Controller:
             return self._firmware_call(operation, data)
         with self.lock:
             try:
+                # Every HID path is excluded while erasing or awaiting explicit recovery.
+                # Offline editing and journal/status queries remain available.
+                if (
+                    operation
+                    in {
+                        "connect",
+                        "read",
+                        "write",
+                        "vendor_import_preview",
+                        "system_info_refresh_start",
+                        "live_light_start",
+                        "live_light_frame",
+                        "live_light_stop",
+                        "screen_erase_start",
+                    }
+                    and self.screen_erase.status()["blocked"]
+                ):
+                    raise ProtocolError(
+                        "Screen erase blocks device access; wait for completion or review its uncertain outcome"
+                    )
                 return self._call(operation, data)
             except DeviceUnavailable:
                 # A failed replacement connection must not discard a still-open device.
@@ -128,6 +152,30 @@ class Controller:
         return result
 
     def _call(self, operation, data):
+        if operation == "screen_erase":
+            return self.screen_erase.status()
+        if operation == "screen_erase_start":
+            if data.get("confirm") is not True:
+                raise ValueError("confirm erasing keyboard screen storage")
+            if self.keyboard is None or self.identity is None:
+                raise DeviceUnavailable("connect a Glyph keyboard first")
+            if data.get("session") != self.identity["session"]:
+                raise ValueError("connection changed; review screen erase again")
+            if not getattr(self.keyboard.transport, "vendor_reports", {}):
+                raise UnsupportedDevice(
+                    "screen erase completion input report is unavailable on this connection"
+                )
+            self.system_info_refresh.stop()
+            if self.live_light.session is not None:
+                self.live_light.stop(self.live_light.session)
+            self.vendor_preview = None
+            return self.screen_erase.start(self.keyboard, self.identity["session"])
+        if operation == "screen_erase_acknowledge":
+            if data.get("confirm") is not True:
+                raise ValueError("confirm reviewing the keyboard's uncertain erase outcome")
+            result = self.screen_erase.acknowledge(data.get("operation_id"))
+            self.close()
+            return result
         if operation == "audio_outputs":
             return self.audio_discovery()
         if operation == "audio_config":
@@ -314,14 +362,19 @@ class Controller:
             self.close()
             return {"ok": True}
         if operation == "connection":
-            # Poll metadata and queued notifications without sending HID commands.
+            # Poll metadata and telemetry except while erase owns device access.
             # Compare the full command collection, since hidraw paths can be reused.
             if self.connection_info is not None and self.connection_info not in self.discovery():
                 self.close()
             identity = copy.deepcopy(self.identity)
             if identity is not None:
                 telemetry = getattr(self.keyboard.transport, "telemetry", None)
-                identity["telemetry"] = telemetry() if telemetry is not None else None
+                # Bluetooth telemetry sends a request; never poll it during erase/recovery.
+                identity["telemetry"] = (
+                    telemetry()
+                    if telemetry is not None and not self.screen_erase.status()["blocked"]
+                    else None
+                )
             return identity
         keyboard = self.keyboard
         if keyboard is None:
@@ -569,6 +622,7 @@ class Handler(BaseHTTPRequestHandler):
                 "/api/devices",
                 "/api/catalog",
                 "/api/connection",
+                "/api/screen_erase",
                 "/api/config_library",
                 "/api/macro_library",
                 "/api/display_library",
@@ -597,6 +651,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path not in (
             "/api/connect",
+            "/api/screen_erase_start",
+            "/api/screen_erase_acknowledge",
             "/api/disconnect",
             "/api/read",
             "/api/write",

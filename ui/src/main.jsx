@@ -52,6 +52,7 @@ function App() {
     [identity, setIdentity] = useState(null),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(null),
+    [eraseStatus, setEraseStatus] = useState(null),
     [epoch, setEpoch] = useState(0);
   const pending = useRef(0);
   const mounted = useRef(true);
@@ -91,15 +92,17 @@ function App() {
   }, [identity]);
   useEffect(() => {
     run(async () => {
-      const [catalog, devices, connection] = await Promise.all([
+      const [catalog, devices, connection, erase] = await Promise.all([
         api("catalog"),
         api("devices"),
         api("connection"),
+        api("screen_erase"),
       ]);
       setCatalog(catalog);
       setDevices(devices);
       identityRef.current = connection;
       setIdentity(connection);
+      setEraseStatus(erase);
     });
   }, []);
   const poll = useCallback(async () => {
@@ -107,9 +110,10 @@ function App() {
     pollInFlight.current = true;
     const pollGeneration = generation.current;
     try {
-      const [nextDevices, nextIdentity] = await Promise.all([
+      const [nextDevices, nextIdentity, nextErase] = await Promise.all([
         api("devices"),
         api("connection"),
+        api("screen_erase"),
       ]);
       if (!mounted.current || pollGeneration !== generation.current) return;
       const previous = identityRef.current;
@@ -117,6 +121,7 @@ function App() {
       setDevices(nextDevices);
       identityRef.current = nextIdentity;
       setIdentity(nextIdentity);
+      setEraseStatus(nextErase);
       if (previous && !nextIdentity) {
         setNotice({ message: "Keyboard connection lost.", error: true });
       }
@@ -152,14 +157,16 @@ function App() {
   const refresh = () => {
     generation.current += 1;
     run(async () => {
-      const [nextDevices, nextIdentity] = await Promise.all([
+      const [nextDevices, nextIdentity, nextErase] = await Promise.all([
         api("devices"),
         api("connection"),
+        api("screen_erase"),
       ]);
       if (!mounted.current) return;
       setDevices(nextDevices);
       identityRef.current = nextIdentity;
       setIdentity(nextIdentity);
+      setEraseStatus(nextErase);
       if (path && !nextDevices.some((device) => device.path === path))
         setPath("");
       setEpoch((e) => e + 1);
@@ -167,7 +174,9 @@ function App() {
   };
   const selected = pages.find((page) => page[0] === tab),
     Page = selected[2];
-  const connected = Boolean(identity);
+  const blocked = Boolean(eraseStatus?.blocked);
+  const deviceConnected = Boolean(identity);
+  const connected = deviceConnected && !blocked;
   return (
     <div className="app">
       <aside className="sidebar">
@@ -194,12 +203,12 @@ function App() {
         </nav>
         <div className="device-card">
           <strong>{identity?.model || "Epomaker Glyph"}</strong>
-          <span>{connected ? "Connected" : "Offline preview"}</span>
+          <span>{deviceConnected ? "Connected" : "Offline preview"}</span>
           <ConnectionTelemetry identity={identity} />
           <Button disabled={busy} onClick={refresh}>
             Refresh devices
           </Button>
-          {connected && (
+          {deviceConnected && (
             <Button
               disabled={busy}
               onClick={() =>
@@ -243,7 +252,7 @@ function App() {
             />
             <Button
               primary
-              disabled={busy || !path}
+              disabled={busy || blocked || !path}
               onClick={() =>
                 run(async () => {
                   generation.current += 1;
@@ -266,6 +275,29 @@ function App() {
             {notice.message}
           </div>
         )}
+        {eraseStatus?.state === "running" && (
+          <div className="notice" role="status">
+            Clearing keyboard screen…{" "}
+            {Math.floor(eraseStatus.elapsed_seconds || 0)} s elapsed.
+          </div>
+        )}
+        {eraseStatus?.state === "completed" && (
+          <div className="notice" role="status">
+            Keyboard reported screen clear complete; inspect display.
+          </div>
+        )}
+        {eraseStatus?.state === "uncertain" && (
+          <div className="notice error" role="alert">
+            Screen erase outcome is unknown:{" "}
+            {eraseStatus.error || "inspect the keyboard and acknowledge it."}
+          </div>
+        )}
+        {eraseStatus?.state === "unavailable" && (
+          <div className="notice error" role="alert">
+            Screen erase status is unavailable. Device controls remain locked
+            while the driver checks the operation.
+          </div>
+        )}
         {busy && (
           <div className="busy-indicator" role="status">
             <LoaderCircle size={18} className="spin" />
@@ -277,11 +309,28 @@ function App() {
             key={tab}
             catalog={catalog}
             connected={connected}
+            identity={identity}
             transport={identity?.transport}
             lightSync={identity?.light_sync}
             screenRatio={screenRatio}
             onScreenRatioChange={setScreenRatio}
             busy={busy}
+            eraseStatus={eraseStatus}
+            onEraseStatus={async (value) => {
+              if (value) {
+                setEraseStatus(value);
+                return;
+              }
+              // A lost start response may follow a successfully started erase.
+              setEraseStatus({ state: "unavailable", blocked: true });
+              setEraseStatus(await api("screen_erase"));
+            }}
+            onEraseAcknowledged={(value) => {
+              setEraseStatus(value);
+              setIdentity(null);
+              identityRef.current = null;
+              setEpoch((e) => e + 1);
+            }}
             run={run}
             epoch={epoch}
             onConnectionLost={() => {
