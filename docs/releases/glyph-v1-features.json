@@ -521,7 +521,7 @@
         "tests/test_glyph_lighting_catalog.py",
         "ui/tests/lighting-capabilities.spec.js"
       ],
-      "notes": "GUI uses recovered per-effect metadata for brightness, speed, RGB/rainbow and labeled option controls. Music/screen host input remains unimplemented; physical effects remain unverified."
+      "notes": "GUI uses recovered per-effect metadata for brightness, speed, RGB/rainbow and labeled option controls. Music/screen host input is tracked separately under G08; its capture and USB streaming workflows exist, while physical effects and native visual equivalence remain unverified."
     },
     {
       "id": "G07.1",
