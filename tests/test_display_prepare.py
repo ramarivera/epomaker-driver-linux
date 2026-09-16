@@ -257,3 +257,18 @@ def test_display_replace_http_quantizes_and_preserves_other_animation_frames(htt
     image = Image.open(io.BytesIO(base64.b64decode(result["preview_frames"][1])))
     assert image.getpixel((15, 20)) == (255, 121, 0)
     assert http_server.controller.keyboard is None
+
+
+@pytest.mark.parametrize("operation", ["display_import_inspect", "display_import_transform"])
+def test_display_import_http_is_offline_and_token_protected(http_server, operation):
+    body = json.dumps(
+        {"content": base64.b64encode(image_bytes()).decode(), "scale": 100, "x": 0, "y": 0}
+    )
+    status, _, _ = server_request(http_server, f"/api/{operation}", body=body)
+    assert status == 403
+    status, result, _ = server_request(
+        http_server, f"/api/{operation}", body=body, token="test-token"
+    )
+    assert status == 200 and result["frame_count"] == 1
+    assert result["replace_all"] is False and result["preview_png"]
+    assert http_server.controller.keyboard is None

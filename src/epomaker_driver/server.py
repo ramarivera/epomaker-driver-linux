@@ -17,6 +17,7 @@ from . import (
     actions,
     codec,
     display_edit,
+    display_import,
     firmware,
     firmware_service,
     firmware_versions,
@@ -238,13 +239,24 @@ class Controller:
             return self.display_library.import_asset(data.get("value"))
         if operation == "display_asset_delete":
             return self.display_library.delete(data.get("id"))
-        if operation in ("display_prepare", "display_edit"):
+        if operation in (
+            "display_prepare",
+            "display_edit",
+            "display_import_inspect",
+            "display_import_transform",
+        ):
             encoded = data.get("content")
             if not isinstance(encoded, str) or not encoded:
                 raise ValueError("display content must be a base64 string")
             if len(encoded) > MAX_BODY:
                 raise ValueError("display content exceeds request size limit")
             content = base64.b64decode(encoded, validate=True)
+            if operation == "display_import_inspect":
+                return display_import.inspect_import(content)
+            if operation == "display_import_transform":
+                return display_import.transform_import(
+                    content, scale=data.get("scale", 100), x=data.get("x"), y=data.get("y")
+                )
             if operation == "display_edit":
                 replacement = data.get("replacement")
                 if replacement is not None:
@@ -595,6 +607,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/macro_library_delete",
             "/api/display_prepare",
             "/api/display_edit",
+            "/api/display_import_inspect",
+            "/api/display_import_transform",
             "/api/display_asset_save",
             "/api/display_asset_get",
             "/api/display_asset_export",

@@ -40,5 +40,5 @@ Implementation: `ui/src/display-paint.jsx`, `ui/src/display-preview.jsx`,
 `tests/test_display_edit.py`, `tests/test_display_prepare.py`.
 
 This is source and offline-test evidence, not hardware validation. Import-image
-position/scale and its separate GIF timing behavior remain pending; see
+position/scale and its separate GIF timing behavior are now implemented; see
 [glyph-display-import-audit.md](glyph-display-import-audit.md).

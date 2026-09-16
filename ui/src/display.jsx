@@ -3,11 +3,13 @@ import { api, base64File } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
 import DisplayLibrary from "./display-library";
 import DisplayPreview from "./display-preview";
+import DisplayImport from "./display-import";
 import SystemInfoRefresh from "./system-info-refresh";
 export default function Display({ connected, transport, busy, run }) {
   const fileInput = useRef(null);
   const history = useRef({ past: [], future: [] });
   const [sourceName, setSourceName] = useState("");
+  const [importDraft, setImportDraft] = useState(null);
   const [file, setFile] = useState(null),
     [prepared, setPrepared] = useState(null),
     [kind, setKind] = useState("screen"),
@@ -32,13 +34,15 @@ export default function Display({ connected, transport, busy, run }) {
     return recent;
   };
   const useDraft = (asset) => {
-    setPrepared(asset);
+    const name = asset.source_name ?? asset.name ?? sourceName;
+    setPrepared({ ...asset, source_name: name });
+    setSourceName(name);
     setKind(asset.kind);
     setDelay(asset.delay_ms === null ? "" : String(asset.delay_ms));
     const bytes = Uint8Array.from(atob(asset.content), (character) =>
       character.charCodeAt(0),
     );
-    setFile(new File([bytes], sourceName || "Edited display"));
+    setFile(new File([bytes], name || "Edited display"));
     if (fileInput.current) fileInput.current.value = "";
   };
   const editFrame = async (operation, index, replacement) => {
@@ -75,6 +79,49 @@ export default function Display({ connected, transport, busy, run }) {
     ]);
     useDraft(next);
   };
+  const startImport = (source, index) =>
+    run(async () => {
+      if (source.size > 14 * 1024 * 1024)
+        throw new Error("Choose an image smaller than 14 MiB");
+      const content = await base64File(source);
+      const metadata = await api("display_import_inspect", { content });
+      setImportDraft({ file: source, content, metadata, index });
+    });
+  const applyImport = async (placement) => {
+    let success = false;
+    await run(async () => {
+      let result = await api("display_import_transform", {
+        content: importDraft.content,
+        ...placement,
+      });
+      if (!result.replace_all) {
+        result = await api("display_edit", {
+          content: prepared.content,
+          kind: prepared.kind,
+          delay_ms: prepared.delay_ms,
+          operation: "replace",
+          index: importDraft.index,
+          replacement: result.preview_png,
+        });
+      }
+      history.current = {
+        past: keepHistory([
+          ...history.current.past,
+          { ...prepared, selected_index: importDraft.index },
+        ]),
+        future: [],
+      };
+      useDraft({
+        ...result,
+        source_name: importDraft.metadata.replace_all
+          ? importDraft.file.name
+          : sourceName,
+      });
+      setImportDraft(null);
+      success = true;
+    });
+    return success;
+  };
   return (
     <>
       <Panel title="Screen image">
@@ -95,7 +142,12 @@ export default function Display({ connected, transport, busy, run }) {
               });
               resetHistory();
               setSourceName("Blank frame");
-              useDraft({ ...result, content, kind: "screen" });
+              useDraft({
+                ...result,
+                content,
+                kind: "screen",
+                source_name: "Blank frame",
+              });
             })
           }
         >
@@ -165,7 +217,12 @@ export default function Display({ connected, transport, busy, run }) {
         </div>
         {sourceName && <p>Source: {sourceName}</p>}
         {prepared ? (
-          <DisplayPreview prepared={prepared} busy={busy} onEdit={editFrame} />
+          <DisplayPreview
+            prepared={prepared}
+            busy={busy}
+            onEdit={editFrame}
+            onImport={startImport}
+          />
         ) : (
           <div className="display-preview">
             <span>Prepare an image to preview the keyboard’s pixels.</span>
@@ -238,7 +295,12 @@ export default function Display({ connected, transport, busy, run }) {
                   content,
                   delay_ms: delayMs,
                 });
-                setPrepared({ ...result, content, kind });
+                setPrepared({
+                  ...result,
+                  content,
+                  kind,
+                  source_name: sourceName,
+                });
               })
             }
           >
@@ -264,6 +326,15 @@ export default function Display({ connected, transport, busy, run }) {
           </Button>
         </div>
       </Panel>
+      {importDraft && (
+        <DisplayImport
+          file={importDraft.file}
+          metadata={importDraft.metadata}
+          busy={busy}
+          onApply={applyImport}
+          onCancel={() => setImportDraft(null)}
+        />
+      )}
       <DisplayLibrary
         prepared={prepared}
         busy={busy}

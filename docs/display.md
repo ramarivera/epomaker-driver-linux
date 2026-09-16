@@ -74,7 +74,7 @@ A full 46-frame TIFF is about 8.01 MiB, within the existing upload/library limit
 Re-preparing, saving, exporting and loading retain those edited frames.
 
 The paint dialog adds brush/eraser editing of selected frames; device screen-clearing
-behavior and image-import transforms remain open. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
+behavior remains open; image-import placement is available below. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
 Implementation: `src/epomaker_driver/display_edit.py`, `src/epomaker_driver/server.py`,
 `ui/src/display.jsx`, `ui/src/display-preview.jsx`. Tests: `tests/test_display_edit.py`,
 `tests/test_display_prepare.py`, `ui/tests/display-edit.spec.js`.
@@ -98,6 +98,28 @@ base64 PNG, exactly 428×142, one frame, at most 1 MiB. Unexpected replacement d
 on other operations is rejected. Strict image validation precedes serialization.
 See [painting evidence and implementation](releases/glyph-display-paint-audit.md).
 
+## Importing with image placement
+
+Prepare a source or choose **New blank draft**, then select a file using **Import
+image with placement**. Scale ranges from 20% to 300% in 20-point increments.
+Scaling recenters the image; drag or enter X/Y coordinates to move it afterward.
+The viewport clips pixels outside the display. Cancel leaves the draft unchanged.
+
+Apply replaces only the selected frame for a still image. GIF and multi-frame
+imports replace the whole frame list and select frame zero; a single-frame GIF
+also replaces the list. Animation imports average delays capped at 255 ms and use
+60 ms when the rounded average is zero. Direct **Prepare preview** retains its
+existing zero-delay behavior. Undo restores the previous draft and source label.
+
+The dialog uses the browser's original-image preview. Apply transforms original
+pixels with Pillow bicubic sampling, then displays the converted RGB565 draft.
+Sampling may differ from the browser preview; hardware output remains unverified.
+See [the import audit](releases/glyph-display-import-audit.md) for evidence and bounds.
+The offline APIs are `POST /api/display_import_inspect` (base64 `content`) and
+`POST /api/display_import_transform` (`content`, integer `scale`, finite `x`/`y`).
+Neither performs device access. The UI applies the result through the existing
+frame replacement or whole-draft path before any explicit save/upload.
+
 ## Timing and memory evidence
 
 The shipped `composeGifFrames` multiplies GIF centiseconds by ten, caps each delay at
@@ -106,8 +128,8 @@ delay value to every frame. The Linux implementation follows that same conversio
 including rounding .5 upward. It does not preserve different durations per frame,
 because the vendor's upload path uses one averaged delay. The vendor's separate
 [image-import dialog](releases/glyph-display-import-audit.md) substitutes 60 ms when
-its rounded average is zero; Linux's direct preparation still preserves zero and
-does not yet implement that dialog workflow. `--delay-ms` overrides the
+its rounded average is zero; Linux's direct preparation still preserves zero; the image-placement workflow
+uses the dialog's 60 ms fallback. `--delay-ms` overrides the
 average with an integer from 0 to 255; zero is preserved as a protocol value, without
 a hardware-verified playback meaning.
 

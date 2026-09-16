@@ -3,7 +3,7 @@ import { Button, Field, Select } from "./controls";
 import DisplayPaint from "./display-paint";
 
 // Preview actual wire pixels from media.py; upload data remains owned by Display.
-export default function DisplayPreview({ prepared, busy, onEdit }) {
+export default function DisplayPreview({ prepared, busy, onEdit, onImport }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [painting, setPainting] = useState(false);
@@ -121,6 +121,23 @@ export default function DisplayPreview({ prepared, busy, onEdit }) {
             </Button>
           ))}
         </div>
+      )}
+      {onImport && (
+        <Field label="Import image with placement">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            disabled={busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) {
+                setPlaying(false);
+                onImport(file, current);
+              }
+            }}
+          />
+        </Field>
       )}
       {painting && (
         <DisplayPaint
