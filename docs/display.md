@@ -24,7 +24,7 @@ frame delay. Use the frame selector or Previous/Next controls to inspect individ
 frames, or Play/Pause to preview at the effective delay. Desktop timing is approximate
 and does not verify keyboard playback. Zero-delay animations allow manual inspection
 only because their hardware timing is unknown. Changing the draft, leaving the
-Display page, or hiding the browser stops playback. Frame editing remains open.
+Display page, or hiding the browser stops playback.
 
 Changing the source, upload type or delay invalidates the prepared draft. Changing
 a still-image destination bank keeps the pixels. **Upload to display** sends the
@@ -47,6 +47,37 @@ operations. Implementation: `src/epomaker_driver/media.py`,
 `src/epomaker_driver/server.py`, `ui/src/display.jsx` and
 `ui/src/display-preview.jsx`. Regression coverage: `tests/test_display_prepare.py`
 and `ui/tests/display-animation-preview.spec.js`.
+
+## Offline frame editing
+
+After preparation or library loading, insert a black frame after the selection,
+copy the previous frame into it, delete it, clear it, or clear all frames. The last
+frame cannot be deleted; clear-all leaves one black frame. Frame operations affect
+the draft only. Upload and library save remain explicit. A single remaining frame
+becomes a still image; adding to a still starts an animation at 80 ms per frame.
+Existing animation delays, including zero, remain unchanged.
+
+Undo/redo restores complete drafts. Each direction retains at most ten drafts and
+32 MiB of encoded source/preview data; older entries are dropped when either limit
+is exceeded. Loading or preparing another draft, choosing a source, or changing
+kind/delay resets history. Changing the destination still bank retains history.
+Pending edits lock controls; rejected edits leave the source and history intact.
+
+`POST /api/display_edit` accepts base64 `content`, `kind`, `delay_ms`, zero-based
+`index`, and `operation` (`add`, `copy_previous`, `delete`, `clear`, `clear_all`).
+The result includes preparation metadata, the edited base64 `content`, resulting
+`kind` and `selected_index`. Input is bounded to 14 MiB and 46 frames. Editing
+uses the converted RGB565 pixels, not an unquantized source image. One-frame drafts
+serialize as PNG; animations serialize as lossless multi-page raw TIFF with delay
+stored separately. This avoids GIF palette loss and APNG duplicate-frame merging.
+A full 46-frame TIFF is about 8.01 MiB, within the existing upload/library limits.
+Re-preparing, saving, exporting and loading retain those edited frames.
+
+This implements frame-list operations, not all vendor canvas/paint tools or device
+screen-clearing behavior. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
+Implementation: `src/epomaker_driver/display_edit.py`, `src/epomaker_driver/server.py`,
+`ui/src/display.jsx`, `ui/src/display-preview.jsx`. Tests: `tests/test_display_edit.py`,
+`tests/test_display_prepare.py`, `ui/tests/display-edit.spec.js`.
 
 ## Timing and memory evidence
 

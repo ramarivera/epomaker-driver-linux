@@ -738,7 +738,9 @@
         "ui/src/display.jsx",
         "docs/glyph-display-assets.md",
         "src/epomaker_driver/display_library.py",
-        "ui/src/display-library.jsx"
+        "ui/src/display-library.jsx",
+        "src/epomaker_driver/display_edit.py",
+        "docs/releases/glyph-display-workflow-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -747,9 +749,11 @@
         "tests/test_display_library_cli.py",
         "ui/tests/display-library.spec.js",
         "tests/test_display_asset_interchange.py",
-        "ui/tests/display-asset-interchange.spec.js"
+        "ui/tests/display-asset-interchange.spec.js",
+        "tests/test_display_edit.py",
+        "ui/tests/display-edit.spec.js"
       ],
-      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Canvas/frame editing, screen clear, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts."
+      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Canvas painting, device screen clearing, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts. Offline frame insertion, copy-previous, deletion and clearing now preserve exact converted pixels and duplicate frames through lossless draft serialization; bounded undo/redo and explicit library/save/upload integration are available. Full paint tools, import-dialog controls and physical verification remain open."
     },
     {
       "id": "G09.4",

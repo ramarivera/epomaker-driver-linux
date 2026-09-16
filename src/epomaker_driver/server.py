@@ -16,6 +16,7 @@ from urllib.parse import unquote, urlsplit
 from . import (
     actions,
     codec,
+    display_edit,
     firmware,
     firmware_service,
     firmware_versions,
@@ -237,13 +238,21 @@ class Controller:
             return self.display_library.import_asset(data.get("value"))
         if operation == "display_asset_delete":
             return self.display_library.delete(data.get("id"))
-        if operation == "display_prepare":
+        if operation in ("display_prepare", "display_edit"):
             encoded = data.get("content")
             if not isinstance(encoded, str) or not encoded:
                 raise ValueError("display content must be a base64 string")
             if len(encoded) > MAX_BODY:
                 raise ValueError("display content exceeds request size limit")
             content = base64.b64decode(encoded, validate=True)
+            if operation == "display_edit":
+                return display_edit.edit_display(
+                    content,
+                    kind=data.get("kind"),
+                    delay_ms=data.get("delay_ms"),
+                    operation=data.get("operation"),
+                    index=data.get("index"),
+                )
             return media.prepare_display(
                 content,
                 kind=data.get("kind"),
@@ -577,6 +586,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/macro_library_save",
             "/api/macro_library_delete",
             "/api/display_prepare",
+            "/api/display_edit",
             "/api/display_asset_save",
             "/api/display_asset_get",
             "/api/display_asset_export",

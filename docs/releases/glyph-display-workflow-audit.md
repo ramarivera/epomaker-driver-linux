@@ -37,3 +37,41 @@ These findings do not prove that every shared editor control is exposed for Glyp
 Canvas editing, retained assets, screen clearing, transport behavior, firmware
 persistence and physical rendering remain open acceptance work. Source evidence
 is not a hardware verification result.
+
+## Rendered frame controls
+
+The screen toolbar is in code-split renderer bundles:
+
+| Platform | Bundle | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Windows | `a9d6b129.js` | 192389 | `f37fba7b4eb24eb152b91e64fff1f44f9ff475018207d30d7656e52e0e52aab0` |
+| macOS | `5b38b4bd.js` | 192389 | `a7e76a5ca33907771c8af72107fef0fef27eb2a944630198c1ca500d8621dfb5` |
+
+Both raw bundles render add, remove, copy-previous, undo, redo, clear-current and
+clear-all controls in bytes 177750–179100. Each carries the screen-settings page
+identifier and invokes the drawing board. The parent mounts this toolbar beside
+the frame counter near byte 167470. Together with Glyph's screen metadata, this
+supports applicability to the Glyph screen editor. This does not establish every
+control in its separate image-import dialog or paint tools.
+
+The main renderer methods have these exact byte offsets (including `async` where
+present):
+
+| Method | Windows | macOS | Behavior |
+| --- | ---: | ---: | --- |
+| `addFrame` | 1838434 | 1847246 | Insert black after selection, select inserted frame; enforce maximum |
+| `copyPrevious` | 1838744 | 1847556 | Replace selection with previous frame; first frame is unchanged |
+| `reduceFrame` | 1838956 | 1847768 | Remove selection, retain nearest valid index; never remove the last frame |
+| `clearCurrentFrame` | 1839187 | 1847999 | Replace selected canvas with black |
+| `cleanAll` | 1839244 | 1848056 | Retain one black frame at index zero |
+| `addUndoList` | 1840248 | 1849060 | Retain up to ten canvas snapshots per frame |
+
+Linux now implements these five frame mutations through an offline draft API and
+explicit UI controls. Undo/redo restores complete frame drafts with separate
+bounded stacks, rather than emulating the vendor's per-canvas history. It does not
+claim paint-tool or complete editor parity. Clearing a draft does not send a
+screen-clear command: the user must explicitly upload the resulting image.
+Implementation and limits: [display.md](../display.md),
+`src/epomaker_driver/display_edit.py`, `ui/src/display.jsx` and
+`ui/src/display-preview.jsx`. Tests: `tests/test_display_edit.py`,
+`tests/test_display_prepare.py` and `ui/tests/display-edit.spec.js`.

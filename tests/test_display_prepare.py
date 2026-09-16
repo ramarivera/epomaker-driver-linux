@@ -170,3 +170,43 @@ def server_request(instance, path, *, body, token=None):
     response = connection.getresponse()
     raw = response.read()
     return response.status, json.loads(raw), response.headers
+
+
+def test_display_edit_http_preserves_library_frames_without_device_access(http_server):
+    body = json.dumps(
+        {
+            "kind": "screen",
+            "content": base64.b64encode(image_bytes()).decode(),
+            "operation": "add",
+            "index": 0,
+        }
+    )
+    status, _, _ = server_request(http_server, "/api/display_edit", body=body)
+    assert status == 403
+    status, edited, _ = server_request(
+        http_server, "/api/display_edit", body=body, token="test-token"
+    )
+    assert status == 200
+    assert edited["kind"] == "animation" and edited["frame_count"] == 2
+    assert edited["selected_index"] == 1 and edited["delay_ms"] == 80
+    controller = http_server.controller
+    entry = controller.call("display_asset_save", {**edited, "name": "Edited frames"})
+    loaded = controller.call("display_asset_get", {"id": entry["id"]})
+    assert loaded["preview_frames"] == edited["preview_frames"]
+    assert loaded["content"] == edited["content"]
+    assert controller.keyboard is None
+    for operation in ([], {}, "unknown"):
+        status, error, _ = server_request(
+            http_server,
+            "/api/display_edit",
+            body=json.dumps(
+                {
+                    "kind": "screen",
+                    "content": base64.b64encode(image_bytes()).decode(),
+                    "operation": operation,
+                    "index": 0,
+                }
+            ),
+            token="test-token",
+        )
+        assert status == 400 and "operation" in error["error"]
