@@ -1094,7 +1094,7 @@
         "tests/test_desktop_cli.py",
         "tests/test_browser_launch.py"
       ],
-      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Desktop-session activation, native installer packaging, tray and single-instance behavior remain unverified or unfinished."
+      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Service-backed activation reuses the fixed user unit; optional tray controls reopen the UI and quit the server. Native installer packaging, window hiding and desktop-session validation remain incomplete."
     },
     {
       "id": "G15.2",
@@ -1133,7 +1133,7 @@
         "tests/test_desktop_cli.py",
         "tests/test_browser_launch.py"
       ],
-      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Desktop-session activation, native installer packaging, tray and single-instance behavior remain unverified or unfinished."
+      "notes": "Built wheels support an XDG application-menu launcher with explicit install/update/status/uninstall commands. The launcher preserves its Python environment, opens a fresh loopback browser session, and keeps a terminal for shutdown. Removal preserves libraries/backups. Package upgrades remain explicit pip wheel installs. Service-backed activation reuses the fixed user unit; optional tray controls reopen the UI and quit the server. Native installer packaging, window hiding and desktop-session validation remain incomplete."
     },
     {
       "id": "G15.4",
@@ -1147,16 +1147,21 @@
         "ui/src/main.jsx",
         "docs/background-service.md",
         "src/epomaker_driver/user_service.py",
-        "src/epomaker_driver/control_socket.py"
+        "src/epomaker_driver/control_socket.py",
+        "src/epomaker_driver/tray.py",
+        "docs/tray.md",
+        "docs/releases/glyph-desktop-lifecycle-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "tests/test_user_service.py",
         "tests/test_control_socket.py",
-        "tests/test_service_activation.py"
+        "tests/test_service_activation.py",
+        "tests/test_tray.py",
+        "tests/test_tray_cli.py"
       ],
-      "notes": "Explicit systemd user service lifecycle, optional login enable/disable, private in-memory URL activation, and opt-in service-backed application-menu launch are implemented. Repeated activation uses the same fixed unit; startup/socket errors remain visible. Generated unit validated, standalone socket/SIGINT cleanup checked; no live user-unit installation tested. Tray and suspend/resume remain missing."
+      "notes": "Explicit systemd user service lifecycle, optional login enable/disable, private in-memory URL activation, and opt-in service-backed application-menu launch are implemented. Repeated activation uses the same fixed unit; startup/socket errors remain visible. Generated unit validated, standalone socket/SIGINT cleanup checked; no live user-unit installation tested. Optional StatusNotifier tray Open controls/Quit driver actions are implemented; tray-mode units follow graphical-session lifetime. Native browser-window hiding, graphical startup preferences and suspend/resume remain incomplete."
     },
     {
       "id": "G16.1",

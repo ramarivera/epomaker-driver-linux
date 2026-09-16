@@ -67,6 +67,7 @@ def parser():
     commands.add_parser("actions", help="list supported semantic binding names")
     serve = commands.add_parser("serve", help="start the local control interface")
     serve.add_argument("--port", type=int, default=8932)
+    serve.add_argument("--tray", action="store_true", help="show desktop tray controls")
     serve.add_argument(
         "--control-socket", type=Path, help="private Unix socket for browser activation"
     )
@@ -102,6 +103,10 @@ def parser():
     for command in ("service-install", "service-uninstall"):
         entry = commands.add_parser(command)
         entry.add_argument("--config-home", type=Path)
+        if command == "service-install":
+            entry.add_argument(
+                "--tray", action="store_true", help="enable tray in the user service"
+            )
     for command in (
         "service-start",
         "service-stop",
@@ -315,7 +320,7 @@ def execute(args):
             os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
         )
         if args.command == "service-install":
-            return user_service.install(config_home, Path(sys.executable))
+            return user_service.install(config_home, Path(sys.executable), tray=args.tray)
         return user_service.uninstall(config_home)
     if args.command in (
         "service-start",
@@ -364,7 +369,18 @@ def execute(args):
                 if args.control_socket is not None
                 else nullcontext()
             )
-            with activation:
+            tray_context = nullcontext()
+            if args.tray:
+                from .tray import Tray
+
+                tray_context = Tray(
+                    lambda: browser_launch.open_browser(
+                        url,
+                        fallback="Use epomaker service-open or the foreground terminal URL.",
+                    ),
+                    server.shutdown,
+                )
+            with activation, tray_context:
                 if args.control_socket is None:
                     print(url, flush=True)
                 if args.open_browser:

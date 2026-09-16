@@ -176,7 +176,8 @@ with optional comparison against queried component versions. Firmware flashing r
 See [snapshot behavior](docs/snapshots.md) for included settings, exclusions, and recovery.
 See [system-information collection](docs/system-info.md) for units and sensor selection.
 
-See [background service commands](docs/background-service.md) for optional systemd user lifecycle support.
+See [background service commands](docs/background-service.md) for optional systemd user lifecycle support
+and [tray controls](docs/tray.md) for desktop open/quit actions.
 
 ## Test
 
@@ -186,6 +187,8 @@ See [background service commands](docs/background-service.md) for optional syste
 .venv/bin/python -m build
 ```
 
+Tray integration tests require `dbus-daemon` and create an isolated test bus.
+They do not use the desktop session bus.
 Tests use fake transports and packet fixtures. Unit-test coverage is not hardware validation
 or feature parity. See [migration status](docs/parity.md), [model inventory](docs/model-inventory.md)
 and [protocol provenance](docs/provenance.md).

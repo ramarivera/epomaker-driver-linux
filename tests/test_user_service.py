@@ -140,7 +140,9 @@ def test_cli_service_routing(tmp_path, monkeypatch, capsys):
 
     seen = []
     monkeypatch.setattr(
-        user_service, "install", lambda home, executable: seen.append((home, executable)) or {}
+        user_service,
+        "install",
+        lambda home, executable, **kwargs: seen.append((home, executable)) or {},
     )
     monkeypatch.setattr(user_service, "uninstall", lambda home: seen.append(home) or {})
     monkeypatch.setattr(user_service, "control", lambda action: {"action": action})
@@ -152,3 +154,20 @@ def test_cli_service_routing(tmp_path, monkeypatch, capsys):
     for action in ("start", "stop", "status"):
         assert cli.main(["service-" + action]) == 0
     assert capsys.readouterr().out
+
+
+@pytest.mark.parametrize("tray", [False, True])
+def test_tray_unit_flag_is_explicit(tmp_path, monkeypatch, tray):
+    monkeypatch.setattr(user_service, "_systemctl", lambda action: None)
+    user_service.install(tmp_path, exe(tmp_path), tray=tray)
+    unit = (tmp_path / "systemd/user" / user_service.UNIT).read_text()
+    assert (" --tray" in unit) is tray
+    assert ("WantedBy=graphical-session.target" in unit) is tray
+    assert ("PartOf=graphical-session.target" in unit) is tray
+
+
+@pytest.mark.parametrize("tray", ["yes", 1, None])
+def test_invalid_tray_flag_does_not_install(tmp_path, tray):
+    with pytest.raises(ValueError, match="boolean"):
+        user_service.install(tmp_path, exe(tmp_path), tray=tray)
+    assert not (tmp_path / "systemd").exists()

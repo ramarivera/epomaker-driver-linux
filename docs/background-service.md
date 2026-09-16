@@ -89,8 +89,9 @@ Use `service-start` or `service-stop` for the current session. Neither enabling
 startup nor launching the driver restores a device connection or starts capture.
 No system-wide unit or lingering user manager is configured. User-manager
 lifetime can differ from graphical-login lifetime on an already-lingering system.
-Tray controls, suspend/resume restoration, and physical device lifecycle
-verification remain unfinished. Systems without a working systemd
+Optional [tray controls](tray.md) reopen the controls and quit the driver.
+Native browser-window hiding, graphical startup preferences, suspend/resume
+restoration, and physical device lifecycle verification remain unfinished. Systems without a working systemd
 user manager can continue to use `epomaker serve --open-browser`.
 
 ## Verification

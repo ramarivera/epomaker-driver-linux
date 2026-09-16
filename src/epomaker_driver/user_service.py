@@ -36,15 +36,23 @@ def _exec(value: Path) -> str:
     return f'"{escaped}"'
 
 
-def _unit(value: Path) -> str:
+def _unit(value: Path, *, tray: bool = False) -> str:
+    if type(tray) is not bool:
+        raise ValueError("tray must be a boolean")
+    tray_option = " --tray" if tray else ""
     return "\n".join(
         (
             "[Unit]",
             "Description=EPOMAKER Linux driver",
+            *(
+                ["After=graphical-session-pre.target", "PartOf=graphical-session.target"]
+                if tray
+                else []
+            ),
             "",
             "[Service]",
             MARKER,
-            f"ExecStart={_exec(value)} -m epomaker_driver.cli serve --port 0 --control-socket %t/epomaker-driver-linux/control.sock",
+            f"ExecStart={_exec(value)} -m epomaker_driver.cli serve --port 0 --control-socket %t/epomaker-driver-linux/control.sock{tray_option}",
             "RuntimeDirectory=epomaker-driver-linux",
             "RuntimeDirectoryMode=0700",
             "KillSignal=SIGINT",
@@ -54,7 +62,7 @@ def _unit(value: Path) -> str:
             "StandardError=journal",
             "",
             "[Install]",
-            "WantedBy=default.target",
+            "WantedBy=graphical-session.target" if tray else "WantedBy=default.target",
             "",
         )
     )
@@ -98,7 +106,9 @@ def _systemctl(action: str) -> subprocess.CompletedProcess:
         ) from error
 
 
-def install(config_home: Path, python_executable: Path) -> dict:
+def install(config_home: Path, python_executable: Path, *, tray: bool = False) -> dict:
+    if type(tray) is not bool:
+        raise ValueError("tray must be a boolean")
     home = _path(config_home, "config_home")
     executable = _path(python_executable, "python_executable")
     if not executable.is_file() or not os.access(executable, os.X_OK):
@@ -111,7 +121,7 @@ def install(config_home: Path, python_executable: Path) -> dict:
     fd, temporary = tempfile.mkstemp(prefix=f".{UNIT}.", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as output:
-            output.write(_unit(executable))
+            output.write(_unit(executable, tray=tray))
             output.flush()
             os.fsync(output.fileno())
         os.chmod(temporary, 0o644)
