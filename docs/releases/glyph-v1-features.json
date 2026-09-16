@@ -260,12 +260,16 @@
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
-        "ui/src/settings.jsx"
+        "ui/src/settings.jsx",
+        "docs/releases/glyph-settings-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_device.py",
+        "tests/test_snapshot.py"
+      ],
+      "notes": "Glyph YC3123 separate-byte option layout is verified against both platform writers. Linux exposes Windows/Mac and WASD swap with readback, preserves other option bytes, and restores raw snapshots. Vendor rendered-control applicability and physical behavior remain unresolved."
     },
     {
       "id": "G04.3",
@@ -277,12 +281,16 @@
         "docs/glyph-protocol.md",
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
-        "ui/src/settings.jsx"
+        "ui/src/settings.jsx",
+        "docs/releases/glyph-settings-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
-      "test_evidence": [],
-      "notes": "Pointers identify where to continue the audit; they are not a completed vendor comparison."
+      "test_evidence": [
+        "tests/test_device.py",
+        "tests/test_snapshot.py"
+      ],
+      "notes": "Separate 17/97 automatic-OS command mapping is verified against both platform writers and implemented with readback. Renderer state-management handlers are traced, but visibility of a Glyph vendor control and physical automatic switching remain unverified."
     },
     {
       "id": "G04.4",

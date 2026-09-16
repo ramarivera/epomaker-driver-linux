@@ -93,7 +93,7 @@ Do not apply this response layout to every family's firmware-version command; th
 | `06` | `86` | Shared-family debounce (not a Glyph control) | Value at `[1]`; excluded for Glyph by the [vendor gate](capability-gates.md#glyph-debounce) |
 | `07` | `87` | Main RGB effect | SET checksum at `[8]`; GET request checksum at `[7]` |
 | `08` | `88` | Side RGB effect | SET checksum at `[8]`; different effect IDs/speed handling |
-| `09` | `89` | Keyboard options | Multiple packed flags; port exact `setKBOption/getKBOption` |
+| `09` | `89` | Keyboard options | Glyph YC3123 uses separate bytes for system, Fn index, accidental-trigger prevention, RT stability and WASD swap; preserve fields not exposed for Glyph |
 | `0A` | `8A` | Key matrix | Single-slot or paged full matrix |
 | `0B` | `8B` | Macro data | 256-byte logical macro area; write chunks 56 bytes |
 | `0C` | `8C` | User RGB picture | RGB triples keyed by matrix slot; family sender uses 378-byte logical picture |

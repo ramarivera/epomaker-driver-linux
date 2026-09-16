@@ -1,6 +1,7 @@
 """Glyph/YC3123 packet encoders. Transport access lives in transport.py.
 
 See docs/provenance.md for protocol evidence.
+The Glyph full Fn writer framing is audited in docs/releases/glyph-full-writer-audit.md.
 All offsets are in command payloads, BEFORE the HID report-ID prefix.
 """
 
