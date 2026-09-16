@@ -210,3 +210,81 @@ def test_refresh_stops_on_transport_failure(tmp_path, firmware, descriptor):
         time.sleep(0.01)
     assert status["running"] is False
     assert status["error"] == "transport failed"
+
+
+@pytest.mark.parametrize("mode", ["screen", "music"])
+def test_host_follow_effect_stops_refresh_and_prevents_restart(
+    tmp_path, firmware, descriptor, mode
+):
+    ctl = make_controller(tmp_path, firmware, descriptor)
+    ctl.call("connect", {"path": ctl.discovery()[0].path})
+    try:
+        ctl.call("system_info_refresh_start", {"interval": 1})
+        wait_for_sample(ctl)
+        ctl.call("write", {"kind": "lighting", "mode": mode, "rgb": 0, "brightness": 3, "speed": 2})
+        assert not ctl.call("system_info_refresh", {})["running"]
+        writes = len(firmware.sent)
+        with pytest.raises(server.ProtocolError, match="host-follow lighting"):
+            ctl.call("system_info_refresh_start", {"interval": 1})
+        assert len(firmware.sent) == writes
+        ctl.call(
+            "write", {"kind": "lighting", "mode": "solid", "rgb": 0, "brightness": 3, "speed": 2}
+        )
+        assert not ctl.call("system_info_refresh", {})["running"]
+        assert ctl.call("system_info_refresh_start", {"interval": 1})["running"]
+    finally:
+        ctl.close()
+
+
+@pytest.mark.parametrize("side", [False, True])
+def test_onboard_effect_preserves_refresh(tmp_path, firmware, descriptor, side):
+    ctl = make_controller(tmp_path, firmware, descriptor)
+    ctl.call("connect", {"path": ctl.discovery()[0].path})
+    try:
+        ctl.call("system_info_refresh_start", {"interval": 1})
+        ctl.call(
+            "write",
+            {
+                "kind": "lighting",
+                "mode": "solid",
+                "side": side,
+                "rgb": 0,
+                "brightness": 3,
+                "speed": 2,
+            },
+        )
+        assert ctl.call("system_info_refresh", {})["running"]
+    finally:
+        ctl.close()
+
+
+def test_live_session_stops_refresh_until_explicit_restart(tmp_path, firmware, descriptor):
+    from test_live_light_session import advertise_light_sync
+
+    advertise_light_sync(firmware)
+    ctl = make_controller(tmp_path, firmware, descriptor)
+    ctl.call("connect", {"path": ctl.discovery()[0].path})
+    try:
+        ctl.call("system_info_refresh_start", {"interval": 1})
+        wait_for_sample(ctl)
+        session = ctl.call("live_light_start", {})["session"]
+        assert not ctl.call("system_info_refresh", {})["running"]
+        with pytest.raises(server.ProtocolError, match="host-follow lighting"):
+            ctl.call("system_info_refresh_start", {"interval": 1})
+        ctl.call("live_light_stop", {"session": session})
+        assert not ctl.call("system_info_refresh", {})["running"]
+        assert ctl.call("system_info_refresh_start", {"interval": 1})["running"]
+    finally:
+        ctl.close()
+
+
+def test_rejected_live_session_does_not_stop_refresh(tmp_path, firmware, descriptor):
+    ctl = make_controller(tmp_path, firmware, descriptor)
+    ctl.call("connect", {"path": ctl.discovery()[0].path})
+    try:
+        ctl.call("system_info_refresh_start", {"interval": 1})
+        with pytest.raises(server.UnsupportedDevice, match="light-sync"):
+            ctl.call("live_light_start", {})
+        assert ctl.call("system_info_refresh", {})["running"]
+    finally:
+        ctl.close()

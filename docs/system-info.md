@@ -8,7 +8,12 @@ the sample count, last CPU/temperature values, warnings and any stopping error.
 
 Refresh continues across page navigation and browser closure while the server
 runs. Explicit stop, disconnect, connection replacement, factory reset, backup
-restore and server shutdown stop it. A collection or transport error also stops
+restore, screen erase and server shutdown stop it. Starting live screen/audio
+lighting or selecting the main screen/music-follow effect also stops refresh.
+Refresh cannot start while those effects or a live-light session are active;
+stop live lighting, select an onboard effect, then explicitly restart refresh.
+Ordinary onboard effects and side-light changes leave refresh running.
+A collection or transport error also stops
 it, without automatic retries. Reconnecting does not restart it. This installs
 no daemon and adds no automatic startup or suspend/resume integration; those
 lifecycle workflows and physical display results remain unverified.
@@ -64,6 +69,18 @@ byte 7, disk and memory values at bytes 8–15, CPU usage/temperature at 16–17
 network totals at 18–21. Byte counts are rounded to whole GiB with .5 rounded upward.
 GiB fields are unsigned 16-bit; out-of-range values are rejected instead of wrapping.
 The vendor's refresh path normally sends every three seconds.
+
+The active keyboard worker's `checkSystemInfo` also disables synchronization when
+the main light type is `LightScreenColor` or contains `LightMusicFollow`. This is
+present in both pinned bundles: Windows `index.feaf50e4.js` byte 1,950,804
+(exclusion condition at 1,950,994), macOS `index.5af2e057.js` byte 1,959,616
+(condition at 1,959,806). Their SHA-256 hashes are respectively
+`72fb76b3c19e013d81e450d5245bc62bb5a275fcf6623530a5a652b9c7182be5`
+and `06c91320e6e5b0249fa9f80f055aa5e19099aa5762402cf7098ef8752a832286`.
+Offsets are UTF-8 bytes. The Linux controller enforces this exclusion while
+holding its device lock, so background uploads cannot race live-light acquisition.
+See `src/epomaker_driver/server.py` and `tests/test_system_info_refresh.py`.
+This evidence establishes a lighting interaction, not suspend/resume support.
 
 Local host collection was exercised successfully. Tests cover units, packet bytes,
 counter resets, missing/malformed sensors, interface selection, repeat sends and

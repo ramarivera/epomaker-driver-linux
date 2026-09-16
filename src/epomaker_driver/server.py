@@ -210,6 +210,14 @@ class Controller:
             keyboard = self.keyboard
             if keyboard is None or self.identity is None or self.identity.get("device_id") != 3059:
                 raise DeviceUnavailable("connect a Glyph keyboard first")
+            # Vendor checkSystemInfo excludes host-follow lighting; see docs/system-info.md.
+            if self.live_light.session is not None or keyboard.get_light()["mode"] in (
+                "screen",
+                "music",
+            ):
+                raise ProtocolError(
+                    "stop host-follow lighting and select an onboard effect before starting system-information refresh"
+                )
             return self.system_info_refresh.start(
                 keyboard,
                 data.get("interval"),
@@ -399,7 +407,10 @@ class Controller:
             self.vendor_preview = (token, record, planned)
             return {"token": token, "plan": copy.deepcopy(planned)}
         if operation == "live_light_start":
-            return self.live_light.start(keyboard)
+            result = self.live_light.start(keyboard)
+            # Controller ownership prevents a refresh write between acquisition and stop.
+            self.system_info_refresh.stop()
+            return result
         if operation == "live_light_frame":
             return self.live_light.frame(data.get("session"), data.get("colors"))
         if operation == "live_light_stop":
@@ -501,7 +512,7 @@ class Controller:
                     raise ValueError("Fn configurations require profile 0")
                 keyboard.write_fn_matrix(matrix, os_mode=int(entry["layer"] == "Fn Mac"))
         elif kind == "lighting":
-            return keyboard.set_light(
+            result = keyboard.set_light(
                 data["mode"],
                 side=data.get("side", False),
                 rgb=data["rgb"],
@@ -510,6 +521,9 @@ class Controller:
                 option=data.get("option", 0),
                 rainbow=data.get("rainbow", False),
             )
+            if not data.get("side", False) and data["mode"] in ("screen", "music"):
+                self.system_info_refresh.stop()
+            return result
         elif kind == "picture":
             keyboard.write_picture(bytes.fromhex(data["colors"]), data["index"])
         elif kind == "macro":

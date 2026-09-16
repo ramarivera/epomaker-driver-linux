@@ -873,7 +873,7 @@
         "tests/test_system_info_refresh.py",
         "ui/tests/system-info-refresh.spec.js"
       ],
-      "notes": "Explicit server-owned refresh survives app navigation and stops on disconnect, replacement, reset, restore, shutdown or sampling/transport error. No autostart or suspend/resume integration; vendor lifecycle comparison and physical display verification remain open."
+      "notes": "Explicit server-owned refresh survives app navigation and stops on disconnect, replacement, reset, restore, shutdown or sampling/transport error. No autostart or suspend/resume integration; vendor lifecycle comparison and physical display verification remain open. Both platform workers disable system-information synchronization during screen/music-follow lighting. Linux now stops refresh on live-session acquisition or main host-follow effect selection, rejects restarting it while either is active, and requires explicit restart afterward; onboard/side lighting remains independent."
     },
     {
       "id": "G10.5",
@@ -1108,12 +1108,13 @@
         "docs/releases/glyph-v1.md",
         "src/epomaker_driver/server.py",
         "ui/src/main.jsx",
-        "docs/releases/glyph-service-profile-audit.md"
+        "docs/releases/glyph-service-profile-audit.md",
+        "docs/releases/glyph-account-boundary-audit.md"
       ],
       "implementation_status": "unresolved",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Static Windows handlers separate account-independent local configuration/macro storage from login-gated cloud sharing and session-based community operations. Linux local libraries exist; vendor cloud sharing/community, full service applicability and macOS control comparison remain unresolved. No blanket exclusion is accepted."
+      "notes": "Static Windows handlers separate account-independent local configuration/macro storage from login-gated cloud sharing and session-based community operations. Linux local libraries exist; vendor cloud sharing/community, full rendered/service applicability remains unresolved. Both platforms now have verified matching account guards for macro/config sharing; this does not establish all cloud control envelopes. No blanket exclusion is accepted."
     },
     {
       "id": "G14.2",
