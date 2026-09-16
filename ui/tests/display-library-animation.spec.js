@@ -35,6 +35,16 @@ test("retained animation can be re-prepared with a new delay", async ({
   await expect(
     page.getByText("Source: Retained timing", { exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Next frame", exact: true }).click();
+  await expect(
+    page.getByRole("img", {
+      name: "Prepared display pixels, frame 2",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Play preview", exact: true }),
+  ).toBeDisabled();
   await page
     .getByLabel("Frame delay (ms, optional)", { exact: true })
     .fill("120");

@@ -17,10 +17,14 @@ frames are composed sequentially using Pillow's disposal/transparency handling.
 
 Choose an image and select **Prepare preview** before uploading. Preparation works
 without a keyboard connected and uses the same conversion as the uploader. Its
-428×142 preview reconstructs the first frame from the actual RGB565 wire pixels,
+428×142 preview reconstructs every frame from the actual RGB565 wire pixels,
 including black borders and color quantization. Animation preparation validates
 all frames and reports their count, total pixel bytes and the single effective
-frame delay. It does not yet preview animation playback or offer frame editing.
+frame delay. Use the frame selector or Previous/Next controls to inspect individual
+frames, or Play/Pause to preview at the effective delay. Desktop timing is approximate
+and does not verify keyboard playback. Zero-delay animations allow manual inspection
+only because their hardware timing is unknown. Changing the draft, leaving the
+Display page, or hiding the browser stops playback. Frame editing remains open.
 
 Changing the source, upload type or delay invalidates the prepared draft. Changing
 a still-image destination bank keeps the pixels. **Upload to display** sends the
@@ -37,9 +41,12 @@ for reuse. Screen-image integration into device backup remains open work.
 The offline API is `POST /api/display_prepare` with `content` (base64 image),
 `kind` (`screen` or `animation`) and optional `delay_ms`. It returns `width`,
 `height`, `frame_count`, `pixel_bytes`, `delay_ms` (null for stills) and
-`preview_png` (base64 PNG). It uses the same loopback authentication as other API
+`preview_frames` (an array of base64 PNGs). The legacy `preview_png` field retains
+the first frame for compatibility. It uses the same loopback authentication as other API
 operations. Implementation: `src/epomaker_driver/media.py`,
-`src/epomaker_driver/server.py` and `ui/src/display.jsx`.
+`src/epomaker_driver/server.py`, `ui/src/display.jsx` and
+`ui/src/display-preview.jsx`. Regression coverage: `tests/test_display_prepare.py`
+and `ui/tests/display-animation-preview.spec.js`.
 
 ## Timing and memory evidence
 

@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { api, base64File } from "./api";
 import { Button, Field, Panel, Select } from "./controls";
 import DisplayLibrary from "./display-library";
+import DisplayPreview from "./display-preview";
 import SystemInfoRefresh from "./system-info-refresh";
 export default function Display({ connected, transport, busy, run }) {
   const fileInput = useRef(null);
@@ -75,20 +76,16 @@ export default function Display({ connected, transport, busy, run }) {
           )}
         </div>
         {sourceName && <p>Source: {sourceName}</p>}
-        <div className="display-preview">
-          {prepared ? (
-            <img
-              src={`data:image/png;base64,${prepared.preview_png}`}
-              alt="Prepared display pixels, first frame"
-            />
-          ) : (
+        {prepared ? (
+          <DisplayPreview prepared={prepared} busy={busy} />
+        ) : (
+          <div className="display-preview">
             <span>Prepare an image to preview the keyboard’s pixels.</span>
-          )}
-        </div>
+          </div>
+        )}
         <p className="muted">
           428 × 142 pixels · Images fit with black borders · Animations support
-          up to 46 frames. The preview shows the first frame after RGB565
-          conversion.
+          up to 46 frames. Inspect converted RGB565 pixels before uploading.
         </p>
         {prepared && (
           <p role="status">

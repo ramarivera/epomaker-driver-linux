@@ -66,6 +66,18 @@ def test_prepare_display_animation_reports_delay_and_all_frame_bytes():
     assert result["frame_count"] == 2
     assert result["delay_ms"] == 80
     assert result["pixel_bytes"] == 2 * 428 * 142 * 2
+    assert len(result["preview_frames"]) == 2
+    assert result["preview_png"] == result["preview_frames"][0]
+    first = Image.open(io.BytesIO(base64.b64decode(result["preview_frames"][0])))
+    second = Image.open(io.BytesIO(base64.b64decode(result["preview_frames"][1])))
+    assert first.getpixel((214, 71)) == (255, 0, 0)
+    assert second.getpixel((214, 71)) == (0, 0, 255)
+
+
+def test_prepare_display_animation_preserves_zero_delay():
+    result = media.prepare_display(image_bytes(animated=True), kind="animation", delay_ms=0)
+    assert result["delay_ms"] == 0
+    assert len(result["preview_frames"]) == result["frame_count"]
 
 
 @pytest.mark.parametrize(

@@ -191,7 +191,11 @@ class DisplayLibrary:
         for key in ("delay_ms", "frame_count", "pixel_bytes"):
             if prepared[key] != entry[key]:
                 raise ValueError(f"display asset metadata mismatch for {key}")
-        return {**entry, "preview_png": prepared["preview_png"]}
+        return {
+            **entry,
+            "preview_png": prepared["preview_png"],
+            "preview_frames": prepared["preview_frames"],
+        }
 
     def export(self, ident):
         entry = self.get(ident)

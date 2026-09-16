@@ -101,11 +101,13 @@ def prepare_display(content, *, kind, delay_ms=None, model_id=3059):
         frames, actual_delay = screen_animation(
             source, fit=True, delay_ms=delay_ms, model_id=model_id
         )
+    preview_frames = [_preview_png(frame, spec) for frame in frames]
     return {
         "width": spec["width"],
         "height": spec["height"],
         "frame_count": len(frames),
         "delay_ms": actual_delay,
         "pixel_bytes": sum(len(frame) for frame in frames),
-        "preview_png": _preview_png(frames[0], spec),
+        "preview_frames": preview_frames,
+        "preview_png": preview_frames[0],
     }
