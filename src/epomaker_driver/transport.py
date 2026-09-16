@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import errno
 import fcntl
+import math
 import os
 import select
 import struct
@@ -15,8 +16,14 @@ import threading
 import time
 from collections.abc import Callable
 
-from .discovery import DeviceInfo
-from .errors import DevicePermissionError, DeviceUnavailable, ProtocolError, ResponseTimeout
+from .discovery import DeviceInfo, vendor_input_reports
+from .errors import (
+    DevicePermissionError,
+    DeviceUnavailable,
+    ProtocolError,
+    ResponseTimeout,
+    UnsupportedDevice,
+)
 
 TELEMETRY_INTERVAL = 5.0
 TELEMETRY_READ_BUDGET = 32
@@ -112,7 +119,9 @@ class HidrawIO:
 
 
 class Transport:
-    def __init__(self, io, kind: str, *, sleep=time.sleep, clock=time.monotonic):
+    def __init__(
+        self, io, kind: str, *, sleep=time.sleep, clock=time.monotonic, vendor_reports=None
+    ):
         if kind not in ("usb", "bluetooth"):
             raise ValueError("unsupported transport")
         self.io = io
@@ -126,6 +135,8 @@ class Transport:
         self._online_observed = None
         self._telemetry_attempt = None
         self.closed = False
+        self.vendor_reports = dict(vendor_reports or {})
+        self._screen_erase_completions = 0
 
     @classmethod
     def open(cls, device: DeviceInfo):
@@ -137,7 +148,12 @@ class Transport:
         except Exception:
             io.close()
             raise
-        return cls(io, device.command_transport)
+        try:
+            vendor_reports = vendor_input_reports(device)
+            return cls(io, device.command_transport, vendor_reports=vendor_reports)
+        except Exception:
+            io.close()
+            raise
 
     def close(self):
         with self._lock:
@@ -171,6 +187,7 @@ class Transport:
             )
 
     def _decode(self, raw: bytes) -> bytes | None:
+        self._record_screen_erase_completion(raw)
         # This node also carries normal keypress reports; discard them, never persist them.
         if len(raw) < 2 or raw[0] != 6:
             return None
@@ -185,6 +202,99 @@ class Transport:
                 raise ProtocolError("Bluetooth command reply must contain 64 payload bytes")
             return raw[2:]
         return None
+
+    def _record_screen_erase_completion(self, raw: bytes) -> bool:
+        """Record a descriptor-matched vendor completion input report."""
+
+        if self.kind == "bluetooth":
+            if (
+                self.vendor_reports.get(6) == 65
+                and len(raw) == 66
+                and raw[:2] == b"\x06\x66"
+                and raw[2:5] == b"\x2c\x00\x00"
+            ):
+                self._screen_erase_completions += 1
+                return True
+            return False
+        for report_id, payload_length in self.vendor_reports.items():
+            payload = None
+            if report_id == 0 and len(raw) == payload_length:
+                payload = raw
+            elif report_id != 0 and len(raw) == payload_length + 1 and raw[0] == report_id:
+                payload = raw[1:]
+            if payload is not None and payload[:3] == b"\x2c\x00\x00":
+                self._screen_erase_completions += 1
+                return True
+        return False
+
+    def prepare_screen_erase_wait(self):
+        """Drain queued inputs and return a token for a later erase completion wait."""
+
+        with self._lock:
+            self._check(bytes(64))
+            if not self.vendor_reports:
+                raise UnsupportedDevice("screen erase completion report is unavailable")
+            for _ in range(128):
+                raw = self.io.read(0)
+                if raw is None:
+                    break
+                if self.kind == "bluetooth":
+                    self._decode(raw)
+                else:
+                    self._record_screen_erase_completion(raw)
+            else:
+                if self.io.read(0) is not None:
+                    raise ProtocolError("screen erase input queue did not drain")
+            return self._screen_erase_completions
+
+    def wait_screen_erase(self, token, *, timeout=90, cancel=None, progress=None):
+        """Wait for a matching vendor completion input report without sending I/O."""
+
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+            raise ValueError("timeout must be a finite positive number")
+        if not (0 < timeout <= 300) or not math.isfinite(timeout):
+            raise ValueError("timeout must be a finite positive number no greater than 300")
+        if isinstance(token, bool) or not isinstance(token, int):
+            raise ValueError("completion token must be an integer")
+        if token < 0 or token > self._screen_erase_completions:
+            raise ValueError("completion token is outside the current range")
+        if cancel is not None and not callable(getattr(cancel, "is_set", None)):
+            raise ValueError("cancel must provide an is_set() method")
+        if progress is not None and not callable(progress):
+            raise ValueError("progress must be callable or None")
+
+        def operation():
+            self._check(bytes(64))
+            if not self.vendor_reports:
+                raise UnsupportedDevice("screen erase completion report is unavailable")
+            start = self.clock()
+            deadline = start + timeout
+            if progress:
+                progress(0)
+            if self._screen_erase_completions > token:
+                return True
+            while True:
+                if cancel is not None and cancel.is_set():
+                    raise ProtocolError(
+                        "screen erase completion wait cancelled; outcome is uncertain"
+                    )
+                now = self.clock()
+                if now >= deadline:
+                    raise ResponseTimeout(
+                        "screen erase completion was not received before deadline; outcome is uncertain"
+                    )
+                raw = self.io.read(min(0.25, deadline - now))
+                if raw is not None:
+                    if self.kind == "bluetooth":
+                        self._decode(raw)
+                    else:
+                        self._record_screen_erase_completion(raw)
+                    if self._screen_erase_completions > token:
+                        return True
+                if progress:
+                    progress(max(0, self.clock() - start))
+
+        return self.transaction(operation)
 
     def telemetry(self):
         """Poll Bluetooth status at most every five seconds and drain queued reports."""

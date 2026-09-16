@@ -109,7 +109,7 @@ Do not apply this response layout to every family's firmware-version command; th
 | — | `80` | RF firmware version | u16 at `[1:3]` |
 | — | `8F` | Identity/USB version | See above |
 | — | `AD` / `AE` | OLED / MLED version | u16 at `[1:3]` |
-| `AC` | — | Erase screen flash | Immediate ACK prefix `AC AA AA 55 55`; completion is a separate unsolicited report-data prefix `2C 00 00`, with Linux input routing unresolved |
+| `AC` | — | Erase screen flash | Immediate ACK prefix `AC AA AA 55 55`; completion is a separate unsolicited report-data prefix `2C 00 00`, scoped in Linux to descriptor-qualified vendor input on the same verified command path |
 
 The wider private analysis also indexes magnetic-axis, mouse and other family commands. Presence in the base class is not proof of Glyph support.
 

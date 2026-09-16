@@ -750,7 +750,9 @@
         "docs/releases/glyph-display-paint-audit.md",
         "docs/releases/glyph-display-import-audit.md",
         "src/epomaker_driver/display_import.py",
-        "ui/src/display-import.jsx"
+        "ui/src/display-import.jsx",
+        "src/epomaker_driver/transport.py",
+        "src/epomaker_driver/discovery.py"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -765,9 +767,11 @@
         "ui/tests/display-paint.spec.js",
         "tests/test_display_import.py",
         "ui/tests/display-import.spec.js",
-        "tests/test_glyph_screen_erase.py"
+        "tests/test_glyph_screen_erase.py",
+        "tests/test_screen_erase_transport.py",
+        "tests/test_screen_erase_transaction.py"
       ],
-      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Device screen clearing, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts. Offline frame insertion, copy-previous, deletion and clearing now preserve exact converted pixels and duplicate frames through lossless draft serialization; bounded undo/redo and explicit library/save/upload integration are available. Brush/eraser painting now includes 1/3/5-pixel stamps, RGB color, bounded stroke history, zoom/pan/reset and explicit Apply/Cancel into the draft; blank drafts are available. Import-dialog position/scale, still-frame replacement versus GIF-list replacement, zero-delay fallback60 and draft undo are now implemented. Source decoding is bounded and sequential; resampling uses an independent bicubic kernel. Device screen clearing and physical verification remain open. The vendor clear action invokes flash erase AC with ACK prefix AC AA AA 55 55; event completion and recovery remain under audit before implementation. Internal erase ACK validation is implemented and tested, but no GUI/CLI erase is exposed. Active Glyph completion requires unsolicited report-data prefix 2C 00 00; the vendor55-second progress timer does not complete the operation. Vendor input collection routing and exclusive operation/recovery remain unresolved."
+      "notes": "Five still destinations and a persistent named asset library support offline save/load/delete, original-source retention and portable JSON interchange. Frame insertion, copy-previous, deletion, clearing, painting, image placement and bounded undo/redo are implemented. Glyph screen erase now has an internal complete protocol transaction: one AC request, checked ACK and descriptor-scoped unsolicited completion reception while holding transport ownership. It never infers completion from the vendor55-second progress timer or retries erase automatically. The native adapter uses the same HID path for commands and incoming reports. App-owned erase progress, global operation exclusion, recovery, physical bank behavior and hardware verification remain open."
     },
     {
       "id": "G09.4",
@@ -783,7 +787,7 @@
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
       "test_evidence": [],
-      "notes": "Prepare acceptance polling and bounded failure handling exist. Pixel readback has not been found; do not invent a pixel query. Recovery and actual display output still require verification."
+      "notes": "Prepare acceptance polling and bounded failure handling exist. Pixel readback has not been found; do not invent a pixel query. Recovery and actual display output still require verification. Internal erase waits have bounded completion deadlines, cancellation and stale-report draining; timeout or interruption does not resend AC or imply completed erasure. Application recovery and physical interruption testing remain pending."
     },
     {
       "id": "G10.1",

@@ -1,6 +1,14 @@
 import pytest
 
-from epomaker_driver.discovery import Collection, Report, classify, discover, parse_descriptor
+from epomaker_driver.discovery import (
+    Collection,
+    DeviceInfo,
+    Report,
+    classify,
+    discover,
+    parse_descriptor,
+    vendor_input_reports,
+)
 from epomaker_driver.errors import ProtocolError
 
 
@@ -14,6 +22,21 @@ def test_actual_bluetooth_descriptor(descriptor):
     assert classify(5, 0x3151, 0x5004, {}) == (None, None)
     assert classify(5, 0x3151, 0x5002, reports) == (None, None)
     assert classify(5, 123, 0x5004, reports) == (None, None)
+    device = DeviceInfo("/dev/test", "Glyph", 5, 0x3151, 0x5004, descriptor, "bluetooth", 6)
+    assert vendor_input_reports(device) == {6: 65}
+
+
+def test_vendor_input_metadata_is_descriptor_scoped():
+    usb = bytes.fromhex("06ffff0902a1018501750895038102c0")
+    device = DeviceInfo("/dev/test", "", 3, 0x3151, 0x5002, usb, "usb", 1)
+    assert vendor_input_reports(device) == {1: 3}
+    feature_only = bytes.fromhex("06ffff0902a101850175089503b102c0")
+    assert vendor_input_reports(DeviceInfo("", "", 3, 0, 0, feature_only, "usb", 1)) == {}
+    mixed = bytes.fromhex("05010906a1018501750895038102c006ffff0902a1018501750895038102c0")
+    assert vendor_input_reports(DeviceInfo("", "", 3, 0, 0, mixed, "usb", 1)) == {}
+    output_only = bytes.fromhex("06ffff0902a1018501750895039102c0")
+    assert vendor_input_reports(DeviceInfo("", "", 3, 0, 0, output_only, "usb", 1)) == {}
+    assert vendor_input_reports(DeviceInfo("", "", 0, 0, 0, usb, None, None)) == {}
 
 
 def test_usb_and_global_stack():
@@ -83,3 +106,18 @@ def test_he60_usb_filters_require_matching_command_report(pid):
     ):
         assert classify(3, 0x3151, pid, parse_descriptor(bytes.fromhex(wrong))) == (None, None)
     assert classify(5, 0x3151, pid, parse_descriptor(descriptor)) == (None, None)
+
+
+def test_vendor_feature_does_not_label_keyboard_input_as_vendor():
+    raw = bytes.fromhex("05010906a1018501750895088102c006ffff0902a101850175089540b102c0")
+    report = parse_descriptor(raw)[1]
+    assert Collection(0xFFFF, 2) in report.collections
+    assert report.input_collections == {Collection(1, 6)}
+    device = DeviceInfo("/dev/test", "", 3, 0x3151, 0x5002, raw, "usb", 1)
+    assert vendor_input_reports(device) == {}
+
+
+def test_usb_event_report_usage_is_not_assumed_from_feature_usage():
+    raw = bytes.fromhex("0655ff0901a1018504750895408102c006ffff0902a10175089540b102c0")
+    device = DeviceInfo("/dev/test", "", 3, 0x3151, 0x5002, raw, "usb", 0)
+    assert vendor_input_reports(device) == {4: 64}

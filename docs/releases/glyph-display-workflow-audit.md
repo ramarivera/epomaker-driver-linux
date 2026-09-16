@@ -113,26 +113,56 @@ The other dispatcher at Windows byte 2006093 / macOS 2014905 belongs to the dong
 task and resets its event immediately after the call. It must not supply Glyph's
 completion semantics. Linux must wait for the actual completion notification,
 bound its wait, and retain an uncertain result after timeout or disconnection.
-The generic input callback constructs a report-ID-prefixed array (Windows byte
+The generic WebHID callback constructs a report-ID-prefixed array (Windows byte
 1696816 / macOS 1705628). Vendor receive strips that first byte (1699373 / 1708185)
 and passes the data to the event decoder. Its clear-completion predicate is an
 exact three-byte prefix `2C 00 00` (1698556 / 1707368), independently of the rest
 of the payload. `AC AA AA 55 55` is not the completion event.
 
-This JavaScript callback does not constrain the report ID, descriptor length or
-HID collection. Linux must establish which vendor input report carries the event
-before consuming it: normal keyboard report data must not be interpreted as a
-vendor completion marker. The known command feature collection alone does not
-prove its input routing. Resolve this through the platform HID adapter/opening
-path and the actual Glyph report descriptor. Do not strip a synthetic zero report
-ID from an unnumbered Linux input report without descriptor evidence.
+The desktop native adapter provides stronger path evidence than the WebHID
+callback alone. Windows class `WP` at byte 1694396 (macOS class `lM` at 1703208)
+uses one `devicePath` for feature reads, feature writes, output writes and report
+listening. The proto constructor selects that adapter at Windows byte 1697273.
+The native report stream routes responses by that same path (Windows 1693440).
+It does not open a separate event device in this adapter. This resolves the
+previous same-path question; concrete input report IDs still come from the device
+descriptor rather than a guessed constant.
 
-`Keyboard.request_screen_erase()` now implements only the acknowledged command:
-it re-identifies a normal Glyph, sends one exact request and validates the
-64-byte reply and signature. It does not retry on timeout or claim completion.
-Tests: `tests/test_glyph_screen_erase.py`. This primitive is not exposed through
-the GUI or CLI until the completion-wait and exclusive-operation lifecycle are
-implemented. No clear command has been sent to hardware.
+Bluetooth additionally routes notifications through marker `66`:
+`___decodeBtInputData` (Windows 1713630 / macOS 1722442) removes report ID and marker
+before decoding the vendor data. With the observed report-6 descriptor, a complete
+Linux input report is 66 bytes and starts `06 66 2C 00 00`. A `06 55` command reply
+must not be mistaken for completion.
+
+Linux discovery now tracks collections for **Input main items separately** from
+feature/output items. A vendor feature report alone cannot label ordinary keyboard
+input as a vendor event. On the verified USB command path, input reports belonging
+only to vendor-defined usage pages are eligible; their report IDs and payload sizes
+come from that descriptor. The bridge does not establish a fixed USB input usage
+or report ID, so Linux does not invent one. Unnumbered Linux input contains only
+the payload; numbered input must have the matching ID and exact descriptor length.
+Bluetooth requires report 6 in vendor collection FF55/0202 with its 65-byte payload
+and `66` routing marker. Reports mixing standard and vendor input collections are
+ineligible. A device without an eligible report cannot start the complete erase
+transaction.
+
+`Keyboard.request_screen_erase()` implements only the immediate ACK. The new
+`Keyboard.erase_screen()` holds transport ownership from stale-input draining
+through one erase request, ACK validation and completion reception. Timeout defaults
+to 90 seconds and is bounded to at most 300; it is a host failure deadline, not an
+inferred completion. Cancellation and expiry leave the outcome uncertain and never
+resend the command. Progress callbacks report elapsed seconds only. Completion
+received during Bluetooth ACK handling is retained for the pending wait.
+
+The complete transaction returns explicit acknowledgement/completion flags and
+`pixels_verified: false`. It does not inspect flash contents or prove visual output.
+The app-owned background operation, global device-access exclusion across HTTP
+requests, progress UI and interruption recovery are still required before exposing
+clear-screen through the GUI. No clear command has been sent to hardware.
+Implementation: `src/epomaker_driver/discovery.py`, `src/epomaker_driver/transport.py`
+and `src/epomaker_driver/device.py`. Tests: `tests/test_discovery.py`,
+`tests/test_glyph_screen_erase.py`, `tests/test_screen_erase_transport.py` and
+`tests/test_screen_erase_transaction.py`.
 
 Weather is excluded for this baseline. The weather visibility getter reads
 `other.screen.canWeather` (Windows byte 1844615, macOS 1853427), while its unit

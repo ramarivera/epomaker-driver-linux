@@ -25,6 +25,7 @@ class Report:
     output_bits: int = 0
     feature_bits: int = 0
     collections: set[Collection] = field(default_factory=set)
+    input_collections: set[Collection] = field(default_factory=set)
 
     def payload_bytes(self, kind: str) -> int:
         if kind not in ("input", "output", "feature"):
@@ -90,6 +91,8 @@ def parse_descriptor(data: bytes) -> dict[int, Report]:
                     raise ProtocolError("unreasonable aggregate HID report size")
                 setattr(report, name, total)
                 report.collections.update(collections)
+                if tag == 8:
+                    report.input_collections.update(collections)
             usage = 0
     if collections or stack:
         raise ProtocolError("unbalanced HID descriptor stacks")
@@ -145,6 +148,31 @@ def classify(bus: int, vid: int, pid: int, reports: dict[int, Report]):
         if r and Collection(0xFFFF, 2) in r.collections and r.payload_bytes("feature") == 64:
             return "usb", 0
     return None, None
+
+
+def vendor_input_reports(device: DeviceInfo) -> dict[int, int]:
+    """Return report IDs whose *input* descriptor is a vendor command report."""
+    if device.command_transport not in ("usb", "bluetooth"):
+        return {}
+    reports = parse_descriptor(device.descriptor)
+    result = {}
+    for report_id, report in reports.items():
+        collections = report.input_collections
+        if not collections or any(collection.usage_page < 0xFF00 for collection in collections):
+            continue
+        if device.command_transport == "usb":
+            # The native adapter listens on the verified command path without a
+            # fixed input report ID/usage. See docs/releases/glyph-display-workflow-audit.md.
+            size = report.payload_bytes("input")
+            if 3 <= size <= 8192:
+                result[report_id] = size
+        elif (
+            report_id == 6
+            and Collection(0xFF55, 0x0202) in collections
+            and report.payload_bytes("input") == 65
+        ):
+            result[report_id] = 65
+    return result
 
 
 def discover(root: Path = Path("/sys/class/hidraw")) -> list[DeviceInfo]:

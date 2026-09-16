@@ -253,9 +253,16 @@ RGB565 and `0xA9/0x29` for RGB24. This is why the existing shared codec is reuse
 
 The vendor's clear-screen action erases screen flash with command `AC`; it is
 separate from clearing an offline draft. The internal
-`Keyboard.request_screen_erase()` validates the immediate ACK only, with no
-automatic retry. It is not yet exposed as an application action. A later
-unsolicited completion notification, not elapsed time or the ACK, ends Glyph's
-vendor workflow. Completion reception, operation isolation, interruption handling
-and hardware validation remain open. See
-[the active Glyph event trace](releases/glyph-display-workflow-audit.md).
+`Keyboard.request_screen_erase()` validates the immediate ACK only. The complete
+`Keyboard.erase_screen()` transaction additionally requires a descriptor-scoped
+vendor input report and waits for the separate clear-completion notification.
+It holds transport ownership throughout, drains stale reports before sending,
+never retries erase automatically, and fails with an uncertain outcome on timeout
+or interruption. The default completion deadline is 90 seconds, configurable up
+to 300; elapsed time is not completion. Progress callbacks report elapsed seconds.
+
+A returned completion flag means the vendor completion event was received, not
+that pixels were read back or hardware behavior was verified. There is no GUI/CLI
+erase action yet: app-owned background progress, operation isolation across API
+requests and recovery still need integration. See
+[the active Glyph event and native-adapter trace](releases/glyph-display-workflow-audit.md).

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import math
 
 from . import codec, versions
 from .errors import ProtocolError, ResponseTimeout, UnsupportedDevice
@@ -588,22 +589,62 @@ class Keyboard:
         )
         self._transfer_screen(prepare, chunks, progress)
 
-    def request_screen_erase(self):
-        """Request Glyph screen erase and validate its acknowledgement.
+    def _screen_erase_device(self):
+        self.identify()
+        self._supported()
+        if self.identity["device_id"] != 3059:
+            raise UnsupportedDevice("screen erase is supported for Glyph only")
 
-        The acknowledgement confirms protocol acceptance; it does not prove that
-        the device has finished erasing its flash. See docs/display.md.
+    def _send_screen_erase(self):
+        response = self.transport.exchange(codec.packet([0xAC]), expected=0xAC)
+        if len(response) != 64 or response[:5] != bytes.fromhex("acaaaa5555"):
+            raise ProtocolError("invalid Glyph screen erase acknowledgement")
+        return response
+
+    def request_screen_erase(self):
+        """Validate the immediate ACK only; this does not establish completion.
+
+        Prefer erase_screen for the complete protocol transaction. The app-owned
+        operation lifecycle remains separate; see docs/display.md.
         """
 
         def operation():
-            self.identify()
-            self._supported()
-            if self.identity["device_id"] != 3059:
-                raise UnsupportedDevice("screen erase is supported for Glyph only")
-            response = self.transport.exchange(codec.packet([0xAC]), expected=0xAC)
-            if len(response) != 64 or response[:5] != bytes.fromhex("acaaaa5555"):
-                raise ProtocolError("invalid Glyph screen erase acknowledgement")
-            return response
+            self._screen_erase_device()
+            return self._send_screen_erase()
+
+        return self.transport.transaction(operation)
+
+    def erase_screen(self, *, timeout=90, cancel=None, progress=None):
+        """Send once and wait for descriptor-scoped completion, holding transport ownership.
+
+        Progress reports elapsed seconds, never inferred device completion.
+        Timeout/interruption after transmission leaves the erase outcome uncertain.
+        See docs/releases/glyph-display-workflow-audit.md.
+        """
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or not 0 < timeout <= 300
+            or not math.isfinite(timeout)
+        ):
+            raise ValueError("erase timeout must be finite and between 0 and 300 seconds")
+        if cancel is not None and not callable(getattr(cancel, "is_set", None)):
+            raise ValueError("cancel must provide is_set()")
+        if progress is not None and not callable(progress):
+            raise ValueError("progress must be callable")
+        if cancel is not None and cancel.is_set():
+            raise ProtocolError("screen erase cancelled before transmission")
+
+        def operation():
+            self._screen_erase_device()
+            token = self.transport.prepare_screen_erase_wait()
+            if cancel is not None and cancel.is_set():
+                raise ProtocolError("screen erase cancelled before transmission")
+            self._send_screen_erase()
+            self.transport.wait_screen_erase(
+                token, timeout=timeout, cancel=cancel, progress=progress
+            )
+            return {"acknowledged": True, "completion_received": True, "pixels_verified": False}
 
         return self.transport.transaction(operation)
 
