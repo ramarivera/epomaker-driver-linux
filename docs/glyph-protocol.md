@@ -134,7 +134,7 @@ Other action types are preserved in the matrices. `configToMatrix` / `changeArrT
 
 The hardware slot is **not** the HID keycode or UI key position. Resolve through `matrices.json`; duplicate usages are disambiguated by occurrence index. Default arrays contain hidden/unused positions, knob entries and duplicate Return/Backspace identities.
 
-Fn reads use `90, os-selector, fn-layer, FF, page`; system selectors are Windows 0, Mac 1, iOS 2, Android 3 in the base helper. Fn single writes use `10, os-selector, fn-layer, slot` and action bytes `[8:12]`. The full Fn sender has a special tenth packet with length 0 and final flag 1 despite padding data; reproduce/test that method separately rather than assuming normal-matrix chunk semantics.
+Fn reads use `90, os-selector, fn-layer, FF, page`; system selectors are Windows 0, Mac 1, iOS 2, Android 3 in the base helper. Fn single writes use `10, os-selector, fn-layer, slot` and action bytes `[8:12]`. The full Fn sender has a special tenth packet with length 0 and final flag 1 despite padding data; Glyph full-layer writes implement this separate packet format and verify full readback; see `tests/test_glyph_fn_bulk.py` and [the writer audit](releases/glyph-full-writer-audit.md). Physical persistence is unverified.
 
 ## Macros
 

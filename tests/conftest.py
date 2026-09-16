@@ -22,6 +22,8 @@ class SimulatedKeyboard:
             bytearray(glyph_matrix("defaultFnMatrix")),
             bytearray(glyph_matrix("defaultFnMacMatrix")),
         ]
+        self._fn_staging = {}
+        self._fn_staging_next = {}
         self.macros = {}
         self.profile = 0
         self.debounce = 5
@@ -104,8 +106,29 @@ class SimulatedKeyboard:
                 start = command[2] * 4
                 matrix[start : start + 4] = command[8:12]
         elif op == 0x10:
-            start = command[3] * 4
-            self.fn[command[1]][start : start + 4] = command[8:12]
+            if command[3] == 255:
+                os_mode, layer, page = command[1], command[2], command[4]
+                expected_length = 56 if page < 9 else 0
+                if command[5] != expected_length or command[6] != int(page == 9):
+                    raise AssertionError("invalid Fn full-write header")
+                if page == 0:
+                    self._fn_staging[(os_mode, layer)] = bytearray(512)
+                    self._fn_staging_next[(os_mode, layer)] = 0
+                staging = self._fn_staging.get((os_mode, layer))
+                if staging is None or page != self._fn_staging_next[(os_mode, layer)]:
+                    raise AssertionError("invalid Fn full-write sequence")
+                count = 56 if page < 9 else 8
+                start = page * 56
+                staging[start : start + count] = command[8 : 8 + count]
+                if page == 9:
+                    self.fn[os_mode][:] = staging
+                    self._fn_staging.pop((os_mode, layer))
+                    self._fn_staging_next.pop((os_mode, layer))
+                else:
+                    self._fn_staging_next[(os_mode, layer)] += 1
+            else:
+                start = command[3] * 4
+                self.fn[command[1]][start : start + 4] = command[8:12]
         elif op == 0x0B:
             matrix = self.macros.setdefault(command[1], bytearray(256))
             start = command[2] * 56

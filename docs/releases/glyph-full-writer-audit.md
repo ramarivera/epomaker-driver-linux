@@ -131,5 +131,15 @@ macro mode. The normal identity/occurrence resolver applies knob actions like
 other supplied actions, and both writers write each embedded `ConfigMacro`
 payload before the matrix. The individual editor exclusions are therefore not
 bulk-format constraints. See [knob evidence and preservation tests](glyph-knob-audit.md).
-Linux full Fn restoration uses changed-slot writes rather than the vendor's ten
-full chunks; equal simulated readback does not establish wire equivalence.
+Linux Glyph full Fn restoration now sends the same ten-chunk header/payload
+sequence through `src/epomaker_driver/codec.py` and `src/epomaker_driver/device.py`.
+The final header length remains zero while eight matrix bytes and 48 padding
+bytes follow. Windows/Mac Fn selectors are 0/1, and the supported Fn layer is 0.
+Every complete write is followed by full matrix readback. Other models retain
+their previous changed-slot implementation.
+
+`tests/test_glyph_fn_bulk.py` checks independent expected frames for every page,
+nonzero tail bytes, both systems, readback corruption and interrupted transport
+without automatic retries. The simulator stages chunks until the final flag;
+this is a test model, not evidence that physical firmware commits atomically.
+No physical Fn write or persistence verification has been performed.

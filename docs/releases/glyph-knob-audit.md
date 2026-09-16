@@ -66,6 +66,7 @@ would differ from the vendor bulk writer. Regression evidence in
 embedded payloads, readback, and recovery copies. This proves offline preservation;
 it does not establish physical playback for assignments hidden by the vendor UI.
 
-The Linux Fn matrix path currently writes changed slots individually and checks
-the complete matrix afterward; the vendor sends ten full-matrix chunks. Packet
-sequence equivalence and physical Fn persistence remain unverified.
+The Linux Glyph Fn matrix path now uses the vendor ten-chunk full-layer sequence
+and checks the complete matrix afterward. The final chunk carries eight matrix
+bytes despite its zero header length. Exact offline packet fixtures are in
+`tests/test_glyph_fn_bulk.py`; physical Fn persistence remains unverified.

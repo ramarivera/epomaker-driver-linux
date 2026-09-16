@@ -340,8 +340,14 @@ class Keyboard:
         if len(matrix) != 512:
             raise ValueError("Fn matrix must have 128 four-byte slots")
         codec.bounded(os_mode, 1, "OS selector")
+        self._supported()
 
         def operation():
+            if self.identity["device_id"] == 3059:
+                self._write(list(codec.fn_matrix_chunks(matrix, os_mode=os_mode)))
+                if self.read_matrix(fn=True, os_mode=os_mode) != matrix:
+                    raise ProtocolError("Fn matrix readback differs")
+                return
             previous = self.read_matrix(fn=True, os_mode=os_mode)
             commands = [
                 codec.fn_single(i, matrix[i * 4 : i * 4 + 4], os_mode=os_mode)

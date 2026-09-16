@@ -382,6 +382,20 @@ def fn_single(slot, action, *, layer=0, os_mode=0):
     )
 
 
+def fn_matrix_chunks(matrix, layer=0, os_mode=0):
+    """Glyph full Fn packets; docs/releases/glyph-full-writer-audit.md."""
+    matrix = bytes(matrix)
+    if len(matrix) != 512:
+        raise ValueError("Fn matrix must have 128 four-byte slots")
+    bounded(os_mode, 1, "OS selector")
+    bounded(layer, 0, "Fn layer")
+    for page in range(10):
+        chunk = matrix[page * 56 : page * 56 + 56]
+        length = 56 if page < 9 else 0
+        header = bytes([0x10, os_mode, layer, 255, page, length, int(page == 9), 0])
+        yield packet(header + chunk)
+
+
 def macro_data(repeat, events):
     bounded(repeat, 65535, "repeat count")
     if not isinstance(events, list) or any(
