@@ -690,7 +690,8 @@
         "src/epomaker_driver/device.py",
         "src/epomaker_driver/server.py",
         "ui/src/display.jsx",
-        "ui/src/display-preview.jsx"
+        "ui/src/display-preview.jsx",
+        "docs/releases/glyph-display-workflow-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -698,9 +699,11 @@
         "tests/test_display_prepare.py",
         "ui/tests/display-prepare.spec.js",
         "ui/tests/workflows.spec.js",
-        "ui/tests/display-animation-preview.spec.js"
+        "ui/tests/display-animation-preview.spec.js",
+        "tests/test_glyph_still_transport.py",
+        "ui/tests/display-transport.spec.js"
       ],
-      "notes": "Offline preparation validates all converted frames and previews their actual RGB565 pixels, with manual frame inspection, approximate desktop playback, frame count and effective timing. Zero-delay animations retain manual inspection only. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open."
+      "notes": "Offline preparation validates all converted frames and previews their actual RGB565 pixels, with manual frame inspection, approximate desktop playback, frame count and effective timing. Zero-delay animations retain manual inspection only. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open. Rendered Windows/macOS upload controls require wired USB for both stills and animations; backend and UI now enforce the actual connected transport. Offline editing remains available on all transports."
     },
     {
       "id": "G09.2",
@@ -712,7 +715,8 @@
         "docs/display.md",
         "src/epomaker_driver/device.py",
         "ui/src/display.jsx",
-        "ui/src/display-preview.jsx"
+        "ui/src/display-preview.jsx",
+        "docs/releases/glyph-display-workflow-audit.md"
       ],
       "implementation_status": "partial",
       "audit_status": "pending-control-level-audit",
@@ -722,9 +726,10 @@
         "ui/tests/workflows.spec.js",
         "tests/test_glyph_animation_transport.py",
         "ui/tests/display-transport.spec.js",
-        "ui/tests/display-animation-preview.spec.js"
+        "ui/tests/display-animation-preview.spec.js",
+        "tests/test_glyph_still_transport.py"
       ],
-      "notes": "Offline preparation validates all converted frames and previews their actual RGB565 pixels, with manual frame inspection, approximate desktop playback, frame count and effective timing. Zero-delay animations retain manual inspection only. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open. Glyph animation uploads require classified wired USB; the GUI uses connected transport metadata. Bluetooth/unknown transport cannot bypass the gate through multi-frame screen uploads."
+      "notes": "Offline preparation validates all converted frames and previews their actual RGB565 pixels, with manual frame inspection, approximate desktop playback, frame count and effective timing. Zero-delay animations retain manual inspection only. Explicit upload reuses the prepared source. Full editor workflows, physical rendering and transport verification remain open. Glyph animation uploads require classified wired USB; the GUI uses connected transport metadata. Bluetooth/unknown transport cannot bypass the gate through multi-frame screen uploads. Rendered Windows/macOS upload controls require wired USB for both stills and animations; backend and UI now enforce the actual connected transport. Offline editing remains available on all transports."
     },
     {
       "id": "G09.3",
@@ -761,7 +766,7 @@
         "tests/test_display_import.py",
         "ui/tests/display-import.spec.js"
       ],
-      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Device screen clearing, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts. Offline frame insertion, copy-previous, deletion and clearing now preserve exact converted pixels and duplicate frames through lossless draft serialization; bounded undo/redo and explicit library/save/upload integration are available. Brush/eraser painting now includes 1/3/5-pixel stamps, RGB color, bounded stroke history, zoom/pan/reset and explicit Apply/Cancel into the draft; blank drafts are available. Import-dialog position/scale, still-frame replacement versus GIF-list replacement, zero-delay fallback60 and draft undo are now implemented. Source decoding is bounded and sequential; resampling uses an independent bicubic kernel. Device screen clearing and physical verification remain open."
+      "notes": "Five still destinations and a persistent named display asset library support offline save/load/delete and explicit re-upload of original sources. Device screen clearing, physical bank behavior and transport verification remain open. Portable single-asset JSON export/import retains original sources and effective delays; imports create fresh entries without replacing drafts. Offline frame insertion, copy-previous, deletion and clearing now preserve exact converted pixels and duplicate frames through lossless draft serialization; bounded undo/redo and explicit library/save/upload integration are available. Brush/eraser painting now includes 1/3/5-pixel stamps, RGB color, bounded stroke history, zoom/pan/reset and explicit Apply/Cancel into the draft; blank drafts are available. Import-dialog position/scale, still-frame replacement versus GIF-list replacement, zero-delay fallback60 and draft undo are now implemented. Source decoding is bounded and sequential; resampling uses an independent bicubic kernel. Device screen clearing and physical verification remain open. The vendor clear action invokes flash erase AC with ACK prefix AC AA AA 55 55; event completion and recovery remain under audit before implementation."
     },
     {
       "id": "G09.4",
@@ -851,6 +856,20 @@
         "ui/tests/system-info-refresh.spec.js"
       ],
       "notes": "Explicit server-owned refresh survives app navigation and stops on disconnect, replacement, reset, restore, shutdown or sampling/transport error. No autostart or suspend/resume integration; vendor lifecycle comparison and physical display verification remain open."
+    },
+    {
+      "id": "G10.5",
+      "group": "G10",
+      "title": "Weather synchronization and unit selection",
+      "hardware_status": "unverified",
+      "applicability": "excluded",
+      "audit_pointers": [
+        "docs/releases/glyph-display-workflow-audit.md"
+      ],
+      "implementation_status": "not-applicable",
+      "audit_status": "source-audited",
+      "test_evidence": [],
+      "notes": "The vendor weather control requires screen.canWeather and its unit selector requires canweatherUnit. Glyph model3059 has neither flag in both reference installers; the shared YC3123 weather method is a false-returning stub. This is an exclusion for the audited baseline, not a claim about future firmware."
     },
     {
       "id": "G11.1",

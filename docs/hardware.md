@@ -4,10 +4,11 @@ Before any protocol command, the opened file descriptor is checked with Linux HI
 identity and report-descriptor ioctls against discovery. A changed identity or
 collection closes the handle and requires rediscovery.
 
-No configuration feature is hardware-verified yet. The connected Glyph's Bluetooth descriptor
+No configuration feature is hardware-verified yet. The previously observed Glyph Bluetooth descriptor
 matches report 6 with 65-byte input/output payloads, VID/PID 3151:5004, usage page FF55/usage 0202.
 Live command validation has not run. Wired USB is the selected first test transport;
-metadata discovery on 2026-09-16 still found only the Bluetooth Glyph collection.
+The latest metadata-only discovery on 2026-09-16 found no Glyph collection.
+An earlier scan that day observed its Bluetooth collection; neither is a command test.
 Hidraw paths are assigned dynamically and must be rediscovered.
 
 Discover dynamically. VID/PID and descriptor matching precede opening; the firmware's internal

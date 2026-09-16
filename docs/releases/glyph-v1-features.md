@@ -2,7 +2,7 @@
 
 Source of truth: [glyph-v1-features.json](glyph-v1-features.json). This is a **provisional workflow checklist**, not a closed vendor feature inventory or a completion percentage. It refines the [17 release acceptance areas](glyph-v1.md).
 
-The 62 rows include two evidence-backed exclusions (configurable polling rate and debounce). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
+The 63 rows include three evidence-backed exclusions (configurable polling rate, debounce and weather synchronization). Applicability and source mapping remain open for several workflows. All hardware results remain unverified. “Implemented” describes offline implementation only; “partial” is not a percentage.
 
 Audit pointers in the JSON are starting points for source review, not claims that every referenced behavior has been verified. Do not use the row count as the denominator for a 100% claim until the individual Windows/macOS Glyph controls and connection restrictions have been reconciled.
 
@@ -49,6 +49,7 @@ Audit pointers in the JSON are starting points for source review, not claims tha
 | G10.2 | Display language toggle | partial | expected |
 | G10.3 | Host statistics/system information | partial | expected |
 | G10.4 | Background refresh, suspend, and lifecycle updates | partial | expected |
+| G10.5 | Weather synchronization and unit selection | not-applicable | excluded |
 | G11.1 | Backup managed keyboard state | partial | expected |
 | G11.2 | Preserve unreferenced macro slots | implemented | expected |
 | G11.3 | Vendor local configurations and interchange | partial | expected |

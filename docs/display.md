@@ -29,11 +29,10 @@ Display page, or hiding the browser stops playback.
 Changing the source, upload type or delay invalidates the prepared draft. Changing
 a still-image destination bank keeps the pixels. **Upload to display** sends the
 prepared source and effective timing only after an explicit click and connection;
-preparation itself performs no device access. Glyph animation uploads require a
-wired USB connection; Bluetooth or unknown transports cannot upload animations.
+preparation itself performs no device access. Glyph still-image and animation uploads require a
+wired USB connection; Bluetooth, receiver or unknown transports cannot upload pixels.
 This follows the vendor UI gate, documented in
-[the display workflow audit](releases/glyph-display-workflow-audit.md). Single-frame
-still uploads are not given that restriction. Inputs remain locked during either
+[the display workflow audit](releases/glyph-display-workflow-audit.md). Both rendered vendor upload buttons carry that restriction. Inputs remain locked during either
 operation. The graphical file limit is 14 MiB; normal server request limits also
 apply. The [local asset library](glyph-display-assets.md) retains original files
 for reuse. Screen-image integration into device backup remains open work.

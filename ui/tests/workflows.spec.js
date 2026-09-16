@@ -11,10 +11,8 @@ test.beforeEach(async ({ page }) => {
   });
   if (await disconnect.isVisible()) await disconnect.click();
 });
-async function connect(page) {
-  await page
-    .getByLabel("Device", { exact: true })
-    .selectOption({ label: "Glyph simulator · bluetooth" });
+async function connect(page, label = "Glyph simulator · bluetooth") {
+  await page.getByLabel("Device", { exact: true }).selectOption({ label });
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Apply to keyboard", exact: true }),
@@ -156,7 +154,7 @@ test("macro edit and readback; invalid import preserves the editor", async ({
 test("display image upload, clock, backup download and verified restore", async ({
   page,
 }) => {
-  await connect(page);
+  await connect(page, "Glyph USB simulator · usb");
   await nav(page, "Display");
   await page.getByLabel("Still image bank", { exact: true }).selectOption("4");
   await page.getByLabel("Image file", { exact: true }).setInputFiles({

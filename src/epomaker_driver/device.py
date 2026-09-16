@@ -566,6 +566,9 @@ class Keyboard:
         self._supported()
         if frames > 1:
             self._require_wired_animation()
+        elif self.identity["device_id"] == 3059 and getattr(self.transport, "kind", None) != "usb":
+            # Both rendered upload buttons are gated; see docs/releases/glyph-display-workflow-audit.md.
+            raise UnsupportedDevice("Glyph display uploads require a wired USB connection")
         spec = display_spec(self.identity["device_id"])
         if frames > spec["max_frames"]:
             raise ValueError("animation exceeds model display memory")

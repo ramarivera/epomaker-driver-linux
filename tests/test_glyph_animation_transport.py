@@ -66,11 +66,14 @@ def test_glyph_usb_animation_succeeds(firmware):
     assert firmware.sent
 
 
-def test_glyph_still_upload_is_unchanged_on_bluetooth(firmware):
+def test_glyph_still_upload_is_rejected_on_bluetooth(firmware):
     firmware.kind = "bluetooth"
     keyboard = Keyboard(firmware)
-    keyboard.upload_screen(bytes(2), (0, 0, 1, 1))
-    assert firmware.sent
+    with pytest.raises(
+        UnsupportedDevice, match="Glyph display uploads require a wired USB connection"
+    ):
+        keyboard.upload_screen(bytes(2), (0, 0, 1, 1))
+    assert not firmware.sent
 
 
 def test_non_glyph_animation_is_not_subject_to_glyph_transport_gate(firmware):

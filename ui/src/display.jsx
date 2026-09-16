@@ -15,7 +15,7 @@ export default function Display({ connected, transport, busy, run }) {
     [kind, setKind] = useState("screen"),
     [bank, setBank] = useState(0),
     [delay, setDelay] = useState("");
-  const animationNeedsUsb = kind === "animation" && transport !== "usb";
+  const uploadNeedsUsb = transport !== "usb";
   const resetHistory = () => {
     history.current = { past: [], future: [] };
   };
@@ -265,12 +265,10 @@ export default function Display({ connected, transport, busy, run }) {
               ` · ${prepared.delay_ms} ms per frame`}
           </p>
         )}
-        {kind === "animation" && (
-          <p className="muted">
-            Animation upload requires wired USB. You can prepare and preview it
-            on any connection.
-          </p>
-        )}
+        <p className="muted">
+          Display uploads require wired USB. You can prepare and preview images
+          and animations on any connection.
+        </p>
         <div className="apply-row">
           <Button
             disabled={busy || !file}
@@ -308,7 +306,7 @@ export default function Display({ connected, transport, busy, run }) {
           </Button>
           <Button
             primary
-            disabled={!connected || busy || !prepared || animationNeedsUsb}
+            disabled={!connected || busy || !prepared || uploadNeedsUsb}
             onClick={() =>
               run(
                 () =>
