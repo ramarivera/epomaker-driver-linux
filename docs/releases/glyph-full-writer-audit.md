@@ -112,7 +112,24 @@ importer must validate and preserve any embedded payload, establish allocation
 and slot-collision behavior, and report absent payloads. Converting only the
 four-byte binding is not equivalent to the vendor’s full configuration write.
 
-The offline [vendor configuration preview](../vendor-config-preview.md) now
-resolves explicit action arrays using this baseline. It rejects ambiguous or
-unknown targets and reports macro dependencies; it does not perform any device
-writes or claim complete importer parity.
+The [vendor configuration preview](../vendor-config-preview.md) resolves explicit
+action arrays using this baseline. The separate `src/epomaker_driver/vendor_apply.py`
+workflow now allocates and writes embedded macros, saves a recovery snapshot,
+and applies/read-verifies the selected matrix. Preview alone performs no writes.
+Physical importer parity remains unverified.
+
+## macOS comparison and knob records
+
+The macOS YC3123 chunk `dist/js/623d2d52.js` has 38,628 bytes and SHA-256
+`e4f4ca92f999856242fae8ac6d527bf930a44223d03a5e9665993718f965a6c6`.
+The conversion range [16459,17420), normal-writer range [18007,19300), and
+Fn-writer range [34402,35700) are byte-identical to the Windows chunk. The
+public normal and Fn entry points are 18395 and 34786 on both platforms.
+
+Neither full conversion nor these writers checks `knobKeyCodes` or rejects held
+macro mode. The normal identity/occurrence resolver applies knob actions like
+other supplied actions, and both writers write each embedded `ConfigMacro`
+payload before the matrix. The individual editor exclusions are therefore not
+bulk-format constraints. See [knob evidence and preservation tests](glyph-knob-audit.md).
+Linux full Fn restoration uses changed-slot writes rather than the vendor's ten
+full chunks; equal simulated readback does not establish wire equivalence.

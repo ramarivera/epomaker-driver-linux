@@ -42,8 +42,30 @@ Regression evidence: `tests/test_glyph_knobs.py` and `ui/tests/glyph-knobs.spec.
 The latter covers all three inputs, both Fn tabs, raw input, and simulated
 readback. No physical command round trip has been performed.
 
-This closes the individual-assignment restriction gap only. Existing full-matrix
-backup/restore and vendor/local configuration imports remain byte-preserving;
-their treatment of changed knob actions needs a separate audit. The new guard
-is not a claim that all configuration entry points enforce these restrictions,
-or that firmware cannot contain or execute a binding hidden by the vendor UI.
+## Bulk import and restore
+
+The [full-writer audit](glyph-full-writer-audit.md) confirms a distinction
+between individual editor controls and bulk records. Windows YC3123 chunk
+`17dc9c62.js` and macOS `623d2d52.js` convert supplied actions through
+`_configsToMatrix` (16459), `_changeAllConfig` (16649), and `_changeMatrix`
+(16805). These functions resolve identity/occurrence and copy the four action
+bytes; they do not apply the editor's knob or held-playback exclusions.
+
+The public normal writer `setKeyConfig` (18395) and Fn writer
+`setFnKeyConfig` (34786) call that converter, write embedded macro payloads,
+then send the matrix. The reviewed conversion and writer byte ranges are
+identical across these two platform chunks. In particular, 18008 and 34403
+are substring matches inside the private `_setKeyConfig` / `_setFnKeyConfig`
+names; they must not be cited as the public entry points.
+
+Linux therefore preserves supplied knob actions in bulk imports and existing
+knob values in snapshot restore, including Fn bindings or held macros. Applying
+the individual editor guard to these paths would discard recoverable state and
+would differ from the vendor bulk writer. Regression evidence in
+`tests/test_glyph_knob_bulk.py` exercises actual simulated matrix writers,
+embedded payloads, readback, and recovery copies. This proves offline preservation;
+it does not establish physical playback for assignments hidden by the vendor UI.
+
+The Linux Fn matrix path currently writes changed slots individually and checks
+the complete matrix afterward; the vendor sends ten full-matrix chunks. Packet
+sequence equivalence and physical Fn persistence remain unverified.

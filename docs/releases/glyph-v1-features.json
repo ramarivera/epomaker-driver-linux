@@ -211,9 +211,10 @@
       "audit_status": "pending-control-level-audit",
       "test_evidence": [
         "tests/test_glyph_knobs.py",
+        "tests/test_glyph_knob_bulk.py",
         "ui/tests/glyph-knobs.spec.js"
       ],
-      "notes": "Three source-mapped knob inputs are selectable on Main. Individual assignment rejects held macros and Fn edits; GUI disables those choices and blocks raw held actions. Both vendor bundles confirm shared predicates apply via Glyph knobKeyCodes. Bulk configuration paths and physical knob behavior remain unverified or pending audit."
+      "notes": "Three source-mapped knob inputs are selectable on Main. Individual assignment rejects held macros and Fn edits; GUI disables those choices and blocks raw held actions. Both vendor bundles confirm shared predicates apply via Glyph knobKeyCodes. Both vendor bulk writers preserve supplied knob actions without individual editor exclusions; Linux import/restore preservation is covered by simulated round trips. Physical knob behavior and full Fn wire equivalence remain unverified."
     },
     {
       "id": "G03.5",
