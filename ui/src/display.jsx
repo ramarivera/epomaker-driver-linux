@@ -41,14 +41,16 @@ export default function Display({ connected, transport, busy, run }) {
     setFile(new File([bytes], sourceName || "Edited display"));
     if (fileInput.current) fileInput.current.value = "";
   };
-  const editFrame = (operation, index) =>
-    run(async () => {
+  const editFrame = async (operation, index, replacement) => {
+    let success = false;
+    await run(async () => {
       const result = await api("display_edit", {
         content: prepared.content,
         kind: prepared.kind,
         delay_ms: prepared.delay_ms,
         operation,
         index,
+        ...(replacement === undefined ? {} : { replacement }),
       });
       history.current = {
         past: keepHistory([
@@ -58,7 +60,10 @@ export default function Display({ connected, transport, busy, run }) {
         future: [],
       };
       useDraft(result);
+      success = true;
     });
+    return success;
+  };
   const restoreDraft = (direction) => {
     const source = history.current[direction];
     if (busy || !source.length) return;
@@ -73,6 +78,29 @@ export default function Display({ connected, transport, busy, run }) {
   return (
     <>
       <Panel title="Screen image">
+        <Button
+          disabled={busy}
+          onClick={() =>
+            run(async () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = 428;
+              canvas.height = 142;
+              const context = canvas.getContext("2d");
+              context.fillStyle = "#000000";
+              context.fillRect(0, 0, 428, 142);
+              const content = canvas.toDataURL("image/png").split(",")[1];
+              const result = await api("display_prepare", {
+                content,
+                kind: "screen",
+              });
+              resetHistory();
+              setSourceName("Blank frame");
+              useDraft({ ...result, content, kind: "screen" });
+            })
+          }
+        >
+          New blank draft
+        </Button>
         <div className="fields">
           <Field label="Image file">
             <input

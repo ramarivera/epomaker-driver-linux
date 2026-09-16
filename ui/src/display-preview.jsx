@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Button, Field, Select } from "./controls";
+import DisplayPaint from "./display-paint";
 
 // Preview actual wire pixels from media.py; upload data remains owned by Display.
 export default function DisplayPreview({ prepared, busy, onEdit }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [painting, setPainting] = useState(false);
   const frames = prepared.preview_frames || [prepared.preview_png];
   const current = Math.min(index, frames.length - 1);
   useEffect(() => {
@@ -91,6 +93,15 @@ export default function DisplayPreview({ prepared, busy, onEdit }) {
       )}
       {onEdit && (
         <div className="fields" role="group" aria-label="Edit display frames">
+          <Button
+            disabled={busy}
+            onClick={() => {
+              setPlaying(false);
+              setPainting(true);
+            }}
+          >
+            Paint this frame
+          </Button>
           {[
             ["add", "Insert black frame", frames.length >= 46],
             ["copy_previous", "Copy previous into this frame", current === 0],
@@ -110,6 +121,18 @@ export default function DisplayPreview({ prepared, busy, onEdit }) {
             </Button>
           ))}
         </div>
+      )}
+      {painting && (
+        <DisplayPaint
+          png={frames[current]}
+          busy={busy}
+          onCancel={() => setPainting(false)}
+          onApply={async (replacement) => {
+            const success = await onEdit("replace", current, replacement);
+            if (success) setPainting(false);
+            return success;
+          }}
+        />
       )}
     </>
   );

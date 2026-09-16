@@ -210,3 +210,50 @@ def test_display_edit_http_preserves_library_frames_without_device_access(http_s
             token="test-token",
         )
         assert status == 400 and "operation" in error["error"]
+
+
+@pytest.mark.parametrize(
+    "replacement,message",
+    [
+        (False, "base64 PNG"),
+        ("", "base64 PNG"),
+        ([], "base64 PNG"),
+        ("x" * (4 * ((1024 * 1024 + 2) // 3) + 1), "1 MiB"),
+    ],
+)
+def test_display_replacement_api_rejects_invalid_encoded_data(tmp_path, replacement, message):
+    controller = Controller(tmp_path)
+    with pytest.raises(ValueError, match=message):
+        controller.call(
+            "display_edit",
+            {
+                "content": base64.b64encode(image_bytes()).decode(),
+                "kind": "screen",
+                "operation": "replace",
+                "index": 0,
+                "replacement": replacement,
+            },
+        )
+    assert controller.keyboard is None
+
+
+def test_display_replace_http_quantizes_and_preserves_other_animation_frames(http_server):
+    output = io.BytesIO()
+    Image.new("RGB", (428, 142), (250, 120, 7)).save(output, format="PNG")
+    body = {
+        "content": base64.b64encode(image_bytes(animated=True)).decode(),
+        "kind": "animation",
+        "delay_ms": 0,
+        "operation": "replace",
+        "index": 1,
+        "replacement": base64.b64encode(output.getvalue()).decode(),
+    }
+    status, result, _ = server_request(
+        http_server, "/api/display_edit", body=json.dumps(body), token="test-token"
+    )
+    assert status == 200 and result["frame_count"] == 2 and result["delay_ms"] == 0
+    expected = media.prepare_display(image_bytes(animated=True), kind="animation", delay_ms=0)
+    assert result["preview_frames"][0] == expected["preview_frames"][0]
+    image = Image.open(io.BytesIO(base64.b64decode(result["preview_frames"][1])))
+    assert image.getpixel((15, 20)) == (255, 121, 0)
+    assert http_server.controller.keyboard is None

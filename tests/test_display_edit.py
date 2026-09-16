@@ -5,7 +5,7 @@ import pytest
 from PIL import Image
 
 from epomaker_driver.display_edit import edit_display
-from epomaker_driver.media import screen_animation
+from epomaker_driver.media import screen_animation, screen_image
 
 
 def source():
@@ -25,6 +25,12 @@ def three_frames():
         compression="raw",
         duration=[0, 1, 255],
     )
+    return out.getvalue()
+
+
+def replacement_png(color=(12, 34, 56)):
+    out = io.BytesIO()
+    Image.new("RGB", (428, 142), color).save(out, format="PNG")
     return out.getvalue()
 
 
@@ -134,6 +140,86 @@ def test_screen_delay_is_rejected():
         edit_display(source(), kind="screen", delay_ms=1, operation="clear", index=0)
 
 
+def test_replace_preserves_other_frames_selection_and_delay():
+    content = three_frames()
+    result = edit_display(
+        content,
+        kind="animation",
+        delay_ms=0,
+        operation="replace",
+        index=1,
+        replacement=replacement_png((250, 120, 7)),
+    )
+    frames, delay = screen_animation(io.BytesIO(base64.b64decode(result["content"])), delay_ms=0)
+    original, _ = screen_animation(io.BytesIO(content), delay_ms=255)
+    replacement = screen_image(io.BytesIO(replacement_png((250, 120, 7))), fit=False)
+    assert delay == 0 and result["selected_index"] == 1
+    assert frames[0] == original[0] and frames[1] == replacement and frames[2] == original[2]
+
+
+def test_replace_still_and_boundary_delays():
+    for delay in (0, 255):
+        result = edit_display(
+            source(),
+            kind="screen",
+            delay_ms=None,
+            operation="replace",
+            index=0,
+            replacement=replacement_png((1, 2, 3)),
+        )
+        assert result["kind"] == "screen" and result["selected_index"] == 0
+        animated = edit_display(
+            three_frames(),
+            kind="animation",
+            delay_ms=delay,
+            operation="replace",
+            index=2,
+            replacement=replacement_png((4, 5, 6)),
+        )
+        assert animated["delay_ms"] == delay and animated["selected_index"] == 2
+
+
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        b"not png",
+        replacement_png()[:40],
+        b"\x89PNG\r\n\x1a\n" + b"x" * 100,
+    ],
+)
+def test_replace_rejects_malformed_or_non_png(replacement):
+    with pytest.raises(ValueError, match="PNG|valid"):
+        edit_display(source(), kind="screen", operation="replace", index=0, replacement=replacement)
+
+
+def test_replace_rejects_wrong_size_animated_oversize_and_unexpected_payload():
+    wrong = io.BytesIO()
+    Image.new("RGB", (427, 142), "red").save(wrong, format="PNG")
+    animated = io.BytesIO()
+    Image.new("RGB", (428, 142), "red").save(
+        animated, format="PNG", save_all=True, append_images=[Image.new("RGB", (428, 142), "blue")]
+    )
+    for replacement, match in ((wrong.getvalue(), "exactly"), (animated.getvalue(), "exactly one")):
+        with pytest.raises(ValueError, match=match):
+            edit_display(
+                source(), kind="screen", operation="replace", index=0, replacement=replacement
+            )
+    with pytest.raises(ValueError, match="1 MiB"):
+        edit_display(
+            source(),
+            kind="screen",
+            operation="replace",
+            index=0,
+            replacement=b"x" * (1024 * 1024 + 1),
+        )
+    with pytest.raises(ValueError, match="required"):
+        edit_display(source(), kind="screen", operation="replace", index=0)
+    with pytest.raises(ValueError, match="only valid"):
+        edit_display(
+            source(), kind="screen", operation="clear", index=0, replacement=replacement_png()
+        )
+
+
 @pytest.mark.parametrize(
     "operation,index,order,selected",
     [
@@ -149,8 +235,6 @@ def test_screen_delay_is_rejected():
 def test_every_edit_preserves_exact_unmodified_pixels_and_selection(
     operation, index, order, selected
 ):
-    from epomaker_driver.media import screen_image
-
     images = [Image.new("RGB", (428, 142), (31, 95, 172 + i)) for i in range(3)]
     for i, image in enumerate(images):
         image.putpixel((0, 0), (255, i * 80, 0))
@@ -175,3 +259,12 @@ def test_every_edit_preserves_exact_unmodified_pixels_and_selection(
     assert actual == [bytes(121552) if item is None else original[item] for item in order]
     assert edited["frame_count"] == len(order)
     assert edited["selected_index"] == selected
+
+
+def test_replace_rejects_real_jpeg_instead_of_accepting_any_pillow_image():
+    output = io.BytesIO()
+    Image.new("RGB", (428, 142), "white").save(output, format="JPEG")
+    with pytest.raises(ValueError, match="PNG"):
+        edit_display(
+            source(), kind="screen", operation="replace", index=0, replacement=output.getvalue()
+        )

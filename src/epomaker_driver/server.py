@@ -246,12 +246,20 @@ class Controller:
                 raise ValueError("display content exceeds request size limit")
             content = base64.b64decode(encoded, validate=True)
             if operation == "display_edit":
+                replacement = data.get("replacement")
+                if replacement is not None:
+                    if not isinstance(replacement, str) or not replacement:
+                        raise ValueError("replacement must be a base64 PNG string")
+                    if len(replacement) > 4 * ((display_edit.MAX_REPLACEMENT_BYTES + 2) // 3):
+                        raise ValueError("replacement exceeds the 1 MiB limit")
+                    replacement = base64.b64decode(replacement, validate=True)
                 return display_edit.edit_display(
                     content,
                     kind=data.get("kind"),
                     delay_ms=data.get("delay_ms"),
                     operation=data.get("operation"),
                     index=data.get("index"),
+                    replacement=replacement,
                 )
             return media.prepare_display(
                 content,

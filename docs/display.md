@@ -73,11 +73,30 @@ stored separately. This avoids GIF palette loss and APNG duplicate-frame merging
 A full 46-frame TIFF is about 8.01 MiB, within the existing upload/library limits.
 Re-preparing, saving, exporting and loading retain those edited frames.
 
-This implements frame-list operations, not all vendor canvas/paint tools or device
-screen-clearing behavior. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
+The paint dialog adds brush/eraser editing of selected frames; device screen-clearing
+behavior and image-import transforms remain open. See [the rendered-control evidence](releases/glyph-display-workflow-audit.md).
 Implementation: `src/epomaker_driver/display_edit.py`, `src/epomaker_driver/server.py`,
 `ui/src/display.jsx`, `ui/src/display-preview.jsx`. Tests: `tests/test_display_edit.py`,
 `tests/test_display_prepare.py`, `ui/tests/display-edit.spec.js`.
+
+## Painting a frame
+
+Choose **New blank draft** to start without a file, or prepare/load an image and
+select **Paint this frame**. The modal editor supports brush and eraser with 1, 3,
+or 5-pixel square stamps, an RGB color picker, and ten stroke undo/redo entries.
+Use the zoom selector or wheel for 1–5× magnification; focus the canvas, hold Space
+and drag to pan. **Reset canvas view** restores the initial view.
+
+**Apply painting to draft** replaces only the selected frame and creates an entry
+in the whole-draft undo history. **Cancel painting** or Escape discards the modal's
+changes. A rejected apply retains the drawing for retry. No painting action uploads
+or saves an asset. Input colors are quantized to RGB565 on apply; the returned
+preview displays those actual wire pixels. Pending applies lock the modal controls.
+
+The `display_edit` operation `replace` takes an additional `replacement` field:
+base64 PNG, exactly 428×142, one frame, at most 1 MiB. Unexpected replacement data
+on other operations is rejected. Strict image validation precedes serialization.
+See [painting evidence and implementation](releases/glyph-display-paint-audit.md).
 
 ## Timing and memory evidence
 
@@ -85,7 +104,10 @@ The shipped `composeGifFrames` multiplies GIF centiseconds by ten, caps each del
 255, and `gif2Canvas` rounds the mean of those delays. The uploader passes this single
 delay value to every frame. The Linux implementation follows that same conversion,
 including rounding .5 upward. It does not preserve different durations per frame,
-because the vendor's upload path uses one averaged delay. `--delay-ms` overrides the
+because the vendor's upload path uses one averaged delay. The vendor's separate
+[image-import dialog](releases/glyph-display-import-audit.md) substitutes 60 ms when
+its rounded average is zero; Linux's direct preparation still preserves zero and
+does not yet implement that dialog workflow. `--delay-ms` overrides the
 average with an integer from 0 to 255; zero is preserved as a protocol value, without
 a hardware-verified playback meaning.
 
